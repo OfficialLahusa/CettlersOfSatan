@@ -20,7 +20,7 @@ namespace Client
             view = new View(new Vector2f(0, 0), new Vector2f(window.Size.X, window.Size.Y));
             window.SetView(view);
 
-            screen = new GameScreen(window, view);
+            screen = new MenuScreen(window);
 
             GuiImpl.Init(window);
 

@@ -41,13 +41,6 @@ namespace Client
             this.window = window;
             this.view = view;
 
-            float radius = 90f;
-            CircleShape shape = new CircleShape(radius)
-            {
-                FillColor = Color.Green,
-                Origin = new Vector2f(radius, radius)
-            };
-
             grid = new VertexArray(PrimitiveType.Triangles);
             lineColorVec = new System.Numerics.Vector3(.1f, .1f, .1f);
             backgroundColorVec = new System.Numerics.Vector3(.9f, .9f, .9f);
@@ -61,7 +54,6 @@ namespace Client
         {
             window.Clear(new Color(8, 25, 75));
 
-            //window.Draw(shape);
             window.Draw(grid);
 
             //ImGui.ShowDemoWindow();
