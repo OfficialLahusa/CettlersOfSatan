@@ -6,7 +6,7 @@ using VideoMode = SFML.Window.VideoMode;
 
 namespace Client
 {
-    public class MainWindow
+    public class Window
     {
         private RenderWindow window;
         private View view;
@@ -33,7 +33,7 @@ namespace Client
         private const float gridBorderWidth = .1f * gridCellWidth;
         private const float gridBorderHalfWidth = gridBorderWidth / 2f;
 
-        public MainWindow()
+        public Window()
         {
             float radius = 90f;
             CircleShape shape = new CircleShape(radius)

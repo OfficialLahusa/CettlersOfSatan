@@ -21,12 +21,12 @@ namespace Client
             Init(window, window, loadDefaultFont);
         }
 
-        public static void Init(Window window, RenderTarget target, bool loadDefaultFont = true)
+        public static void Init(SFML.Window.Window window, RenderTarget target, bool loadDefaultFont = true)
         {
             Init(window, new Vector2f(target.Size.X, target.Size.Y), loadDefaultFont);
         }
 
-        public static void Init(Window window, Vector2f displaySize, bool loadDefaultFont = true)
+        public static void Init(SFML.Window.Window window, Vector2f displaySize, bool loadDefaultFont = true)
         {
             var context = ImGui.CreateContext();
             var io = ImGui.GetIO();
@@ -175,7 +175,7 @@ namespace Client
             Update(window, window, dt);
         }
 
-        public static void Update(Window window, RenderTarget target, Time dt)
+        public static void Update(SFML.Window.Window window, RenderTarget target, Time dt)
         {
             // Update OS/hardware mouse cursor if imgui isn't drawing a software cursor
             UpdateMouseCursor(window);
@@ -313,7 +313,7 @@ namespace Client
             MouseCursors[(int)imguiCursorType] = new Cursor(sfmlCursorType);
         }
 
-        private static void UpdateMouseCursor(Window window)
+        private static void UpdateMouseCursor(SFML.Window.Window window)
         {
             var io = ImGui.GetIO();
             if ((io.ConfigFlags & ImGuiConfigFlags.NoMouseCursorChange) != 0) return;

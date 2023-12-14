@@ -4,7 +4,7 @@
     {
         public static void Main(String[] args)
         {
-            MainWindow window = new MainWindow();
+            Window window = new Window();
         }
     }
 }
