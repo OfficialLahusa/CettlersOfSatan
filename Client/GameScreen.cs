@@ -43,8 +43,6 @@ namespace Client
 
             _font = new Font(@"res\Open_Sans\static\OpenSans-Regular.ttf");
 
-            Random random = new Random();
-
             List<TileType> types = new List<TileType>(){
                 TileType.Brick, TileType.Brick, TileType.Brick,
                 TileType.Lumber, TileType.Lumber, TileType.Lumber, TileType.Lumber,
