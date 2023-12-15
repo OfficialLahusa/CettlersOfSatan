@@ -10,8 +10,8 @@ namespace Client
         private VertexBuffer _tiles;
         private VertexArray _gridLines;
         private HexMap<T> _map;
-        private Func<T?, Color> _tileColorFunc;
-        private Func<T?, Color> _gridColorFunc;
+        private Func<T, Color> _tileColorFunc;
+        private Func<T, Color> _gridColorFunc;
 
         #region Hexagon Side Length Constants
         private float _sideLength;
@@ -35,7 +35,7 @@ namespace Client
         }
         #endregion
 
-        public HexMapRenderer(HexMap<T> map, Func<T?, Color> tileColorFunc, Func<T?, Color> gridColorFunc, float sideLength)
+        public HexMapRenderer(HexMap<T> map, Func<T, Color> tileColorFunc, Func<T, Color> gridColorFunc, float sideLength)
         {
             _map = map;
             _tileColorFunc = tileColorFunc;
