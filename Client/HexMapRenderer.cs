@@ -173,23 +173,27 @@ namespace Client
                             _ => -1
                         };
 
-                        const float iconSize = 70;
-                        Vector2f position = new Vector2f(center.X - iconSize / 2, center.Y - iconSize / 2 - SideLength / 1.75f);
-                        FloatRect textureRect = (texId != -1) ? new FloatRect((texId % 8) * 512, (texId / 8) * 512, 512, 512) : new FloatRect(0, 0, 0, 0);
                         // Reduce color intensity by 50%
                         Color color = _tileColorFunc(tile) * new Color(128, 128, 128);
+                        FloatRect textureRect = (texId != -1) ? new FloatRect((texId % 8) * 512, (texId / 8) * 512, 512, 512) : new FloatRect(0, 0, 0, 0);
+                        const float iconSize = 70;
 
-                        Vertex vertTL = new Vertex(position,                                    color, new Vector2f(textureRect.Left,                       textureRect.Top));
-                        Vertex vertTR = new Vertex(position + new Vector2f(iconSize, 0),        color, new Vector2f(textureRect.Left + textureRect.Width,   textureRect.Top));
-                        Vertex vertBL = new Vertex(position + new Vector2f(0, iconSize),        color, new Vector2f(textureRect.Left,                       textureRect.Top + textureRect.Height));
-                        Vertex vertBR = new Vertex(position + new Vector2f(iconSize, iconSize), color, new Vector2f(textureRect.Left + textureRect.Width,   textureRect.Top + textureRect.Height));
+                        for(int i = -1; i < 2; i += 2)
+                        {
+                            Console.WriteLine(i);
+                            Vector2f position = new Vector2f(center.X - iconSize / 2, center.Y - iconSize / 2 + i * (SideLength / 1.75f));
+                            Vertex vertTL = new Vertex(position, color, new Vector2f(textureRect.Left, textureRect.Top));
+                            Vertex vertTR = new Vertex(position + new Vector2f(iconSize, 0), color, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top));
+                            Vertex vertBL = new Vertex(position + new Vector2f(0, iconSize), color, new Vector2f(textureRect.Left, textureRect.Top + textureRect.Height));
+                            Vertex vertBR = new Vertex(position + new Vector2f(iconSize, iconSize), color, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top + textureRect.Height));
 
-                        _overlay.Append(vertTL);
-                        _overlay.Append(vertTR);
-                        _overlay.Append(vertBL);
-                        _overlay.Append(vertTR);
-                        _overlay.Append(vertBR);
-                        _overlay.Append(vertBL);
+                            _overlay.Append(vertTL);
+                            _overlay.Append(vertTR);
+                            _overlay.Append(vertBL);
+                            _overlay.Append(vertTR);
+                            _overlay.Append(vertBR);
+                            _overlay.Append(vertBL);
+                        }
                     }
                 }
             }
