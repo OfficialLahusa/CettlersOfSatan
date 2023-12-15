@@ -17,9 +17,14 @@ namespace Common
             Number = number;
         }
 
+        public bool IsLandTile()
+        {
+            return Type != TileType.NonPlayable && Type != TileType.Water;
+        }
+
         public bool HasYield()
         {
-            return Type != TileType.NonPlayable && Type != TileType.Water && Number != null;
+            return IsLandTile() && Type != TileType.Desert && Number != null;
         }
 
         public static Tile Empty = new Tile(TileType.NonPlayable, null);

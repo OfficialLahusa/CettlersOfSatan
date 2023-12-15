@@ -54,7 +54,7 @@ namespace Client
 
             _tiles = new VertexBuffer(Map.Width * Map.Height * 4 * 3, PrimitiveType.Triangles, VertexBuffer.UsageSpecifier.Static);
             _grid = new VertexArray(PrimitiveType.Triangles);
-            _overlay = new VertexArray(PrimitiveType.Quads);
+            _overlay = new VertexArray(PrimitiveType.Triangles);
 
             _coords = new Text("", GameScreen.Font);
             _coords.CharacterSize = 55;
@@ -73,17 +73,20 @@ namespace Client
             uint width = Map.Width;
             uint height = Map.Height;
             Vertex[] tempTiles = new Vertex[width * height * 4 * 3];
+            _grid.Clear();
+            _overlay.Clear();
 
             for (int x = 0; x < width; x++)
             {
                 for (int y = 0; y < height; y++)
                 {
+                    Tile tile = Map.GetTile(x, y);
+
                     // Calculate Color from Tile Value
                     Color tileColor = _tileColorFunc(Map.GetTile(x, y));
                     Color? gridColor = _gridColorFunc(Map.GetTile(x, y));
 
                     Vector2f center = new Vector2f(x * 2 * FlatSideLength + ((y % 2 == 0) ? FlatSideLength : 0), y * 1.5f * SideLength);
-
                     
                     Vector2f[] points = new Vector2f[6];
                     Vertex[] vertices = new Vertex[6];
@@ -155,6 +158,39 @@ namespace Client
                             _grid.Append(gridOutsetVertices[(i + 1) % 6]);
                         }
                     }
+
+                    // Build static overlay
+                    if(tile.IsLandTile())
+                    {
+                        int texId = tile.Type switch
+                        {
+                            TileType.Lumber => 0,
+                            TileType.Brick => 1,
+                            TileType.Wool => 2,
+                            TileType.Grain => 3,
+                            TileType.Ore => 4,
+                            TileType.Desert => 12,
+                            _ => -1
+                        };
+
+                        const float iconSize = 70;
+                        Vector2f position = new Vector2f(center.X - iconSize / 2, center.Y - iconSize / 2 - SideLength / 1.75f);
+                        FloatRect textureRect = (texId != -1) ? new FloatRect((texId % 8) * 512, (texId / 8) * 512, 512, 512) : new FloatRect(0, 0, 0, 0);
+                        // Reduce color intensity by 50%
+                        Color color = _tileColorFunc(tile) * new Color(128, 128, 128);
+
+                        Vertex vertTL = new Vertex(position,                                    color, new Vector2f(textureRect.Left,                       textureRect.Top));
+                        Vertex vertTR = new Vertex(position + new Vector2f(iconSize, 0),        color, new Vector2f(textureRect.Left + textureRect.Width,   textureRect.Top));
+                        Vertex vertBL = new Vertex(position + new Vector2f(0, iconSize),        color, new Vector2f(textureRect.Left,                       textureRect.Top + textureRect.Height));
+                        Vertex vertBR = new Vertex(position + new Vector2f(iconSize, iconSize), color, new Vector2f(textureRect.Left + textureRect.Width,   textureRect.Top + textureRect.Height));
+
+                        _overlay.Append(vertTL);
+                        _overlay.Append(vertTR);
+                        _overlay.Append(vertBL);
+                        _overlay.Append(vertTR);
+                        _overlay.Append(vertBR);
+                        _overlay.Append(vertBL);
+                    }
                 }
             }
             _tiles.Update(tempTiles);
@@ -176,6 +212,8 @@ namespace Client
         {
             target.Draw(_tiles, states);
             target.Draw(_grid, states);
+            states.Texture = GameScreen.Atlas;
+            target.Draw(_overlay, states);
 
             for (int y = 0; y < Map.Height; y++)
             {
