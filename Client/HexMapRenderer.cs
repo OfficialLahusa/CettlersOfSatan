@@ -180,7 +180,6 @@ namespace Client
 
                         for(int i = -1; i < 2; i += 2)
                         {
-                            Console.WriteLine(i);
                             Vector2f position = new Vector2f(center.X - iconSize / 2, center.Y - iconSize / 2 + i * (SideLength / 1.75f));
                             Vertex vertTL = new Vertex(position, color, new Vector2f(textureRect.Left, textureRect.Top));
                             Vertex vertTR = new Vertex(position + new Vector2f(iconSize, 0), color, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top));
