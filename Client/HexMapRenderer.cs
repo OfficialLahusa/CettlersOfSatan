@@ -13,8 +13,9 @@ namespace Client
         private Func<T, Color> _tileColorFunc;
         private Func<T, Color> _gridColorFunc;
 
-        #region Hexagon Side Length Constants
+        #region Hexagon Dimensions
         private float _sideLength;
+        private float _borderWidth;
 
         // Outer circle radius
         public float SideLength
@@ -35,22 +36,23 @@ namespace Client
         }
         #endregion
 
-        public HexMapRenderer(HexMap<T> map, Func<T, Color> tileColorFunc, Func<T, Color> gridColorFunc, float sideLength)
+        public HexMapRenderer(HexMap<T> map, Func<T, Color> tileColorFunc, Func<T, Color> gridColorFunc, float sideLength, float borderWidth)
         {
             _map = map;
             _tileColorFunc = tileColorFunc;
             _gridColorFunc = gridColorFunc;
             SideLength = sideLength;
+            _borderWidth = borderWidth;
 
-            _tiles = new VertexBuffer(_map.Width * _map.Height * 6 * 3, PrimitiveType.Triangles, VertexBuffer.UsageSpecifier.Static);
+            _tiles = new VertexBuffer(_map.Width * _map.Height * 2 * 4 * 3, PrimitiveType.Triangles, VertexBuffer.UsageSpecifier.Static);
             _gridLines = new VertexArray(PrimitiveType.Lines);
 
-            // Create All Polygons
-            Rebuild();
+            // Create Geometry
+            Update();
         }
 
         // Update a Single Tile 
-        public void RebuildOne(int x, int y)
+        public void UpdateAt(int x, int y)
         {
             if (x >= _map.Width || x < 0) throw new ArgumentOutOfRangeException("x", "x needs to be 0 <= x < Width");
             if (y >= _map.Height || y < 0) throw new ArgumentOutOfRangeException("y", "y needs to be 0 <= y < Height");
@@ -91,15 +93,15 @@ namespace Client
             triangles[11] = hexTileVertices[5];
 
             // Update Vertex Buffer
-            _tiles.Update(triangles, (uint)triangles.Length, (uint)(x * _map.Height + y) * 4 * 3);
+            _tiles.Update(triangles, (uint)triangles.Length, (uint)(x * _map.Height + y) * 2 * 4 * 3);
         }
 
         // Update Tile Geometry
-        public void Rebuild()
+        public void Update()
         {
             uint width = _map.Width;
             uint height = _map.Height;
-            Vertex[] tempTiles = new Vertex[width * height * 6 * 3];
+            Vertex[] tempTiles = new Vertex[width * height * 2 * 4 * 3];
 
             for (int x = 0; x < width; x++)
             {
@@ -109,64 +111,58 @@ namespace Client
                     Color tileColor = _tileColorFunc(_map.GetTile(x, y));
                     Color gridColor = _gridColorFunc(_map.GetTile(x, y));
 
-
                     Vector2f center = new Vector2f(x * 2 * FlatSideLength + ((y % 2 == 0) ? FlatSideLength : 0), y * 1.5f * SideLength);
 
-                    // Define edge points
-                    Vector2f point1 = center + SideLength * new Vector2f(MathF.Cos((30.0f + 60.0f * 0) / 180.0f * MathF.PI), MathF.Sin((30.0f + 60.0f * 0) / 180.0f * MathF.PI));
-                    Vector2f point2 = center + SideLength * new Vector2f(MathF.Cos((30.0f + 60.0f * 1) / 180.0f * MathF.PI), MathF.Sin((30.0f + 60.0f * 1) / 180.0f * MathF.PI));
-                    Vector2f point3 = center + SideLength * new Vector2f(MathF.Cos((30.0f + 60.0f * 2) / 180.0f * MathF.PI), MathF.Sin((30.0f + 60.0f * 2) / 180.0f * MathF.PI));
-                    Vector2f point4 = center + SideLength * new Vector2f(MathF.Cos((30.0f + 60.0f * 3) / 180.0f * MathF.PI), MathF.Sin((30.0f + 60.0f * 3) / 180.0f * MathF.PI));
-                    Vector2f point5 = center + SideLength * new Vector2f(MathF.Cos((30.0f + 60.0f * 4) / 180.0f * MathF.PI), MathF.Sin((30.0f + 60.0f * 4) / 180.0f * MathF.PI));
-                    Vector2f point6 = center + SideLength * new Vector2f(MathF.Cos((30.0f + 60.0f * 5) / 180.0f * MathF.PI), MathF.Sin((30.0f + 60.0f * 5) / 180.0f * MathF.PI));
+                    
+                    Vector2f[] points = new Vector2f[6];
+                    Vector2f[] insetPoints = new Vector2f[6];
+                    Vector2f[] outsetPoints = new Vector2f[6];
+                    Vertex[] vertices = new Vertex[6];
+                    Vertex[] gridVertices = new Vertex[6];
+                    for(int i = 0; i < 6; i++)
+                    {
+                        // Hex points
+                        points[i] = center + SideLength * new Vector2f(MathF.Cos((30.0f + 60.0f * i) / 180.0f * MathF.PI), MathF.Sin((30.0f + 60.0f * i) / 180.0f * MathF.PI));
 
-                    #region Hexagon Filling
-                    // Tile partition triangle vertices
-                    Vertex tileVertex1 = new Vertex(point1, tileColor);
-                    Vertex tileVertex2 = new Vertex(point2, tileColor);
-                    Vertex tileVertex3 = new Vertex(point3, tileColor);
-                    Vertex tileVertex4 = new Vertex(point4, tileColor);
-                    Vertex tileVertex5 = new Vertex(point5, tileColor);
-                    Vertex tileVertex6 = new Vertex(point6, tileColor);
+                        // Inner points of hex (side length inset by half the border width)
+                        insetPoints[i] = center + (SideLength - _borderWidth / 2) * new Vector2f(MathF.Cos((30.0f + 60.0f * i) / 180.0f * MathF.PI), MathF.Sin((30.0f + 60.0f * i) / 180.0f * MathF.PI));
+
+                        // Outer points of hex (side length outset by half the border width)
+                        outsetPoints[i] = center + (SideLength + _borderWidth / 2) * new Vector2f(MathF.Cos((30.0f + 60.0f * i) / 180.0f * MathF.PI), MathF.Sin((30.0f + 60.0f * i) / 180.0f * MathF.PI));
+
+                        // Hex vertices
+                        vertices[i] = new Vertex(points[i], tileColor);
+                        // Grid vertices
+                        gridVertices[i] = new Vertex(points[i], gridColor);
+                    }
 
                     // Appending vertices in groups of three in correct order for triangle drawing
-                    tempTiles[(x * height + y) * 4 * 3 + 0] = tileVertex1;
-                    tempTiles[(x * height + y) * 4 * 3 + 1] = tileVertex2;
-                    tempTiles[(x * height + y) * 4 * 3 + 2] = tileVertex3;
-                    tempTiles[(x * height + y) * 4 * 3 + 3] = tileVertex1;
-                    tempTiles[(x * height + y) * 4 * 3 + 4] = tileVertex3;
-                    tempTiles[(x * height + y) * 4 * 3 + 5] = tileVertex4;
-                    tempTiles[(x * height + y) * 4 * 3 + 6] = tileVertex1;
-                    tempTiles[(x * height + y) * 4 * 3 + 7] = tileVertex4;
-                    tempTiles[(x * height + y) * 4 * 3 + 8] = tileVertex6;
-                    tempTiles[(x * height + y) * 4 * 3 + 9] = tileVertex4;
-                    tempTiles[(x * height + y) * 4 * 3 + 10] = tileVertex5;
-                    tempTiles[(x * height + y) * 4 * 3 + 11] = tileVertex6;
-                    #endregion
-
-                    #region Hexagon GridLines
-                    // Grid line vertices
-                    Vertex gridVertex1 = new Vertex(point1, gridColor);
-                    Vertex gridVertex2 = new Vertex(point2, gridColor);
-                    Vertex gridVertex3 = new Vertex(point3, gridColor);
-                    Vertex gridVertex4 = new Vertex(point4, gridColor);
-                    Vertex gridVertex5 = new Vertex(point5, gridColor);
-                    Vertex gridVertex6 = new Vertex(point6, gridColor);
+                    tempTiles[(x * height + y) * 2 * 4 * 3 + 0] = vertices[0];
+                    tempTiles[(x * height + y) * 2 * 4 * 3 + 1] = vertices[1];
+                    tempTiles[(x * height + y) * 2 * 4 * 3 + 2] = vertices[2];
+                    tempTiles[(x * height + y) * 2 * 4 * 3 + 3] = vertices[0];
+                    tempTiles[(x * height + y) * 2 * 4 * 3 + 4] = vertices[2];
+                    tempTiles[(x * height + y) * 2 * 4 * 3 + 5] = vertices[3];
+                    tempTiles[(x * height + y) * 2 * 4 * 3 + 6] = vertices[0];
+                    tempTiles[(x * height + y) * 2 * 4 * 3 + 7] = vertices[3];
+                    tempTiles[(x * height + y) * 2 * 4 * 3 + 8] = vertices[5];
+                    tempTiles[(x * height + y) * 2 * 4 * 3 + 9] = vertices[3];
+                    tempTiles[(x * height + y) * 2 * 4 * 3 + 10] = vertices[4];
+                    tempTiles[(x * height + y) * 2 * 4 * 3 + 11] = vertices[5];
 
                     // Appending vertices in pairs of two in correct order for line primitive type drawing
-                    _gridLines.Append(gridVertex1);
-                    _gridLines.Append(gridVertex2);
-                    _gridLines.Append(gridVertex2);
-                    _gridLines.Append(gridVertex3);
-                    _gridLines.Append(gridVertex3);
-                    _gridLines.Append(gridVertex4);
-                    _gridLines.Append(gridVertex4);
-                    _gridLines.Append(gridVertex5);
-                    _gridLines.Append(gridVertex5);
-                    _gridLines.Append(gridVertex6);
-                    _gridLines.Append(gridVertex6);
-                    _gridLines.Append(gridVertex1);
-                    #endregion
+                    _gridLines.Append(gridVertices[0]);
+                    _gridLines.Append(gridVertices[1]);
+                    _gridLines.Append(gridVertices[1]);
+                    _gridLines.Append(gridVertices[2]);
+                    _gridLines.Append(gridVertices[2]);
+                    _gridLines.Append(gridVertices[3]);
+                    _gridLines.Append(gridVertices[3]);
+                    _gridLines.Append(gridVertices[4]);
+                    _gridLines.Append(gridVertices[4]);
+                    _gridLines.Append(gridVertices[5]);
+                    _gridLines.Append(gridVertices[5]);
+                    _gridLines.Append(gridVertices[0]);
                 }
             }
             _tiles.Update(tempTiles);

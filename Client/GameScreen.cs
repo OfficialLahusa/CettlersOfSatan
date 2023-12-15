@@ -95,10 +95,10 @@ namespace Client
             Func<Tile, Color> gridColorFunc = val => val.Type switch
             {
                 TileType.Water or TileType.NonPlayable => Color.Transparent, // transparent for water/non-playable
-                _ => Color.White // white for land tiles
+                _ => new Color(0xd5, 0xbe, 0x84) // white for land tiles
             };
 
-            _renderer = new HexMapRenderer<Tile>(_map, tileColorFunc, gridColorFunc, 150);
+            _renderer = new HexMapRenderer<Tile>(_map, tileColorFunc, gridColorFunc, 150, 25);
 
             this.window.MouseWheelScrolled += Window_MouseWheelScrolled;
         }
@@ -214,53 +214,6 @@ namespace Client
             window.DispatchEvents();
             GuiImpl.Update(window, deltaTime);
         }
-
-        /*private void GenerateGrid(ref VertexArray grid, Color lineColor, Color backgroundColor)
-        {
-            grid.Clear();
-
-            for (int y = 0; y < gridHeight; y++)
-            {
-                for (int x = 0; x < gridWidth; x++)
-                {
-                    // Outer points
-                    Vector2f topLeft = new Vector2f(gridBorderHalfWidth + x * gridCellWidth, gridBorderHalfWidth + y * gridCellWidth);
-                    Vector2f topRight = new Vector2f(gridBorderHalfWidth + x * gridCellWidth + gridCellWidth, gridBorderHalfWidth + y * gridCellWidth);
-                    Vector2f bottomLeft = new Vector2f(gridBorderHalfWidth + x * gridCellWidth, gridBorderHalfWidth + y * gridCellWidth + gridCellWidth);
-                    Vector2f bottomRight = new Vector2f(gridBorderHalfWidth + x * gridCellWidth + gridCellWidth, gridBorderHalfWidth + y * gridCellWidth + gridCellWidth);
-
-                    // Inset points for given grid border width
-                    Vector2f innerTopLeft = topLeft + new Vector2f(gridBorderHalfWidth, gridBorderHalfWidth);
-                    Vector2f innerTopRight = topRight + new Vector2f(-gridBorderHalfWidth, gridBorderHalfWidth);
-                    Vector2f innerBottomLeft = bottomLeft + new Vector2f(gridBorderHalfWidth, -gridBorderHalfWidth);
-                    Vector2f innerBottomRight = bottomRight + new Vector2f(-gridBorderHalfWidth, -gridBorderHalfWidth);
-
-                    // Double outermost border thickness
-                    topLeft += new Vector2f(x == 0 ? -gridBorderHalfWidth : 0, y == 0 ? -gridBorderHalfWidth : 0);
-                    topRight += new Vector2f(x == (gridWidth - 1) ? gridBorderHalfWidth : 0, y == 0 ? -gridBorderHalfWidth : 0);
-                    bottomRight += new Vector2f(x == (gridWidth - 1) ? gridBorderHalfWidth : 0, y == (gridHeight - 1) ? gridBorderHalfWidth : 0);
-                    bottomLeft += new Vector2f(x == 0 ? -gridBorderHalfWidth : 0, y == (gridHeight - 1) ? gridBorderHalfWidth : 0);
-
-                    // Grid border triangles
-                    grid.Append(new Vertex(topLeft, lineColor));
-                    grid.Append(new Vertex(topRight, lineColor));
-                    grid.Append(new Vertex(bottomLeft, lineColor));
-
-                    grid.Append(new Vertex(bottomLeft, lineColor));
-                    grid.Append(new Vertex(bottomRight, lineColor));
-                    grid.Append(new Vertex(topRight, lineColor));
-
-                    // Grid background triangles
-                    grid.Append(new Vertex(innerTopLeft, backgroundColor));
-                    grid.Append(new Vertex(innerTopRight, backgroundColor));
-                    grid.Append(new Vertex(innerBottomLeft, backgroundColor));
-
-                    grid.Append(new Vertex(innerBottomLeft, backgroundColor));
-                    grid.Append(new Vertex(innerBottomRight, backgroundColor));
-                    grid.Append(new Vertex(innerTopRight, backgroundColor));
-                }
-            }
-        }*/
 
         private void Window_MouseWheelScrolled(object? sender, MouseWheelScrollEventArgs e)
         {
