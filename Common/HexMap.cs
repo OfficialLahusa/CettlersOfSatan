@@ -14,7 +14,7 @@ namespace Common
 
         public int Length { get { return _values.Length; } }
 
-        public HexMap(uint width, uint height, T? defaultValue = default)
+        public HexMap(uint width, uint height, T defaultValue = default)
         {
             Width = width;
             Height = height;

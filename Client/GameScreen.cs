@@ -92,9 +92,9 @@ namespace Client
                 TileType.Desert => new Color(0xd6, 0xcf, 0x9d), // beige
                 _ => Color.Transparent // non-playable => transparent
             };
-            Func<Tile, Color> gridColorFunc = val => val.Type switch
+            Func<Tile, Color?> gridColorFunc = val => val.Type switch
             {
-                TileType.Water or TileType.NonPlayable => Color.Transparent, // transparent for water/non-playable
+                TileType.Water or TileType.NonPlayable => null, // transparent for water/non-playable
                 _ => new Color(0xd5, 0xbe, 0x84) // white for land tiles
             };
 
@@ -121,7 +121,7 @@ namespace Client
                 for (int x = 0; x < _map.Width; x++)
                 {
                     Tile value = _map.GetTile(x, y);
-                    if(value.HasYield())
+                    if (value.HasYield())
                     {
                         // Circle Base
                         Vector2f center = _renderer.GetTileCenter(x, y);
@@ -130,7 +130,7 @@ namespace Client
 
                         // Yield Text
                         coords.DisplayedString = value.Number.ToString();
-                        if(value.Number == 8 || value.Number == 6)
+                        if (value.Number == 8 || value.Number == 6)
                         {
                             coords.FillColor = Color.Red;
                             coords.Style = Text.Styles.Bold;
@@ -146,10 +146,9 @@ namespace Client
                         window.Draw(coords);
                     }
                 }
-                    
+
             }
 
-            //ImGui.ShowDemoWindow();
             ImGui.Begin("Grid Utilities", ImGuiWindowFlags.AlwaysAutoResize);
 
             if (ImGui.BeginCombo("Snapping Function", snappingFunctions[snappingFunctionIdx]))
