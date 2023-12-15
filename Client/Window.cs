@@ -16,11 +16,11 @@ namespace Client
 
         public Window()
         {
-            window = new RenderWindow(new VideoMode(1920, 1080), "Cettlers of Satan", Styles.Default);
+            window = new RenderWindow(new VideoMode(1920, 1080), "Cettlers of Satan", Styles.Default, new ContextSettings() { AntialiasingLevel = 8 });
             view = new View(new Vector2f(0, 0), new Vector2f(window.Size.X, window.Size.Y));
             window.SetView(view);
 
-            screen = new MenuScreen(window);
+            screen = new GameScreen(window, view);
 
             GuiImpl.Init(window);
 

@@ -1,9 +1,11 @@
-﻿using ImGuiNET;
+﻿using Common;
+using ImGuiNET;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,6 +16,11 @@ namespace Client
     {
         private RenderWindow window;
         private View view;
+
+        private HexMap<Tile> _map;
+        private HexMapRenderer<Tile> _renderer;
+
+        private Font _font;
 
         private float viewZoom = 1f;
         private float viewZoomBase = 1f;
@@ -27,34 +34,122 @@ namespace Client
             "Corners"
         };
 
-        private VertexArray grid;
-        private System.Numerics.Vector3 lineColorVec;
-        private System.Numerics.Vector3 backgroundColorVec;
-        private int gridWidth = 10;
-        private int gridHeight = 10;
-        private const float gridCellWidth = 100f;
-        private const float gridBorderWidth = .1f * gridCellWidth;
-        private const float gridBorderHalfWidth = gridBorderWidth / 2f;
-
         public GameScreen(RenderWindow window, View view)
         {
             this.window = window;
             this.view = view;
 
-            grid = new VertexArray(PrimitiveType.Triangles);
-            lineColorVec = new System.Numerics.Vector3(.1f, .1f, .1f);
-            backgroundColorVec = new System.Numerics.Vector3(.9f, .9f, .9f);
+            _map = new HexMap<Tile>(7, 7, Tile.Empty);
+
+            _font = new Font(@"res\Open_Sans\static\OpenSans-Regular.ttf");
+
+            Random random = new Random();
+
+            List<TileType> types = new List<TileType>(){
+                TileType.Brick, TileType.Brick, TileType.Brick,
+                TileType.Lumber, TileType.Lumber, TileType.Lumber, TileType.Lumber,
+                TileType.Ore, TileType.Ore, TileType.Ore,
+                TileType.Grain, TileType.Grain, TileType.Grain, TileType.Grain,
+                TileType.Wool, TileType.Wool, TileType.Wool, TileType.Wool,
+                TileType.Desert
+            };
+            List<int> numbers = new List<int>()
+            {
+                2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12
+            };
+            Util.Shuffle(types);
+            Util.Shuffle(numbers);
+
+            for (int y = 0; y < _map.Height; y++)
+            {
+                for (int x = 0; x < _map.Width; x++)
+                {
+                    int dist = HexMap<Tile>.Distance(x, y, 3, 3);
+                    if (dist < 3)
+                    {
+                        TileType type = types[0];
+                        types.RemoveAt(0);
+
+                        int? number = null;
+                        if(type != TileType.Desert)
+                        {
+                            number = numbers[0];
+                            numbers.RemoveAt(0);
+                        }
+
+                        _map.SetTile(x, y, new Tile(type, number));
+                    } 
+                    else if (dist < 4) _map.SetTile(x, y, new Tile(TileType.Water, null));
+                }
+            }
+
+            Func<Tile?, Color> tileColorFunc = val => (val ?? Tile.Empty).Type switch
+            {
+                TileType.Water => new Color(0x2d, 0x64, 0x9d), // dark blue
+                TileType.Lumber => new Color(0x44, 0x92, 0x47), // dark green
+                TileType.Brick => new Color(0xd1, 0x70, 0x40), // orange-red
+                TileType.Wool => new Color(0x96, 0xb1, 0x41), //light green
+                TileType.Grain => new Color(0xe9, 0xbb, 0x4e), // grain => yellow
+                TileType.Ore => new Color(0xa5, 0xaa, 0xa7), // ore => gray
+                TileType.Desert => new Color(0xd6, 0xcf, 0x9d), // desert => beige
+                _ => Color.Transparent // non-playable => transparent
+            };
+            Func<Tile?, Color> gridColorFunc = val => (val ?? Tile.Empty).Type switch
+            {
+                TileType.Water or TileType.NonPlayable => Color.Transparent, // transparent for water/non-playable
+                _ => Color.White // white for land tiles
+            };
+
+            _renderer = new HexMapRenderer<Tile>(_map, tileColorFunc, gridColorFunc, 150);
 
             this.window.MouseWheelScrolled += Window_MouseWheelScrolled;
-
-            GenerateGrid(ref grid, Util.Vec3ToColor(lineColorVec), Util.Vec3ToColor(backgroundColorVec));
         }
 
         public void Draw(Time deltaTime)
         {
             window.Clear(new Color(8, 25, 75));
 
-            window.Draw(grid);
+            window.Draw(_renderer);
+
+            Text coords = new Text("0, 0", _font);
+            coords.CharacterSize = 55;
+            coords.FillColor = Color.Black;
+            CircleShape shape = new CircleShape(50, 32);
+            shape.FillColor = new Color(230, 230, 120);
+            shape.Origin = new Vector2f(shape.Radius, shape.Radius);
+
+            for (int y = 0; y < _map.Height; y++)
+            {
+                for (int x = 0; x < _map.Width; x++)
+                {
+                    Tile? value = _map.GetTile(x, y);
+                    if(value != null && value.HasYield())
+                    {
+                        // Circle Base
+                        Vector2f center = _renderer.GetTileCenter(x, y);
+                        shape.Position = center;
+                        window.Draw(shape);
+
+                        // Yield Text
+                        coords.DisplayedString = value.Number.ToString();
+                        if(value.Number == 8 || value.Number == 6)
+                        {
+                            coords.FillColor = Color.Red;
+                            coords.Style = Text.Styles.Bold;
+                        }
+                        else
+                        {
+                            coords.FillColor = Color.Black;
+                            coords.Style = Text.Styles.Regular;
+                        }
+                        FloatRect bounds = coords.GetLocalBounds();
+                        coords.Origin = new Vector2f(bounds.Left + bounds.Width / 2.0f, bounds.Top + bounds.Height / 2.0f);
+                        coords.Position = center;
+                        window.Draw(coords);
+                    }
+                }
+                    
+            }
 
             //ImGui.ShowDemoWindow();
             ImGui.Begin("Grid Utilities", ImGuiWindowFlags.AlwaysAutoResize);
@@ -76,7 +171,7 @@ namespace Client
 
             ImGui.Separator();
 
-            ImGui.SliderInt("Width", ref gridWidth, 1, 100);
+            /*ImGui.SliderInt("Width", ref gridWidth, 1, 100);
             ImGui.SliderInt("Height", ref gridHeight, 1, 100);
             ImGui.ColorEdit3("Lines", ref lineColorVec);
             ImGui.ColorEdit3("Background", ref backgroundColorVec);
@@ -84,7 +179,7 @@ namespace Client
             if (ImGui.Button("Generate"))
             {
                 GenerateGrid(ref grid, Util.Vec3ToColor(lineColorVec), Util.Vec3ToColor(backgroundColorVec));
-            }
+            }*/
 
             ImGui.End();
             GuiImpl.Render(window);
@@ -122,7 +217,7 @@ namespace Client
             GuiImpl.Update(window, deltaTime);
         }
 
-        private void GenerateGrid(ref VertexArray grid, Color lineColor, Color backgroundColor)
+        /*private void GenerateGrid(ref VertexArray grid, Color lineColor, Color backgroundColor)
         {
             grid.Clear();
 
@@ -167,7 +262,7 @@ namespace Client
                     grid.Append(new Vertex(innerTopRight, backgroundColor));
                 }
             }
-        }
+        }*/
 
         private void Window_MouseWheelScrolled(object? sender, MouseWheelScrollEventArgs e)
         {

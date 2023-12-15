@@ -10,7 +10,8 @@ namespace Client
         private VertexBuffer _tiles;
         private VertexArray _gridLines;
         private HexMap<T> _map;
-        private Func<T?, Color> _colorFunc;
+        private Func<T?, Color> _tileColorFunc;
+        private Func<T?, Color> _gridColorFunc;
 
         #region Hexagon Side Length Constants
         private float _sideLength;
@@ -34,10 +35,11 @@ namespace Client
         }
         #endregion
 
-        public HexMapRenderer(HexMap<T> map, Func<T?, Color> colorFunc, float sideLength)
+        public HexMapRenderer(HexMap<T> map, Func<T?, Color> tileColorFunc, Func<T?, Color> gridColorFunc, float sideLength)
         {
             _map = map;
-            _colorFunc = colorFunc;
+            _tileColorFunc = tileColorFunc;
+            _gridColorFunc = gridColorFunc;
             SideLength = sideLength;
 
             _tiles = new VertexBuffer(_map.Width * _map.Height * 6 * 3, PrimitiveType.Triangles, VertexBuffer.UsageSpecifier.Static);
@@ -54,7 +56,7 @@ namespace Client
             if (y >= _map.Height || y < 0) throw new ArgumentOutOfRangeException("y", "y needs to be 0 <= y < Height");
 
             // Calculate Color from Tile Value
-            Color color = _colorFunc(_map.GetTile(x, y));
+            Color color = _tileColorFunc(_map.GetTile(x, y));
 
             // Temporary Array of Partitioning Triangles, Which Will Be Later Used to Update the Vertex Buffer
             Vertex[] triangles = new Vertex[4 * 3];
@@ -104,7 +106,9 @@ namespace Client
                 for (int y = 0; y < height; y++)
                 {
                     // Calculate Color from Tile Value
-                    Color color = _colorFunc(_map.GetTile(x, y));
+                    Color tileColor = _tileColorFunc(_map.GetTile(x, y));
+                    Color gridColor = _gridColorFunc(_map.GetTile(x, y));
+
 
                     Vector2f center = new Vector2f(x * 2 * FlatSideLength + ((y % 2 == 0) ? FlatSideLength : 0), y * 1.5f * SideLength);
 
@@ -118,12 +122,12 @@ namespace Client
 
                     #region Hexagon Filling
                     // Tile partition triangle vertices
-                    Vertex tileVertex1 = new Vertex(point1, color);
-                    Vertex tileVertex2 = new Vertex(point2, color);
-                    Vertex tileVertex3 = new Vertex(point3, color);
-                    Vertex tileVertex4 = new Vertex(point4, color);
-                    Vertex tileVertex5 = new Vertex(point5, color);
-                    Vertex tileVertex6 = new Vertex(point6, color);
+                    Vertex tileVertex1 = new Vertex(point1, tileColor);
+                    Vertex tileVertex2 = new Vertex(point2, tileColor);
+                    Vertex tileVertex3 = new Vertex(point3, tileColor);
+                    Vertex tileVertex4 = new Vertex(point4, tileColor);
+                    Vertex tileVertex5 = new Vertex(point5, tileColor);
+                    Vertex tileVertex6 = new Vertex(point6, tileColor);
 
                     // Appending vertices in groups of three in correct order for triangle drawing
                     tempTiles[(x * height + y) * 4 * 3 + 0] = tileVertex1;
@@ -142,12 +146,12 @@ namespace Client
 
                     #region Hexagon GridLines
                     // Grid line vertices
-                    Vertex gridVertex1 = new Vertex(point1, Color.White);
-                    Vertex gridVertex2 = new Vertex(point2, Color.White);
-                    Vertex gridVertex3 = new Vertex(point3, Color.White);
-                    Vertex gridVertex4 = new Vertex(point4, Color.White);
-                    Vertex gridVertex5 = new Vertex(point5, Color.White);
-                    Vertex gridVertex6 = new Vertex(point6, Color.White);
+                    Vertex gridVertex1 = new Vertex(point1, gridColor);
+                    Vertex gridVertex2 = new Vertex(point2, gridColor);
+                    Vertex gridVertex3 = new Vertex(point3, gridColor);
+                    Vertex gridVertex4 = new Vertex(point4, gridColor);
+                    Vertex gridVertex5 = new Vertex(point5, gridColor);
+                    Vertex gridVertex6 = new Vertex(point6, gridColor);
 
                     // Appending vertices in pairs of two in correct order for line primitive type drawing
                     _gridLines.Append(gridVertex1);

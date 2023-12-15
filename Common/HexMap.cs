@@ -1,4 +1,6 @@
-﻿namespace Common
+﻿using System.Numerics;
+
+namespace Common
 {
     public class HexMap<T>
     {
@@ -63,6 +65,35 @@
                     _values[y * Width + x] = values[y * Width + x];
                 }
             }
+        }
+
+        /*
+         * Distance metric for even-r offset hex map
+         * https://stackoverflow.com/a/72385439
+         * https://www.redblobgames.com/grids/hexagons/
+         */
+        public static int Distance(int p1x, int p1y, int p2x, int p2y)
+        {
+            Vector3 point_1 = EvenRToCube(p1x, p1y);
+            Vector3 point_2 = EvenRToCube(p2x, p2y);
+            int a = (int)Math.Abs(point_1.X - point_2.X);
+            int b = (int)Math.Abs(point_1.Y - point_2.Y);
+            int c = (int)Math.Abs(point_1.Z - point_2.Z);
+            return Math.Max(a, Math.Max(b, c));
+        }
+
+        public static Vector3 EvenRToCube(int col, int row)
+        {
+            int q = col - ((row + (row % 2)) / 2);
+            int r = row;
+            return new Vector3(q, r, -q - r);
+        }
+
+        public static (int, int) CubeToEvenR(Vector3 cube)
+        {
+            int col = (int)cube.X + ((int)cube.Y + ((int)cube.Y & 1)) / 2;
+            int row = (int)cube.Y;
+            return (col, row);
         }
     }
 }
