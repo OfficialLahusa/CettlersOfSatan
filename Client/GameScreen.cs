@@ -27,7 +27,7 @@ namespace Client
         private const float moveSpeed = 300f;
 
         private int snappingFunctionIdx = 0;
-        private String[] snappingFunctions =
+        private string[] snappingFunctions =
         {
             "None",
             "Centers",
@@ -109,7 +109,7 @@ namespace Client
 
             window.Draw(_renderer);
 
-            Text coords = new Text("0, 0", _font);
+            Text coords = new Text("", _font);
             coords.CharacterSize = 55;
             coords.FillColor = Color.Black;
             CircleShape shape = new CircleShape(50, 32);
