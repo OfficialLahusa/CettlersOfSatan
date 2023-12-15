@@ -26,60 +26,14 @@ namespace Client
         private float viewZoomBase = 1f;
         private const float moveSpeed = 300f;
 
-        private int snappingFunctionIdx = 0;
-        private string[] snappingFunctions =
-        {
-            "None",
-            "Centers",
-            "Corners"
-        };
-
         public GameScreen(RenderWindow window, View view)
         {
             this.window = window;
             this.view = view;
 
-            _map = new HexMap<Tile>(7, 7, Tile.Empty);
+            _map = MapGenerator.GenerateRandomClassic();
 
             _font = new Font(@"res\Open_Sans\static\OpenSans-Regular.ttf");
-
-            List<TileType> types = new List<TileType>(){
-                TileType.Brick, TileType.Brick, TileType.Brick,
-                TileType.Lumber, TileType.Lumber, TileType.Lumber, TileType.Lumber,
-                TileType.Ore, TileType.Ore, TileType.Ore,
-                TileType.Grain, TileType.Grain, TileType.Grain, TileType.Grain,
-                TileType.Wool, TileType.Wool, TileType.Wool, TileType.Wool,
-                TileType.Desert
-            };
-            List<int> numbers = new List<int>()
-            {
-                2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12
-            };
-            Util.Shuffle(types);
-            Util.Shuffle(numbers);
-
-            for (int y = 0; y < _map.Height; y++)
-            {
-                for (int x = 0; x < _map.Width; x++)
-                {
-                    int dist = HexMap<Tile>.Distance(x, y, 3, 3);
-                    if (dist < 3)
-                    {
-                        TileType type = types[0];
-                        types.RemoveAt(0);
-
-                        int? number = null;
-                        if(type != TileType.Desert)
-                        {
-                            number = numbers[0];
-                            numbers.RemoveAt(0);
-                        }
-
-                        _map.SetTile(x, y, new Tile(type, number));
-                    } 
-                    else if (dist < 4) _map.SetTile(x, y, new Tile(TileType.Water, null));
-                }
-            }
 
             Func<Tile, Color> tileColorFunc = val => val.Type switch
             {
@@ -149,34 +103,17 @@ namespace Client
 
             }
 
-            ImGui.Begin("Grid Utilities", ImGuiWindowFlags.AlwaysAutoResize);
+            ImGui.Begin("Menu", ImGuiWindowFlags.AlwaysAutoResize);
 
-            if (ImGui.BeginCombo("Snapping Function", snappingFunctions[snappingFunctionIdx]))
-            {
-                for (int i = 0; i < snappingFunctions.Length; i++)
-                {
-                    bool selected = snappingFunctionIdx == i;
-                    if (ImGui.Selectable(snappingFunctions[i], selected))
-                    {
-                        snappingFunctionIdx = i;
-                    }
-                    if (selected) ImGui.SetItemDefaultFocus();
-                }
+            ImGui.Text($"FPS: {Math.Floor(1 / deltaTime.AsSeconds())}");
+            ImGui.Text($"Frametime: {Math.Round(deltaTime.AsMicroseconds() / 1000.0f, 3)}ms");
 
-                ImGui.EndCombo();
-            }
-
-            ImGui.Separator();
-
-            /*ImGui.SliderInt("Width", ref gridWidth, 1, 100);
-            ImGui.SliderInt("Height", ref gridHeight, 1, 100);
-            ImGui.ColorEdit3("Lines", ref lineColorVec);
-            ImGui.ColorEdit3("Background", ref backgroundColorVec);
-            ImGui.Text("Current Vertices: " + grid.VertexCount.ToString());
             if (ImGui.Button("Generate"))
             {
-                GenerateGrid(ref grid, Util.Vec3ToColor(lineColorVec), Util.Vec3ToColor(backgroundColorVec));
-            }*/
+                _map = MapGenerator.GenerateRandomClassic();
+                _renderer.Map = _map;
+                _renderer.Update();
+            }
 
             ImGui.End();
             GuiImpl.Render(window);

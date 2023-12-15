@@ -9,9 +9,11 @@ namespace Client
 {
     public class HexMapRenderer<T> : Drawable
     {
+        public HexMap<T> Map { get; set; }
+
         private VertexBuffer _tiles;
         private VertexArray _grid;
-        private HexMap<T> _map;
+        
         private Func<T, Color> _tileColorFunc;
         private Func<T, Color?> _gridColorFunc;
 
@@ -40,13 +42,13 @@ namespace Client
 
         public HexMapRenderer(HexMap<T> map, Func<T, Color> tileColorFunc, Func<T, Color?> gridColorFunc, float sideLength, float borderWidth)
         {
-            _map = map;
+            Map = map;
             _tileColorFunc = tileColorFunc;
             _gridColorFunc = gridColorFunc;
             SideLength = sideLength;
             _borderWidth = borderWidth;
 
-            _tiles = new VertexBuffer(_map.Width * _map.Height * 4 * 3, PrimitiveType.Triangles, VertexBuffer.UsageSpecifier.Static);
+            _tiles = new VertexBuffer(Map.Width * Map.Height * 4 * 3, PrimitiveType.Triangles, VertexBuffer.UsageSpecifier.Static);
             _grid = new VertexArray(PrimitiveType.Triangles);
 
             // Create Geometry
@@ -56,8 +58,8 @@ namespace Client
         // Update Tile Geometry
         public void Update()
         {
-            uint width = _map.Width;
-            uint height = _map.Height;
+            uint width = Map.Width;
+            uint height = Map.Height;
             Vertex[] tempTiles = new Vertex[width * height * 4 * 3];
 
             for (int x = 0; x < width; x++)
@@ -65,8 +67,8 @@ namespace Client
                 for (int y = 0; y < height; y++)
                 {
                     // Calculate Color from Tile Value
-                    Color tileColor = _tileColorFunc(_map.GetTile(x, y));
-                    Color? gridColor = _gridColorFunc(_map.GetTile(x, y));
+                    Color tileColor = _tileColorFunc(Map.GetTile(x, y));
+                    Color? gridColor = _gridColorFunc(Map.GetTile(x, y));
 
                     Vector2f center = new Vector2f(x * 2 * FlatSideLength + ((y % 2 == 0) ? FlatSideLength : 0), y * 1.5f * SideLength);
 
@@ -149,8 +151,8 @@ namespace Client
         // Get the Coordinates of the Center of a Given Tile Relative to the Origin of the HexMap
         public Vector2f GetTileCenter(int x, int y)
         {
-            if (x >= _map.Width || x < 0) throw new ArgumentOutOfRangeException("x", "x needs to be 0 <= x < Width");
-            else if (y >= _map.Height || y < 0) throw new ArgumentOutOfRangeException("y", "y needs to be 0 <= y < Height");
+            if (x >= Map.Width || x < 0) throw new ArgumentOutOfRangeException("x", "x needs to be 0 <= x < Width");
+            else if (y >= Map.Height || y < 0) throw new ArgumentOutOfRangeException("y", "y needs to be 0 <= y < Height");
             else
             {
                 return new Vector2f(x * 2 * FlatSideLength + ((y % 2 == 0) ? FlatSideLength : 0), y * 1.5f * SideLength);
