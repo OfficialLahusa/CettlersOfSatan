@@ -139,13 +139,27 @@ namespace Client
         private static void OnKeyPressed(object? sender, KeyEventArgs args)
         {
             var io = ImGui.GetIO();
-            io.KeysDown[(int)args.Code] = true;
+            try
+            {
+                io.KeysDown[(int)args.Code] = true;
+            }
+            catch (IndexOutOfRangeException)
+            {
+                Console.WriteLine("[Error] Unmapped Keypress: " + (int)args.Code);
+            }
         }
 
         private static void OnKeyReleased(object? sender, KeyEventArgs args)
         {
             var io = ImGui.GetIO();
-            io.KeysDown[(int)args.Code] = false;
+            try
+            {
+                io.KeysDown[(int)args.Code] = false;
+            }
+            catch (IndexOutOfRangeException)
+            {
+                Console.WriteLine("[Error] Unmapped Keypress: " + (int)args.Code);
+            }
         }
 
         private static void OnTextEntered(object? sender, TextEventArgs args)
