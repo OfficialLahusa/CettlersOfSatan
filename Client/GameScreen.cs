@@ -18,13 +18,21 @@ namespace Client
         private View view;
 
         private HexMap<Tile> _map;
-        private HexMapRenderer<Tile> _renderer;
+        private HexMapRenderer _renderer;
 
-        private Font _font;
+        public static Font Font;
+        public static Texture Atlas;
 
         private float viewZoom = 1f;
         private float viewZoomBase = 1f;
         private const float moveSpeed = 300f;
+
+        static GameScreen()
+        {
+
+            Font = new Font(@"res\Open_Sans\static\OpenSans-Regular.ttf");
+            Atlas = new Texture(@"res\atlas.png");
+        }
 
         public GameScreen(RenderWindow window, View view)
         {
@@ -32,8 +40,6 @@ namespace Client
             this.view = view;
 
             _map = MapGenerator.GenerateRandomClassic();
-
-            _font = new Font(@"res\Open_Sans\static\OpenSans-Regular.ttf");
 
             Func<Tile, Color> tileColorFunc = val => val.Type switch
             {
@@ -52,7 +58,7 @@ namespace Client
                 _ => new Color(0xd5, 0xbe, 0x84) // white for land tiles
             };
 
-            _renderer = new HexMapRenderer<Tile>(_map, tileColorFunc, gridColorFunc, 150, 25);
+            _renderer = new HexMapRenderer(_map, tileColorFunc, gridColorFunc, 150, 25);
 
             this.window.MouseWheelScrolled += Window_MouseWheelScrolled;
         }
@@ -62,46 +68,6 @@ namespace Client
             window.Clear(new Color(8, 25, 75));
 
             window.Draw(_renderer);
-
-            Text coords = new Text("", _font);
-            coords.CharacterSize = 55;
-            coords.FillColor = Color.Black;
-            CircleShape shape = new CircleShape(50, 32);
-            shape.FillColor = new Color(230, 230, 120);
-            shape.Origin = new Vector2f(shape.Radius, shape.Radius);
-
-            for (int y = 0; y < _map.Height; y++)
-            {
-                for (int x = 0; x < _map.Width; x++)
-                {
-                    Tile value = _map.GetTile(x, y);
-                    if (value.HasYield())
-                    {
-                        // Circle Base
-                        Vector2f center = _renderer.GetTileCenter(x, y);
-                        shape.Position = center;
-                        window.Draw(shape);
-
-                        // Yield Text
-                        coords.DisplayedString = value.Number.ToString();
-                        if (value.Number == 8 || value.Number == 6)
-                        {
-                            coords.FillColor = Color.Red;
-                            coords.Style = Text.Styles.Bold;
-                        }
-                        else
-                        {
-                            coords.FillColor = Color.Black;
-                            coords.Style = Text.Styles.Regular;
-                        }
-                        FloatRect bounds = coords.GetLocalBounds();
-                        coords.Origin = new Vector2f(bounds.Left + bounds.Width / 2.0f, bounds.Top + bounds.Height / 2.0f);
-                        coords.Position = center;
-                        window.Draw(coords);
-                    }
-                }
-
-            }
 
             ImGui.Begin("Menu", ImGuiWindowFlags.AlwaysAutoResize);
 

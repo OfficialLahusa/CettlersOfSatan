@@ -7,15 +7,19 @@ using Color = SFML.Graphics.Color;
 
 namespace Client
 {
-    public class HexMapRenderer<T> : Drawable
+    public class HexMapRenderer : Drawable
     {
-        public HexMap<T> Map { get; set; }
+        public HexMap<Tile> Map { get; set; }
 
         private VertexBuffer _tiles;
         private VertexArray _grid;
+        private VertexArray _overlay;
         
-        private Func<T, Color> _tileColorFunc;
-        private Func<T, Color?> _gridColorFunc;
+        private Func<Tile, Color> _tileColorFunc;
+        private Func<Tile, Color?> _gridColorFunc;
+
+        private Text _coords;
+        private CircleShape _center;
 
         #region Hexagon Dimensions
         private float _sideLength;
@@ -40,7 +44,7 @@ namespace Client
         }
         #endregion
 
-        public HexMapRenderer(HexMap<T> map, Func<T, Color> tileColorFunc, Func<T, Color?> gridColorFunc, float sideLength, float borderWidth)
+        public HexMapRenderer(HexMap<Tile> map, Func<Tile, Color> tileColorFunc, Func<Tile, Color?> gridColorFunc, float sideLength, float borderWidth)
         {
             Map = map;
             _tileColorFunc = tileColorFunc;
@@ -50,6 +54,14 @@ namespace Client
 
             _tiles = new VertexBuffer(Map.Width * Map.Height * 4 * 3, PrimitiveType.Triangles, VertexBuffer.UsageSpecifier.Static);
             _grid = new VertexArray(PrimitiveType.Triangles);
+            _overlay = new VertexArray(PrimitiveType.Quads);
+
+            _coords = new Text("", GameScreen.Font);
+            _coords.CharacterSize = 55;
+            _coords.FillColor = Color.Black;
+            _center = new CircleShape(50, 32);
+            _center.FillColor = new Color(230, 230, 120);
+            _center.Origin = new Vector2f(_center.Radius, _center.Radius);
 
             // Create Geometry
             Update();
@@ -164,6 +176,38 @@ namespace Client
         {
             target.Draw(_tiles, states);
             target.Draw(_grid, states);
+
+            for (int y = 0; y < Map.Height; y++)
+            {
+                for (int x = 0; x < Map.Width; x++)
+                {
+                    Tile value = Map.GetTile(x, y);
+                    if (value.HasYield())
+                    {
+                        // Circle Base
+                        Vector2f center = GetTileCenter(x, y);
+                        _center.Position = center;
+                        target.Draw(_center, states);
+
+                        // Yield Text
+                        _coords.DisplayedString = value.Number.ToString();
+                        if (value.Number == 8 || value.Number == 6)
+                        {
+                            _coords.FillColor = Color.Red;
+                            _coords.Style = Text.Styles.Bold;
+                        }
+                        else
+                        {
+                            _coords.FillColor = Color.Black;
+                            _coords.Style = Text.Styles.Regular;
+                        }
+                        FloatRect bounds = _coords.GetLocalBounds();
+                        _coords.Origin = new Vector2f(bounds.Left + bounds.Width / 2.0f, bounds.Top + bounds.Height / 2.0f);
+                        _coords.Position = center;
+                        target.Draw(_coords, states);
+                    }
+                }
+            }
         }
     }
 }
