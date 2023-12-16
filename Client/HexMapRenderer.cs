@@ -173,8 +173,26 @@ namespace Client
                             _ => -1
                         };
 
-                        // Reduce color intensity by 50%
-                        Color color = _tileColorFunc(tile) * new Color(128, 128, 128);
+                        
+                        Color color = _tileColorFunc(tile);
+                        // Grain/Brick: Increase primary intensity
+                        if(tile.Type == TileType.Grain || tile.Type == TileType.Brick)
+                        {
+                            byte max = Math.Max(color.R, Math.Max(color.G, color.B));
+                            float fac = 255.0f / max * 0.8f;
+                            color *= new Color((byte)(color.R * fac), (byte)(color.G * fac), (byte)(color.B * fac));
+                        }
+                        // Wool: Static light gray/white shade
+                        else if (tile.Type == TileType.Wool)
+                        {
+                            color = new Color(230, 230, 230);
+                        }
+                        // Ore/Lumber/Desert: Reduce color intensity by 50%
+                        else
+                        {
+                            color *= new Color(128, 128, 128);
+                        }
+
                         FloatRect textureRect = (texId != -1) ? new FloatRect((texId % 8) * 512, (texId / 8) * 512, 512, 512) : new FloatRect(0, 0, 0, 0);
                         const float iconSize = 70;
 
@@ -227,7 +245,7 @@ namespace Client
                     {
                         // Circle Base
                         Vector2f center = GetTileCenter(x, y);
-                        _center.Position = center;
+                        _center.Position = ClientUtils.RoundVec2f(center);
                         target.Draw(_center, states);
 
                         // Yield Text

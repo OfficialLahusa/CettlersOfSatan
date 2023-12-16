@@ -108,6 +108,7 @@ namespace Client
             }
             moveDelta *= deltaTime.AsSeconds() * moveSpeed * viewZoom;
             view.Move(moveDelta);
+
             window.SetView(view);
         }
 
@@ -123,6 +124,8 @@ namespace Client
             viewZoomBase = (float)Math.Max(0.001, viewZoomBase - e.Delta);
             viewZoom = (float)Math.Pow(1.3, viewZoomBase) / 1.3f;
             view.Zoom(viewZoom);
+
+            view.Size = ClientUtils.RoundVec2f(view.Size);
             window.SetView(view);
         }
     }
