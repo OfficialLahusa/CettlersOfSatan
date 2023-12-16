@@ -179,7 +179,7 @@ namespace Client
                         if(tile.Type == TileType.Grain || tile.Type == TileType.Brick)
                         {
                             byte max = Math.Max(color.R, Math.Max(color.G, color.B));
-                            float fac = 255.0f / max * 0.8f;
+                            float fac = 255.0f / max * ((tile.Type == TileType.Grain) ? 0.8f : 0.7f);
                             color *= new Color((byte)(color.R * fac), (byte)(color.G * fac), (byte)(color.B * fac));
                         }
                         // Wool: Static light gray/white shade
