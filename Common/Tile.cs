@@ -8,11 +8,14 @@ namespace Common
 {
     public class Tile
     {
+        public readonly int X, Y;
         public TileType Type { get; set; }
         public int? Number { get; set; }
 
-        public Tile(TileType type, int? number)
+        public Tile(int x, int y, TileType type, int? number)
         {
+            X = x;
+            Y = y;
             Type = type;
             Number = number;
         }
@@ -26,8 +29,6 @@ namespace Common
         {
             return IsLandTile() && Type != TileType.Desert && Number != null;
         }
-
-        public static Tile Empty = new Tile(TileType.NonPlayable, null);
     }
 
     public enum TileType

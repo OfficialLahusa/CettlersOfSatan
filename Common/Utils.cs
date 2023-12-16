@@ -8,11 +8,11 @@ namespace Common
 {
     public static class Utils
     {
-        public static Random random;
+        public static Random Random;
 
         static Utils()
         {
-            random = new Random();
+            Random = new Random();
         }
 
 
@@ -22,7 +22,7 @@ namespace Common
             while (n > 1)
             {
                 n--;
-                int k = random.Next(n + 1);
+                int k = Random.Next(n + 1);
                 Swap(list, k, n);
             }
         }
