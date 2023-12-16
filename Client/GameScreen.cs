@@ -14,8 +14,8 @@ namespace Client
 {
     public class GameScreen : Screen
     {
-        private RenderWindow window;
-        private View view;
+        private RenderWindow _window;
+        private View _view;
 
         private HexMap<Tile> _map;
         private HexMapRenderer _renderer;
@@ -23,9 +23,15 @@ namespace Client
         public static Font Font;
         public static Texture Atlas;
 
-        private float viewZoom = 1f;
-        private float viewZoomBase = 1f;
-        private const float moveSpeed = 300f;
+        // View movement
+        private float _viewZoom = 1f;
+        private float _viewZoomBase = 1f;
+        private const float _moveSpeed = 300f;
+
+        // FPS Counter
+        private float _frameTimeSum = 0.0f;
+        private int _frameTimeCount = 0;
+        private float _latestAvgFrameTime = 0.0f;
 
         static GameScreen()
         {
@@ -36,8 +42,8 @@ namespace Client
 
         public GameScreen(RenderWindow window, View view)
         {
-            this.window = window;
-            this.view = view;
+            this._window = window;
+            this._view = view;
 
             _map = MapGenerator.GenerateRandomClassic();
 
@@ -60,31 +66,29 @@ namespace Client
 
             _renderer = new HexMapRenderer(_map, tileColorFunc, gridColorFunc, 150, 25);
 
-            this.window.MouseWheelScrolled += Window_MouseWheelScrolled;
+            this._window.MouseWheelScrolled += Window_MouseWheelScrolled;
         }
 
         public void Draw(Time deltaTime)
         {
-            window.Clear(new Color(8, 25, 75));
+            _window.Clear(new Color(8, 25, 75));
 
-            window.Draw(_renderer);
+            _window.Draw(_renderer);
 
             ImGui.Begin("Menu", ImGuiWindowFlags.AlwaysAutoResize);
 
-            ImGui.Text($"FPS: {Math.Floor(1 / deltaTime.AsSeconds())}");
-            ImGui.Text($"Frametime: {Math.Round(deltaTime.AsMicroseconds() / 1000.0f, 3)}ms");
+            ImGui.Text($"FPS: {Math.Floor(1 / _latestAvgFrameTime)}");
+            ImGui.Text($"Frametime: {_latestAvgFrameTime * 1000.0f:0.000}ms");
 
             if (ImGui.Button("Generate"))
             {
-                _map = MapGenerator.GenerateRandomClassic();
-                _renderer.Map = _map;
-                _renderer.Update();
+                RegenerateMap();
             }
 
             ImGui.End();
-            GuiImpl.Render(window);
+            GuiImpl.Render(_window);
 
-            window.Display();
+            _window.Display();
         }
 
         public void HandleInput(Time deltaTime)
@@ -106,27 +110,49 @@ namespace Client
             {
                 moveDelta.X += 1;
             }
-            moveDelta *= deltaTime.AsSeconds() * moveSpeed * viewZoom;
-            view.Move(moveDelta);
+            moveDelta *= deltaTime.AsSeconds() * _moveSpeed * _viewZoom;
+            _view.Move(moveDelta);
 
-            window.SetView(view);
+            _window.SetView(_view);
+
+            if(Keyboard.IsKeyPressed(Keyboard.Key.Space))
+            {
+                RegenerateMap();
+            }
         }
 
         public void Update(Time deltaTime)
         {
-            window.DispatchEvents();
-            GuiImpl.Update(window, deltaTime);
+            // Update FPS counter every 0.5s. Is initialized on the first frame
+            _frameTimeCount++;
+            _frameTimeSum += deltaTime.AsSeconds();
+            if (_frameTimeSum > 0.5f || _latestAvgFrameTime <= 0.000001f)
+            {
+                _latestAvgFrameTime = _frameTimeSum / _frameTimeCount;
+                _frameTimeSum = 0.0f;
+                _frameTimeCount = 0;
+            }
+
+            _window.DispatchEvents();
+            GuiImpl.Update(_window, deltaTime);
+        }
+
+        private void RegenerateMap()
+        {
+            _map = MapGenerator.GenerateRandomClassic();
+            _renderer.Map = _map;
+            _renderer.Update();
         }
 
         private void Window_MouseWheelScrolled(object? sender, MouseWheelScrollEventArgs e)
         {
-            view.Zoom(1 / viewZoom);
-            viewZoomBase = (float)Math.Max(0.001, viewZoomBase - e.Delta);
-            viewZoom = (float)Math.Pow(1.3, viewZoomBase) / 1.3f;
-            view.Zoom(viewZoom);
+            _view.Zoom(1 / _viewZoom);
+            _viewZoomBase = (float)Math.Max(0.001, _viewZoomBase - e.Delta);
+            _viewZoom = (float)Math.Pow(1.3, _viewZoomBase) / 1.3f;
+            _view.Zoom(_viewZoom);
 
-            view.Size = ClientUtils.RoundVec2f(view.Size);
-            window.SetView(view);
+            _view.Size = ClientUtils.RoundVec2f(_view.Size);
+            _window.SetView(_view);
         }
     }
 }
