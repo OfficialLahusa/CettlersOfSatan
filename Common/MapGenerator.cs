@@ -74,6 +74,16 @@ namespace Common
                 }
             }
 
+            // Assign neighbors
+            for (int y = 0; y < map.Height; y++)
+            {
+                for (int x = 0; x < map.Width; x++)
+                {
+                    Tile tile = map.GetTile(x, y);
+                    tile.Neighbors = map.GetNeighborsByDirection(x, y);
+                }
+            }
+
             // Prevent red number (6/8) adjacency
             HashSet<Tile> adjacentReds;
             while((adjacentReds = GetAdjacentRedNumbers(map)).Count > 0)
@@ -90,7 +100,6 @@ namespace Common
                 black.Number = red.Number;
                 red.Number = blackNum;
             }
-
 
             return map;
         }

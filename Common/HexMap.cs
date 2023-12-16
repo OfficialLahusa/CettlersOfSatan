@@ -4,6 +4,16 @@ namespace Common
 {
     public class HexMap<T>
     {
+        public enum Direction
+        {
+            West,
+            NorthWest,
+            NorthEast,
+            East,
+            SouthEast,
+            SouthWest
+        }
+
         private T[] _values;
 
         // Width of the HexMap (X)
@@ -75,21 +85,11 @@ namespace Common
         public HashSet<T> GetNeighbors(int x, int y, Func<T, bool>? filter = null)
         {
             HashSet<T> neighbors = new HashSet<T>();
-            Vector3 cubePos = EvenRToCube(x, y);
-            Vector3[] offsets = new Vector3[]
-            {
-                new Vector3( 1,  0, -1),
-                new Vector3( 1, -1,  0),
-                new Vector3( 0, -1,  1),
-                new Vector3(-1,  0,  1),
-                new Vector3(-1,  1,  0),
-                new Vector3( 0,  1, -1)
-            };
 
-            foreach(Vector3 offset in offsets)
+            // Get neighbor from each direction
+            foreach(Direction dir in (Direction[])Enum.GetValues(typeof(Direction)))
             {
-                Vector3 neighborPos = offset + cubePos;
-                (int nx, int ny) = CubeToEvenR(neighborPos);
+                (int nx, int ny) = ShiftPosition(x, y, dir);
                 if (Contains(nx, ny))
                 {
                     neighbors.Add(GetTile(nx, ny));
@@ -101,6 +101,23 @@ namespace Common
             {
                 return neighbors.Where(filter).ToHashSet();
             }
+            return neighbors;
+        }
+
+        public Dictionary<Direction, T> GetNeighborsByDirection(int x, int y)
+        {
+            Dictionary<Direction, T> neighbors = new Dictionary<Direction, T>();
+
+            // Get neighbor from each direction
+            foreach (Direction dir in (Direction[])Enum.GetValues(typeof(Direction)))
+            {
+                (int nx, int ny) = ShiftPosition(x, y, dir);
+                if (Contains(nx, ny))
+                {
+                    neighbors.Add(dir, GetTile(nx, ny));
+                }
+            }
+
             return neighbors;
         }
 
@@ -120,14 +137,24 @@ namespace Common
          * https://stackoverflow.com/a/72385439
          * https://www.redblobgames.com/grids/hexagons/
          */
-        public static int Distance(int p1x, int p1y, int p2x, int p2y)
+        public static int Distance(int ax, int ay, int bx, int by)
         {
-            Vector3 point_1 = EvenRToCube(p1x, p1y);
-            Vector3 point_2 = EvenRToCube(p2x, p2y);
-            int a = (int)Math.Abs(point_1.X - point_2.X);
-            int b = (int)Math.Abs(point_1.Y - point_2.Y);
-            int c = (int)Math.Abs(point_1.Z - point_2.Z);
+            Vector3 p1 = EvenRToCube(ax, ay);
+            Vector3 p2 = EvenRToCube(bx, by);
+            int a = (int)Math.Abs(p1.X - p2.X);
+            int b = (int)Math.Abs(p1.Y - p2.Y);
+            int c = (int)Math.Abs(p1.Z - p2.Z);
             return Math.Max(a, Math.Max(b, c));
+        }
+
+        public static Vector3 ShiftPosition(Vector3 cubePos, Direction dir)
+        {
+            return cubePos += DirectionToCubeOffset(dir);
+        }
+
+        public static (int, int) ShiftPosition(int x, int y, Direction dir)
+        {
+            return CubeToEvenR(ShiftPosition(EvenRToCube(x, y), dir));
         }
 
         // https://www.redblobgames.com/grids/hexagons/
@@ -139,11 +166,25 @@ namespace Common
         }
 
         // https://www.redblobgames.com/grids/hexagons/
-        public static (int, int) CubeToEvenR(Vector3 cube)
+        public static (int, int) CubeToEvenR(Vector3 cubePos)
         {
-            int x = (int)cube.X + ((int)cube.Y + ((int)cube.Y & 1)) / 2;
-            int y = (int)cube.Y;
+            int x = (int)cubePos.X + ((int)cubePos.Y + ((int)cubePos.Y & 1)) / 2;
+            int y = (int)cubePos.Y;
             return (x, y);
+        }
+
+        public static Vector3 DirectionToCubeOffset(Direction dir)
+        {
+            return dir switch
+            {
+                Direction.West => new Vector3(-1, 0, 1),
+                Direction.NorthWest => new Vector3(0, -1, 1),
+                Direction.NorthEast => new Vector3(1, -1, 0),
+                Direction.East => new Vector3(1, 0, -1),
+                Direction.SouthEast => new Vector3(0, 1, -1),
+                Direction.SouthWest => new Vector3(-1, 1, 0),
+                _ => new Vector3()
+            };
         }
     }
 }

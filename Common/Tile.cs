@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Common;
 
 namespace Common
 {
@@ -11,6 +12,7 @@ namespace Common
         public readonly int X, Y;
         public TileType Type { get; set; }
         public int? Number { get; set; }
+        public Dictionary<HexMap<Tile>.Direction, Tile> Neighbors;
 
         public Tile(int x, int y, TileType type, int? number)
         {
@@ -18,6 +20,7 @@ namespace Common
             Y = y;
             Type = type;
             Number = number;
+            Neighbors = new Dictionary<HexMap<Tile>.Direction, Tile>();
         }
 
         public bool IsLandTile()
