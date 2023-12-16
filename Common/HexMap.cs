@@ -67,6 +67,54 @@ namespace Common
             }
         }
 
+        public HashSet<T> Where(Func<T, bool> filter)
+        {
+            return _values.Where(filter).ToHashSet();
+        }
+
+        public HashSet<T> GetNeighbors(int x, int y, Func<T, bool>? filter = null)
+        {
+            HashSet<T> neighbors = new HashSet<T>();
+            Vector3 cubePos = EvenRToCube(x, y);
+            Vector3[] offsets = new Vector3[]
+            {
+                new Vector3( 1,  0, -1),
+                new Vector3( 1, -1,  0),
+                new Vector3( 0, -1,  1),
+                new Vector3(-1,  0,  1),
+                new Vector3(-1,  1,  0),
+                new Vector3( 0,  1, -1)
+            };
+
+            foreach(Vector3 offset in offsets)
+            {
+                Vector3 neighborPos = offset + cubePos;
+                (int nx, int ny) = CubeToEvenR(neighborPos);
+                if (Contains(nx, ny))
+                {
+                    neighbors.Add(GetTile(nx, ny));
+                }
+            }
+
+            // Return only tiles that match the filter
+            if(filter != null)
+            {
+                return neighbors.Where(filter).ToHashSet();
+            }
+            return neighbors;
+        }
+
+        public bool Contains(int x, int y)
+        {
+            return x < Width && x >= 0 && y < Height && y >= 0;
+        }
+
+        public bool Contains(Vector3 pos)
+        {
+            (int x, int y) = CubeToEvenR(pos);
+            return Contains(x, y);
+        }
+
         /*
          * Distance metric for even-r offset hex map
          * https://stackoverflow.com/a/72385439
@@ -82,18 +130,20 @@ namespace Common
             return Math.Max(a, Math.Max(b, c));
         }
 
-        public static Vector3 EvenRToCube(int col, int row)
+        // https://www.redblobgames.com/grids/hexagons/
+        public static Vector3 EvenRToCube(int x, int y)
         {
-            int q = col - ((row + (row % 2)) / 2);
-            int r = row;
+            int q = x - ((y + (y % 2)) / 2);
+            int r = y;
             return new Vector3(q, r, -q - r);
         }
 
+        // https://www.redblobgames.com/grids/hexagons/
         public static (int, int) CubeToEvenR(Vector3 cube)
         {
-            int col = (int)cube.X + ((int)cube.Y + ((int)cube.Y & 1)) / 2;
-            int row = (int)cube.Y;
-            return (col, row);
+            int x = (int)cube.X + ((int)cube.Y + ((int)cube.Y & 1)) / 2;
+            int y = (int)cube.Y;
+            return (x, y);
         }
     }
 }
