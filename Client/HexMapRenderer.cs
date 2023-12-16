@@ -11,6 +11,10 @@ namespace Client
     {
         public HexMap<Tile> Map { get; set; }
 
+        // Option to enable/disable number token shadow rendering
+        public bool DrawTokenShadows = true;
+
+        // Static geometry
         private VertexBuffer _tiles;
         private VertexArray _grid;
         private VertexArray _overlay;
@@ -44,11 +48,9 @@ namespace Client
         }
         #endregion
 
-        public HexMapRenderer(HexMap<Tile> map, Func<Tile, Color> tileColorFunc, Func<Tile, Color?> gridColorFunc, float sideLength, float borderWidth)
+        public HexMapRenderer(HexMap<Tile> map, float sideLength, float borderWidth)
         {
             Map = map;
-            _tileColorFunc = tileColorFunc;
-            _gridColorFunc = gridColorFunc;
             SideLength = sideLength;
             _borderWidth = borderWidth;
 
@@ -57,11 +59,27 @@ namespace Client
             _overlay = new VertexArray(PrimitiveType.Triangles);
 
             _coords = new Text("", GameScreen.Font);
-            _coords.CharacterSize = 55;
+            _coords.CharacterSize = (uint)Math.Round(sideLength * (11.0f/30.0f));
             _coords.FillColor = Color.Black;
-            _center = new CircleShape(50, 32);
-            _center.FillColor = new Color(230, 230, 120);
+            _center = new CircleShape(SideLength/3, 64);
             _center.Origin = new Vector2f(_center.Radius, _center.Radius);
+
+            _tileColorFunc = val => val.Type switch
+            {
+                TileType.Water => new Color(0x2d, 0x64, 0x9d), // dark blue
+                TileType.Lumber => new Color(0x44, 0x92, 0x47), // dark green
+                TileType.Brick => new Color(0xd1, 0x70, 0x40), // orange-red
+                TileType.Wool => new Color(0x96, 0xb1, 0x41), //light green
+                TileType.Grain => new Color(0xe9, 0xbb, 0x4e), // yellow
+                TileType.Ore => new Color(0xa5, 0xaa, 0xa7), // gray
+                TileType.Desert => new Color(0xd6, 0xcf, 0x9d), // beige
+                _ => Color.Transparent // non-playable => transparent
+            };
+            _gridColorFunc = val => val.Type switch
+            {
+                TileType.Water or TileType.NonPlayable => null, // transparent for water/non-playable
+                _ => new Color(0xd5, 0xbe, 0x84) // white for land tiles
+            };
 
             // Create Geometry
             Update();
@@ -194,7 +212,7 @@ namespace Client
                         }
 
                         FloatRect textureRect = (texId != -1) ? new FloatRect((texId % 8) * 512, (texId / 8) * 512, 512, 512) : new FloatRect(0, 0, 0, 0);
-                        const float iconSize = 70;
+                        float iconSize = SideLength * 7 / 15;
 
                         for(int i = -1; i < 2; i += 2)
                         {
@@ -236,6 +254,7 @@ namespace Client
             states.Texture = GameScreen.Atlas;
             target.Draw(_overlay, states);
 
+            // Draw number tokens
             for (int y = 0; y < Map.Height; y++)
             {
                 for (int x = 0; x < Map.Width; x++)
@@ -243,12 +262,21 @@ namespace Client
                     Tile value = Map.GetTile(x, y);
                     if (value.HasYield())
                     {
-                        // Circle Base
+                        // Token Base Circle
                         Vector2f center = GetTileCenter(x, y);
+                        // Shadow
+                        if(DrawTokenShadows)
+                        {
+                            _center.FillColor = new Color(0, 0, 0, 75);
+                            _center.Position = ClientUtils.RoundVec2f(center + new Vector2f(3, 3));
+                            target.Draw(_center, states);
+                        }
+                        // Token
+                        _center.FillColor = new Color(230, 230, 120);
                         _center.Position = ClientUtils.RoundVec2f(center);
                         target.Draw(_center, states);
 
-                        // Yield Text
+                        // Yield Text (Most frequent numbers 8, 6 are red)
                         _coords.DisplayedString = value.Number.ToString();
                         if (value.Number == 8 || value.Number == 6)
                         {

@@ -2,6 +2,7 @@
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
+using System.Runtime.InteropServices;
 using VideoMode = SFML.Window.VideoMode;
 
 namespace Client
@@ -16,7 +17,8 @@ namespace Client
 
         public Window()
         {
-            window = new RenderWindow(new VideoMode(1920, 1080), "Cettlers of Satan", Styles.Default, new ContextSettings() { AntialiasingLevel = 8 });
+            window = new RenderWindow(VideoMode.DesktopMode, "Cettlers of Satan", Styles.Default, new ContextSettings() { AntialiasingLevel = 8 });
+            ShowWindow(window.SystemHandle, 3);
             view = new View(new Vector2f(0, 0), new Vector2f(window.Size.X, window.Size.Y));
             window.SetView(view);
 
@@ -65,5 +67,10 @@ namespace Client
             if (sender != window) return;
             if (e.Code == Keyboard.Key.Escape) window.Close();
         }
+
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
     }
 }
