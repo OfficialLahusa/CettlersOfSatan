@@ -193,7 +193,7 @@ namespace Client
                             TileType.Wool => 2,
                             TileType.Grain => 3,
                             TileType.Ore => 4,
-                            TileType.Desert => 12,
+                            TileType.Desert => 11,
                             _ => -1
                         };
 

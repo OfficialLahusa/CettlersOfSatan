@@ -36,8 +36,8 @@ namespace Client
         static GameScreen()
         {
 
-            Font = new Font(@"res\Open_Sans\static\OpenSans-Regular.ttf");
-            Atlas = new Texture(@"res\atlas.png");
+            Font = new Font(@"..\..\..\res\Open_Sans\static\OpenSans-Regular.ttf");
+            Atlas = new Texture(@"..\..\..\res\atlas.png");
         }
 
         public GameScreen(RenderWindow window, View view)
