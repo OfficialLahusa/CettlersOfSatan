@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Common.Tile;
 
 namespace Common
 {
@@ -47,7 +48,7 @@ namespace Common
                 for (int x = 0; x < map.Width; x++)
                 {
                     // Distance from center (3, 3)
-                    int dist = HexMap<Tile>.Distance(x, y, 3, 3);
+                    int dist = Coordinates.Distance(x, y, 3, 3);
 
                     // Land tiles
                     if (dist < 3)

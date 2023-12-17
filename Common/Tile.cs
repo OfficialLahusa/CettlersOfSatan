@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,9 +11,21 @@ namespace Common
     public class Tile
     {
         public readonly int X, Y;
+        public enum TileType
+        {
+            NonPlayable = -1,
+            Water,
+            Lumber,
+            Brick,
+            Wool,
+            Grain,
+            Ore,
+            Desert
+        };
         public TileType Type { get; set; }
         public int? Number { get; set; }
-        public Dictionary<HexMap<Tile>.Direction, Tile> Neighbors;
+        public SortedList<Direction.Tile, Tile> Neighbors;
+        public SortedList<Direction.Corner, Intersection> Intersections;
 
         public Tile(int x, int y, TileType type, int? number)
         {
@@ -20,7 +33,8 @@ namespace Common
             Y = y;
             Type = type;
             Number = number;
-            Neighbors = new Dictionary<HexMap<Tile>.Direction, Tile>();
+            Neighbors = new SortedList<Direction.Tile, Tile>();
+            Intersections = new SortedList<Direction.Corner, Intersection>();
         }
 
         public bool IsLandTile()
@@ -33,16 +47,4 @@ namespace Common
             return IsLandTile() && Type != TileType.Desert && Number != null;
         }
     }
-
-    public enum TileType
-    {
-        NonPlayable = -1,
-        Water,
-        Lumber,
-        Brick,
-        Wool,
-        Grain,
-        Ore,
-        Desert
-    };
 }

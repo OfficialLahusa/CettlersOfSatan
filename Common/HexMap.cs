@@ -4,16 +4,6 @@ namespace Common
 {
     public class HexMap<T>
     {
-        public enum Direction
-        {
-            West,
-            NorthWest,
-            NorthEast,
-            East,
-            SouthEast,
-            SouthWest
-        }
-
         private T[] _values;
 
         // Width of the HexMap (X)
@@ -87,9 +77,9 @@ namespace Common
             HashSet<T> neighbors = new HashSet<T>();
 
             // Get neighbor from each direction
-            foreach(Direction dir in (Direction[])Enum.GetValues(typeof(Direction)))
+            foreach(Direction.Tile dir in (Direction.Tile[])Enum.GetValues(typeof(Direction.Tile)))
             {
-                (int nx, int ny) = ShiftPosition(x, y, dir);
+                (int nx, int ny) = Coordinates.Shift(x, y, dir);
                 if (Contains(nx, ny))
                 {
                     neighbors.Add(GetTile(nx, ny));
@@ -104,14 +94,14 @@ namespace Common
             return neighbors;
         }
 
-        public Dictionary<Direction, T> GetNeighborsByDirection(int x, int y)
+        public SortedList<Direction.Tile, T> GetNeighborsByDirection(int x, int y)
         {
-            Dictionary<Direction, T> neighbors = new Dictionary<Direction, T>();
+            SortedList<Direction.Tile, T> neighbors = new SortedList<Direction.Tile, T>();
 
             // Get neighbor from each direction
-            foreach (Direction dir in (Direction[])Enum.GetValues(typeof(Direction)))
+            foreach (Direction.Tile dir in (Direction.Tile[])Enum.GetValues(typeof(Direction.Tile)))
             {
-                (int nx, int ny) = ShiftPosition(x, y, dir);
+                (int nx, int ny) = Coordinates.Shift(x, y, dir);
                 if (Contains(nx, ny))
                 {
                     neighbors.Add(dir, GetTile(nx, ny));
@@ -128,63 +118,8 @@ namespace Common
 
         public bool Contains(Vector3 pos)
         {
-            (int x, int y) = CubeToEvenR(pos);
+            (int x, int y) = Coordinates.CubeToEvenR(pos);
             return Contains(x, y);
-        }
-
-        /*
-         * Distance metric for even-r offset hex map
-         * https://stackoverflow.com/a/72385439
-         * https://www.redblobgames.com/grids/hexagons/
-         */
-        public static int Distance(int ax, int ay, int bx, int by)
-        {
-            Vector3 p1 = EvenRToCube(ax, ay);
-            Vector3 p2 = EvenRToCube(bx, by);
-            int a = (int)Math.Abs(p1.X - p2.X);
-            int b = (int)Math.Abs(p1.Y - p2.Y);
-            int c = (int)Math.Abs(p1.Z - p2.Z);
-            return Math.Max(a, Math.Max(b, c));
-        }
-
-        public static Vector3 ShiftPosition(Vector3 cubePos, Direction dir)
-        {
-            return cubePos += DirectionToCubeOffset(dir);
-        }
-
-        public static (int, int) ShiftPosition(int x, int y, Direction dir)
-        {
-            return CubeToEvenR(ShiftPosition(EvenRToCube(x, y), dir));
-        }
-
-        // https://www.redblobgames.com/grids/hexagons/
-        public static Vector3 EvenRToCube(int x, int y)
-        {
-            int q = x - ((y + (y % 2)) / 2);
-            int r = y;
-            return new Vector3(q, r, -q - r);
-        }
-
-        // https://www.redblobgames.com/grids/hexagons/
-        public static (int, int) CubeToEvenR(Vector3 cubePos)
-        {
-            int x = (int)cubePos.X + ((int)cubePos.Y + ((int)cubePos.Y & 1)) / 2;
-            int y = (int)cubePos.Y;
-            return (x, y);
-        }
-
-        public static Vector3 DirectionToCubeOffset(Direction dir)
-        {
-            return dir switch
-            {
-                Direction.West => new Vector3(-1, 0, 1),
-                Direction.NorthWest => new Vector3(0, -1, 1),
-                Direction.NorthEast => new Vector3(1, -1, 0),
-                Direction.East => new Vector3(1, 0, -1),
-                Direction.SouthEast => new Vector3(0, 1, -1),
-                Direction.SouthWest => new Vector3(-1, 1, 0),
-                _ => new Vector3()
-            };
         }
     }
 }

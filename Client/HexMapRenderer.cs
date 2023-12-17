@@ -1,8 +1,8 @@
 ﻿using Common;
-using ImGuiNET;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
+using static Common.Tile;
 using Color = SFML.Graphics.Color;
 
 namespace Client
