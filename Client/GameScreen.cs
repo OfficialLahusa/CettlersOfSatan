@@ -15,13 +15,14 @@ namespace Client
     public class GameScreen : Screen
     {
         private RenderWindow _window;
-        private View _view;
+        private View _mapView;
+        private View _uiView;
 
         private Board _board;
         private BoardRenderer _renderer;
+        private DiceWidget _diceWidget;
 
         public static Font Font;
-        public static Texture Atlas;
 
         // View movement
         private float _viewZoom = 1f;
@@ -35,29 +36,41 @@ namespace Client
 
         static GameScreen()
         {
-
             Font = new Font(@"..\..\..\res\Open_Sans\static\OpenSans-Regular.ttf");
-            Atlas = new Texture(@"..\..\..\res\atlas.png");
         }
 
-        public GameScreen(RenderWindow window, View view)
+        public GameScreen(RenderWindow window)
         {
             _window = window;
-            _view = view;
 
             _board = MapGenerator.GenerateRandomClassic();
             _renderer = new BoardRenderer(_board, 120, 20);
+            _diceWidget = new DiceWidget(window);
 
-            _view.Center = ClientUtils.RoundVec2f(_renderer.GetTileCenter(3, 3));
+            _mapView = new View(ClientUtils.RoundVec2f(_renderer.GetTileCenter(3, 3)), new Vector2f(window.Size.X, window.Size.Y)); ;
+            _uiView = new View(new Vector2f(0, 0), _mapView.Size);
+
+            _window.SetView(_mapView);
 
             _window.MouseWheelScrolled += Window_MouseWheelScrolled;
+            _window.Resized += Window_Resized;
+            _window.KeyPressed += Window_KeyPressed;
+            _window.MouseButtonPressed += Window_MouseButtonPressed;
         }
 
         public void Draw(Time deltaTime)
         {
             _window.Clear(new Color(8, 25, 75));
 
+            // Draw map
+            _window.SetView(_mapView);
+
             _window.Draw(_renderer);
+
+            // Draw UI
+            _window.SetView(_uiView);
+
+            _window.Draw(_diceWidget);
 
             ImGui.Begin("Menu", ImGuiWindowFlags.AlwaysAutoResize);
 
@@ -100,9 +113,7 @@ namespace Client
                 moveDelta.X += 1;
             }
             moveDelta *= deltaTime.AsSeconds() * _moveSpeed * _viewZoom;
-            _view.Move(moveDelta);
-
-            _window.SetView(_view);
+            _mapView.Move(moveDelta);
 
             if(Keyboard.IsKeyPressed(Keyboard.Key.Space))
             {
@@ -135,13 +146,35 @@ namespace Client
 
         private void Window_MouseWheelScrolled(object? sender, MouseWheelScrollEventArgs e)
         {
-            _view.Zoom(1 / _viewZoom);
+            _mapView.Zoom(1 / _viewZoom);
             _viewZoomBase = (float)Math.Max(0.001, _viewZoomBase - e.Delta);
             _viewZoom = (float)Math.Pow(1.3, _viewZoomBase) / 1.3f;
-            _view.Zoom(_viewZoom);
+            _mapView.Zoom(_viewZoom);
 
-            _view.Size = ClientUtils.RoundVec2f(_view.Size);
-            _window.SetView(_view);
+            _mapView.Size = ClientUtils.RoundVec2f(_mapView.Size);
+        }
+
+        private void Window_Resized(object? sender, SizeEventArgs e)
+        {
+            _mapView.Size = new Vector2f(e.Width, e.Height);
+            _uiView.Size = new Vector2f(e.Width, e.Height);
+        }
+
+        private void Window_KeyPressed(object? sender, KeyEventArgs e)
+        {
+            if (e.Code == Keyboard.Key.Enter)
+            {
+                _diceWidget.Roll();
+            }
+        }
+
+        private void Window_MouseButtonPressed(object? sender, MouseButtonEventArgs e)
+        {
+            Vector2f mousePos = _window.MapPixelToCoords(new Vector2i(e.X, e.Y), _uiView);
+            if (e.Button == Mouse.Button.Left && _diceWidget.Contains(mousePos.X, mousePos.Y))
+            {
+                _diceWidget.Roll();
+            }
         }
     }
 }

@@ -186,19 +186,8 @@ namespace Client
                     // Build static overlay
                     if(tile.IsLandTile())
                     {
-                        int texId = tile.Type switch
-                        {
-                            TileType.Lumber => 0,
-                            TileType.Brick => 1,
-                            TileType.Wool => 2,
-                            TileType.Grain => 3,
-                            TileType.Ore => 4,
-                            TileType.Desert => 11,
-                            _ => -1
-                        };
-
-                        
                         Color color = _tileColorFunc(tile);
+
                         // Grain/Brick: Increase primary intensity
                         if(tile.Type == TileType.Grain || tile.Type == TileType.Brick)
                         {
@@ -217,7 +206,7 @@ namespace Client
                             color *= new Color(128, 128, 128);
                         }
 
-                        FloatRect textureRect = (texId != -1) ? new FloatRect((texId % 8) * 512, (texId / 8) * 512, 512, 512) : new FloatRect(0, 0, 0, 0);
+                        IntRect textureRect = TextureAtlas.GetSprite(tile.Type).GetTextureRect();
                         float iconSize = SideLength * 7 / 15;
 
                         for(int i = -1; i < 2; i += 2)
@@ -276,7 +265,7 @@ namespace Client
         {
             target.Draw(_tiles, states);
             target.Draw(_grid, states);
-            states.Texture = GameScreen.Atlas;
+            states.Texture = TextureAtlas.Texture;
             target.Draw(_overlay, states);
 
             // Draw number tokens
