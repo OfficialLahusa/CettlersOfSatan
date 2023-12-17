@@ -153,8 +153,6 @@ namespace Common
                 }
             }
 
-            Console.WriteLine(intersections.Count);
-
             return new Board(map, intersections);
         }
 
