@@ -27,6 +27,12 @@ namespace Common
             SouthEast = 4,
             South = 5
         }
+        public enum Edge
+        {
+            UpDown,
+            Left,
+            Right
+        }
 
         // Return left and right corners of any given tile direction
         public static (Corner left, Corner right) GetAdjacentCorners(Tile dir)

@@ -8,18 +8,11 @@ namespace Common
 {
     public class Intersection
     {
-        public enum Direction
-        {
-            UpDown,
-            Left,
-            Right,
-        }
-
-        public SortedList<Direction, Tile> neighbors;
+        public SortedList<Direction.Edge, Tile> neighbors;
 
         public Intersection()
         {
-            neighbors = new SortedList<Direction, Tile>();
+            neighbors = new SortedList<Direction.Edge, Tile>();
         }
 
         /*
