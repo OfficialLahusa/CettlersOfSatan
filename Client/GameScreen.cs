@@ -17,8 +17,8 @@ namespace Client
         private RenderWindow _window;
         private View _view;
 
-        private HexMap<Tile> _map;
-        private HexMapRenderer _renderer;
+        private Board _board;
+        private BoardRenderer _renderer;
 
         public static Font Font;
         public static Texture Atlas;
@@ -45,8 +45,8 @@ namespace Client
             _window = window;
             _view = view;
 
-            _map = MapGenerator.GenerateRandomClassic();
-            _renderer = new HexMapRenderer(_map, 120, 20);
+            _board = MapGenerator.GenerateRandomClassic();
+            _renderer = new BoardRenderer(_board, 120, 20);
 
             _view.Center = ClientUtils.RoundVec2f(_renderer.GetTileCenter(3, 3));
 
@@ -67,6 +67,7 @@ namespace Client
             ImGui.Separator();
 
             ImGui.Checkbox("Show Shadows", ref _renderer.DrawTokenShadows);
+            ImGui.Checkbox("Show Intersections", ref _renderer.DrawIntersectionMarkers);
 
             if (ImGui.Button("Generate [Space]"))
             {
@@ -127,8 +128,8 @@ namespace Client
 
         private void RegenerateMap()
         {
-            _map = MapGenerator.GenerateRandomClassic();
-            _renderer.Map = _map;
+            _board = MapGenerator.GenerateRandomClassic();
+            _renderer.Board = _board;
             _renderer.Update();
         }
 

@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Linq;
+using System.Numerics;
 
 namespace Common
 {
@@ -19,7 +20,7 @@ namespace Common
             Width = width;
             Height = height;
             _values = new T[Width*Height];
-            Array.Fill<T>(_values, defaultValue);
+            Array.Fill(_values, defaultValue);
         }
 
         // Get a Single Tile
@@ -94,7 +95,7 @@ namespace Common
             return neighbors;
         }
 
-        public SortedList<Direction.Tile, T> GetNeighborsByDirection(int x, int y)
+        public SortedList<Direction.Tile, T> GetNeighborsByDirection(int x, int y, Func<T, bool>? filter = null)
         {
             SortedList<Direction.Tile, T> neighbors = new SortedList<Direction.Tile, T>();
 
@@ -108,6 +109,11 @@ namespace Common
                 }
             }
 
+            // Return only tiles that match the filter
+            if (filter != null)
+            {
+                return new SortedList<Direction.Tile, T>(neighbors.Where(kvp => filter(kvp.Value)).ToDictionary(e => e.Key, e => e.Value));
+            }
             return neighbors;
         }
 

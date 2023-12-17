@@ -32,7 +32,7 @@ namespace Common
 
         public static Vector3 Shift(Vector3 cubePos, Direction.Tile dir)
         {
-            return cubePos += Direction.ToCubeOffset(dir);
+            return cubePos += dir.ToCubeOffset();
         }
 
         public static (int x, int y) Shift(int x, int y, Direction.Tile dir)

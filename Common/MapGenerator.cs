@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 using static Common.Tile;
@@ -22,7 +23,7 @@ namespace Common
             BlackNumberPredicate    = tile => tile.Number.HasValue &&  tile.Number.Value != 6 && tile.Number.Value != 8;
         }
 
-        public static HexMap<Tile> GenerateRandomClassic()
+        public static Board GenerateRandomClassic()
         {
             HexMap<Tile> map = new HexMap<Tile>(7, 7, new Tile(-1, -1, TileType.NonPlayable, null));
 
@@ -102,7 +103,60 @@ namespace Common
                 red.Number = blackNum;
             }
 
-            return map;
+            // Assign intersections
+            LinkedList<Intersection> intersections = new LinkedList<Intersection>();
+
+            for (int y = 0; y < map.Height; y++)
+            {
+                for (int x = 0; x < map.Width; x++)
+                {
+                    Tile tile = map.GetTile(x, y);
+
+                    // Only generate intersections on land tiles
+                    if (!tile.IsLandTile()) continue;
+
+                    foreach (Direction.Corner corner in (Direction.Corner[])Enum.GetValues(typeof(Direction.Corner)))
+                    {
+                        (Direction.Tile left, Direction.Tile right) = corner.GetAdjacentTiles();
+                        (int lx, int ly) = Coordinates.Shift(x, y, left);
+                        (int rx, int ry) = Coordinates.Shift(x, y, right);
+
+                        Tile leftTile, rightTile;
+                        Intersection? intersection = null;
+
+                        // Check if left tile is valid land
+                        if (map.Contains(lx, ly) && (leftTile = map.GetTile(lx, ly)).IsLandTile())
+                        {
+                            // Check if neighbor already contains the intersection
+                            leftTile.Intersections.TryGetValue(corner.Mirror().Rotate(-1), out intersection);
+                        }
+
+                        // Check if left tile is valid land
+                        if (intersection == null && map.Contains(rx, ry) && (rightTile = map.GetTile(rx, ry)).IsLandTile())
+                        {
+                            // Check if neighbor already contains the intersection
+                            rightTile.Intersections.TryGetValue(corner.Mirror().Rotate(1), out intersection);
+                        }
+
+                        // Create intersection if doesn't already exist
+                        if(intersection == null)
+                        {
+                            intersection = new Intersection(corner.HasDownwardsFacingIntersection());
+                            intersections.AddLast(intersection);
+                        }
+
+                        // Register self at intersection
+                        intersection.AdjacentTiles.Add(corner, tile);
+
+                        // Register intersection at self
+                        tile.Intersections.Add(corner, intersection);
+                    }
+                }
+            }
+
+            Console.WriteLine(intersections.Count);
+
+            return new Board(map, intersections);
         }
 
         private static HashSet<Tile> GetAdjacentRedNumbers(HexMap<Tile> map)

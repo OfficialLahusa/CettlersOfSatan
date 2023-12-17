@@ -1,18 +1,18 @@
 ﻿using Common;
 using SFML.Graphics;
 using SFML.System;
-using SFML.Window;
 using static Common.Tile;
 using Color = SFML.Graphics.Color;
 
 namespace Client
 {
-    public class HexMapRenderer : Drawable
+    public class BoardRenderer : Drawable
     {
-        public HexMap<Tile> Map { get; set; }
+        public Board Board { get; set; }
 
-        // Option to enable/disable number token shadow rendering
+        // Rendering options
         public bool DrawTokenShadows = true;
+        public bool DrawIntersectionMarkers = true;
 
         // Static geometry
         private VertexBuffer _tiles;
@@ -23,7 +23,8 @@ namespace Client
         private Func<Tile, Color?> _gridColorFunc;
 
         private Text _coords;
-        private CircleShape _center;
+        private CircleShape _tokenBase;
+        private CircleShape _intersectionMarker;
 
         #region Hexagon Dimensions
         private float _sideLength;
@@ -48,21 +49,26 @@ namespace Client
         }
         #endregion
 
-        public HexMapRenderer(HexMap<Tile> map, float sideLength, float borderWidth)
+        public BoardRenderer(Board board, float sideLength, float borderWidth)
         {
-            Map = map;
+            Board = board;
             SideLength = sideLength;
             _borderWidth = borderWidth;
 
-            _tiles = new VertexBuffer(Map.Width * Map.Height * 4 * 3, PrimitiveType.Triangles, VertexBuffer.UsageSpecifier.Static);
+            _tiles = new VertexBuffer(Board.Map.Width * Board.Map.Height * 4 * 3, PrimitiveType.Triangles, VertexBuffer.UsageSpecifier.Static);
             _grid = new VertexArray(PrimitiveType.Triangles);
             _overlay = new VertexArray(PrimitiveType.Triangles);
 
             _coords = new Text("", GameScreen.Font);
             _coords.CharacterSize = (uint)Math.Round(sideLength * (11.0f/30.0f));
             _coords.FillColor = Color.Black;
-            _center = new CircleShape(SideLength/3, 64);
-            _center.Origin = new Vector2f(_center.Radius, _center.Radius);
+
+            _tokenBase = new CircleShape(SideLength/3, 64);
+            _tokenBase.Origin = new Vector2f(_tokenBase.Radius, _tokenBase.Radius);
+
+            _intersectionMarker = new CircleShape(SideLength / 6, 32);
+            _intersectionMarker.Origin = new Vector2f(_intersectionMarker.Radius, _intersectionMarker.Radius);
+            _intersectionMarker.FillColor = Color.Red;
 
             _tileColorFunc = val => val.Type switch
             {
@@ -88,8 +94,8 @@ namespace Client
         // Update Tile Geometry
         public void Update()
         {
-            uint width = Map.Width;
-            uint height = Map.Height;
+            uint width = Board.Map.Width;
+            uint height = Board.Map.Height;
             Vertex[] tempTiles = new Vertex[width * height * 4 * 3];
             _grid.Clear();
             _overlay.Clear();
@@ -98,11 +104,11 @@ namespace Client
             {
                 for (int y = 0; y < height; y++)
                 {
-                    Tile tile = Map.GetTile(x, y);
+                    Tile tile = Board.Map.GetTile(x, y);
 
                     // Calculate Color from Tile Value
-                    Color tileColor = _tileColorFunc(Map.GetTile(x, y));
-                    Color? gridColor = _gridColorFunc(Map.GetTile(x, y));
+                    Color tileColor = _tileColorFunc(Board.Map.GetTile(x, y));
+                    Color? gridColor = _gridColorFunc(Board.Map.GetTile(x, y));
 
                     Vector2f center = new Vector2f(x * 2 * FlatSideLength + ((y % 2 == 0) ? FlatSideLength : 0), y * 1.5f * SideLength);
                     
@@ -235,15 +241,34 @@ namespace Client
             _tiles.Update(tempTiles);
         }
 
+        public Vector2f GetTileCenter(Tile tile)
+        {
+            return GetTileCenter(tile.X, tile.Y);
+        }
+
         // Get the Coordinates of the Center of a Given Tile Relative to the Origin of the HexMap
         public Vector2f GetTileCenter(int x, int y)
         {
-            if (x >= Map.Width || x < 0) throw new ArgumentOutOfRangeException("x", "x needs to be 0 <= x < Width");
-            else if (y >= Map.Height || y < 0) throw new ArgumentOutOfRangeException("y", "y needs to be 0 <= y < Height");
+            if (x >= Board.Map.Width || x < 0) throw new ArgumentOutOfRangeException("x", "x needs to be 0 <= x < Width");
+            else if (y >= Board.Map.Height || y < 0) throw new ArgumentOutOfRangeException("y", "y needs to be 0 <= y < Height");
             else
             {
                 return new Vector2f(x * 2 * FlatSideLength + ((y % 2 == 0) ? FlatSideLength : 0), y * 1.5f * SideLength);
             }
+        }
+
+        public Vector2f GetIntersectionCenter(Intersection intersection)
+        {
+            if (intersection.AdjacentTiles.Count == 0)
+            {
+                throw new InvalidOperationException("Intersection was not properly initialized and lacks adjacent tiles");
+            }
+
+            KeyValuePair<Direction.Corner, Tile> adjacentParent = intersection.AdjacentTiles.First();
+            Vector2f parentCenter = GetTileCenter(adjacentParent.Value);
+            float angle = adjacentParent.Key.ToAngle();
+
+            return parentCenter + SideLength * new Vector2f((float)Math.Cos(angle / 180.0f * MathF.PI), (float)Math.Sin(angle / 180.0f * MathF.PI));
         }
 
         // Render the HexMap to a RenderTarget
@@ -255,11 +280,11 @@ namespace Client
             target.Draw(_overlay, states);
 
             // Draw number tokens
-            for (int y = 0; y < Map.Height; y++)
+            for (int y = 0; y < Board.Map.Height; y++)
             {
-                for (int x = 0; x < Map.Width; x++)
+                for (int x = 0; x < Board.Map.Width; x++)
                 {
-                    Tile value = Map.GetTile(x, y);
+                    Tile value = Board.Map.GetTile(x, y);
                     if (value.HasYield())
                     {
                         // Token Base Circle
@@ -267,14 +292,14 @@ namespace Client
                         // Shadow
                         if(DrawTokenShadows)
                         {
-                            _center.FillColor = new Color(0, 0, 0, 75);
-                            _center.Position = ClientUtils.RoundVec2f(center + new Vector2f(3, 3));
-                            target.Draw(_center, states);
+                            _tokenBase.FillColor = new Color(0, 0, 0, 75);
+                            _tokenBase.Position = ClientUtils.RoundVec2f(center + new Vector2f(3, 3));
+                            target.Draw(_tokenBase, states);
                         }
                         // Token
-                        _center.FillColor = new Color(230, 230, 120);
-                        _center.Position = ClientUtils.RoundVec2f(center);
-                        target.Draw(_center, states);
+                        _tokenBase.FillColor = new Color(230, 230, 120);
+                        _tokenBase.Position = ClientUtils.RoundVec2f(center);
+                        target.Draw(_tokenBase, states);
 
                         // Yield Text (Most frequent numbers 8, 6 are red)
                         _coords.DisplayedString = value.Number.ToString();
@@ -293,6 +318,16 @@ namespace Client
                         _coords.Position = center;
                         target.Draw(_coords, states);
                     }
+                }
+            }
+
+            // Draw intersection markers
+            if (DrawIntersectionMarkers)
+            {
+                foreach (Intersection intersection in Board.Intersections)
+                {
+                    _intersectionMarker.Position = GetIntersectionCenter(intersection);
+                    target.Draw(_intersectionMarker, states);
                 }
             }
         }

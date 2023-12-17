@@ -8,11 +8,14 @@ namespace Common
 {
     public class Intersection
     {
-        public SortedList<Direction.Edge, Tile> neighbors;
+        // Key: Corner direction this intersection is on at the given tile
+        public SortedList<Direction.Corner, Tile> AdjacentTiles;
+        public readonly bool FacesDownwards;
 
-        public Intersection()
+        public Intersection(bool facesDownwards)
         {
-            neighbors = new SortedList<Direction.Edge, Tile>();
+            AdjacentTiles = new SortedList<Direction.Corner, Tile>();
+            FacesDownwards = facesDownwards;
         }
 
         /*
@@ -22,6 +25,7 @@ namespace Common
          * - Tiles registrieren sich bei Intersections, niemals andersherum
          * - SortedList für benachbarte Edges und Intersections
          * - Klasse Edge
+         * - Zusätzlicher Pass für Intersections und Edges der Wasser-Tiles
          * - Tiles, Intersections und Edges Felder für Referenzen auf Häfen geben
          * - Alle Anlieger teilen sich eine globale Instanz jedes Hafens, damit die Privilegienauswertung nachher zentral funktioniert
          */

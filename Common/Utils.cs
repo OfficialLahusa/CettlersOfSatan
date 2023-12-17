@@ -15,7 +15,7 @@ namespace Common
             Random = new Random();
         }
 
-
+        // Fisher-Yates Shuffle
         public static void Shuffle<T>(this IList<T> list)
         {
             int n = list.Count;
@@ -32,6 +32,12 @@ namespace Common
             var temp = list[i];
             list[i] = list[j];
             list[j] = temp;
+        }
+
+        // Actual modulo operation, instead of C#'s remainder (%)
+        public static int Mod(int x, int m)
+        {
+            return (x % m + m) % m;
         }
     }
 }
