@@ -74,7 +74,6 @@ namespace Client
             _intersectionRect = new RectangleShape(new Vector2f(SideLength * 0.5f, SideLength * 0.5f));
             _intersectionRect.Origin = new Vector2f(_intersectionRect.Size.X / 2, _intersectionRect.Size.Y / 2);
             _intersectionRect.Texture = TextureAtlas.Texture;
-            _intersectionRect.FillColor = Color.Blue;
 
             _tileColorFunc = val => val.Type switch
             {
@@ -335,6 +334,7 @@ namespace Client
                     case Intersection.BuildingType.City:
                         _intersectionRect.Position = GetIntersectionCenter(intersection);
                         _intersectionRect.TextureRect = TextureAtlas.GetTextureRect(intersection.Building == Intersection.BuildingType.Settlement ? TextureAtlas.Sprite.Settlement : TextureAtlas.Sprite.City);
+                        _intersectionRect.FillColor = ClientUtils.GetPlayerColor(intersection.Owner);
                         target.Draw(_intersectionRect, states);
                         break;
                     default:

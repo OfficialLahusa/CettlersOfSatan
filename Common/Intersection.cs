@@ -18,12 +18,15 @@ namespace Common
             City = 2
         }
         public BuildingType Building { get; set; }
+        // -1 => Nobody, 0/1/2 => Player 1/2/3
+        public int Owner { get; set; }
 
         public Intersection(bool facesDownwards)
         {
             AdjacentTiles = new SortedList<Direction.Corner, Tile>();
             FacesDownwards = facesDownwards;
             Building = BuildingType.None;
+            Owner = -1;
         }
 
         /*

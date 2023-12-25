@@ -141,7 +141,8 @@ namespace Common
                         if(intersection == null)
                         {
                             intersection = new Intersection(corner.HasDownwardsFacingIntersection());
-                            intersection.Building = (Intersection.BuildingType)Utils.Random.Next(3);
+                            intersection.Building = (Intersection.BuildingType)Math.Max(0, Utils.Random.Next(-2, 3));
+                            if (intersection.Building != Intersection.BuildingType.None) intersection.Owner = Utils.Random.Next(4);
                             intersections.AddLast(intersection);
                         }
 
