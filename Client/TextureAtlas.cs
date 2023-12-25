@@ -24,7 +24,7 @@ namespace Client
             Ore = 4,
             Development = 5,
 
-            House = 8,
+            Settlement = 8,
             City = 9,
             Road = 10,
             Desert = 11,

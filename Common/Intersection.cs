@@ -11,18 +11,23 @@ namespace Common
         // Key: Corner direction this intersection is on at the given tile
         public SortedList<Direction.Corner, Tile> AdjacentTiles;
         public readonly bool FacesDownwards;
+        public enum BuildingType
+        {
+            None = 0,
+            Settlement = 1,
+            City = 2
+        }
+        public BuildingType Building { get; set; }
 
         public Intersection(bool facesDownwards)
         {
             AdjacentTiles = new SortedList<Direction.Corner, Tile>();
             FacesDownwards = facesDownwards;
+            Building = BuildingType.None;
         }
 
         /*
          * TODO:
-         * - Intersections iterativ für alle Knoten erzeugen
-         * - Jeweils vorher prüfen, ob in der jeweiligen Richtung schon eine Intersection existiert
-         * - Tiles registrieren sich bei Intersections, niemals andersherum
          * - SortedList für benachbarte Edges und Intersections
          * - Klasse Edge
          * - Zusätzlicher Pass für Intersections und Edges der Wasser-Tiles

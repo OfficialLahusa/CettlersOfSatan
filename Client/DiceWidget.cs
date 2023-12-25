@@ -16,8 +16,10 @@ namespace Client
         private RectangleShape _secondDie;
         private Sound _diceRollSound;
         private static readonly int _size = 180;
+        private static readonly Color _inactiveColor = new Color(255, 255, 255, 85);
         private int _first;
         private int _second;
+        private bool _active;
         public int First
         {
             get { return _first; }
@@ -41,6 +43,16 @@ namespace Client
             }
         }
 
+        public bool Active { 
+            get { return _active; }
+            set
+            {
+                _active = value;
+                _firstDie.FillColor = value ? Color.White : _inactiveColor;
+                _secondDie.FillColor = _firstDie.FillColor;
+            }
+        }
+
         public DiceWidget(RenderWindow window)
         {
             _firstDie = new RectangleShape(new SFML.System.Vector2f(_size, _size));
@@ -50,6 +62,8 @@ namespace Client
             _secondDie.Texture = TextureAtlas.Texture;
 
             _diceRollSound = new Sound(Sounds.DiceRolling);
+
+            Active = false;
 
             SetValues();
             UpdateSprites();

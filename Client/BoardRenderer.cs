@@ -12,7 +12,7 @@ namespace Client
 
         // Rendering options
         public bool DrawTokenShadows = true;
-        public bool DrawIntersectionMarkers = true;
+        public bool DrawIntersectionMarkers = false;
 
         // Static geometry
         private VertexBuffer _tiles;
@@ -25,6 +25,7 @@ namespace Client
         private Text _coords;
         private CircleShape _tokenBase;
         private CircleShape _intersectionMarker;
+        private RectangleShape _intersectionRect;
 
         #region Hexagon Dimensions
         private float _sideLength;
@@ -69,6 +70,11 @@ namespace Client
             _intersectionMarker = new CircleShape(SideLength / 6, 32);
             _intersectionMarker.Origin = new Vector2f(_intersectionMarker.Radius, _intersectionMarker.Radius);
             _intersectionMarker.FillColor = Color.Red;
+
+            _intersectionRect = new RectangleShape(new Vector2f(SideLength * 0.5f, SideLength * 0.5f));
+            _intersectionRect.Origin = new Vector2f(_intersectionRect.Size.X / 2, _intersectionRect.Size.Y / 2);
+            _intersectionRect.Texture = TextureAtlas.Texture;
+            _intersectionRect.FillColor = Color.Blue;
 
             _tileColorFunc = val => val.Type switch
             {
@@ -317,6 +323,22 @@ namespace Client
                 {
                     _intersectionMarker.Position = GetIntersectionCenter(intersection);
                     target.Draw(_intersectionMarker, states);
+                }
+            }
+
+            // Draw intersection buildings
+            foreach(Intersection intersection in Board.Intersections)
+            {
+                switch(intersection.Building)
+                {
+                    case Intersection.BuildingType.Settlement:
+                    case Intersection.BuildingType.City:
+                        _intersectionRect.Position = GetIntersectionCenter(intersection);
+                        _intersectionRect.TextureRect = TextureAtlas.GetTextureRect(intersection.Building == Intersection.BuildingType.Settlement ? TextureAtlas.Sprite.Settlement : TextureAtlas.Sprite.City);
+                        target.Draw(_intersectionRect, states);
+                        break;
+                    default:
+                        break;
                 }
             }
         }
