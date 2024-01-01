@@ -14,12 +14,22 @@ namespace Client
 
         private Screen screen;
 
+        public static void Main(String[] args)
+        {
+            Window window = new Window();
+        }
+
         public Window()
         {
             window = new RenderWindow(VideoMode.DesktopMode, "Cettlers of Satan", Styles.Default, new ContextSettings() { AntialiasingLevel = 8 });
-            ShowWindow(window.SystemHandle, 3);
-            screen = new GameScreen(window);
 
+            // Maximize window
+            ShowWindow(window.SystemHandle, 3);
+
+            // Init Screen
+            screen = new MenuScreen(window);
+
+            // Init ImGui
             GuiImpl.Init(window);
 
             window.KeyPressed += Window_KeyPressed;
