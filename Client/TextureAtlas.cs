@@ -1,12 +1,5 @@
 ﻿using SFML.Graphics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using static Common.Tile;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Client
 {

@@ -1,13 +1,9 @@
-﻿using Common;
-using ImGuiNET;
-using Microsoft.VisualBasic;
+﻿using ImGuiNET;
 using SFML.Graphics;
 using SFML.System;
 using System.Net;
 using System.Net.Sockets;
 using System.Numerics;
-using System.Reflection.Metadata.Ecma335;
-using System.Security.Cryptography;
 using System.Text;
 
 namespace Client
