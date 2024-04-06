@@ -98,7 +98,7 @@ namespace Common
             }
 
             // Assign intersections
-            LinkedList<Intersection> intersections = new LinkedList<Intersection>();
+            LinkedList<Intersection> intersections = new();
 
             for (int y = 0; y < map.Height; y++)
             {
@@ -109,9 +109,9 @@ namespace Common
                     // Only generate intersections on land tiles
                     if (!tile.IsLandTile()) continue;
 
-                    foreach (Direction.Corner corner in (Direction.Corner[])Enum.GetValues(typeof(Direction.Corner)))
+                    foreach (Direction.Corner cornerDir in (Direction.Corner[])Enum.GetValues(typeof(Direction.Corner)))
                     {
-                        (Direction.Tile left, Direction.Tile right) = corner.GetAdjacentTiles();
+                        (Direction.Tile left, Direction.Tile right) = cornerDir.GetAdjacentTiles();
                         (int lx, int ly) = Coordinates.Shift(x, y, left);
                         (int rx, int ry) = Coordinates.Shift(x, y, right);
 
@@ -121,36 +121,94 @@ namespace Common
                         // Check if left tile is valid land
                         if (map.Contains(lx, ly) && (leftTile = map.GetTile(lx, ly)).IsLandTile())
                         {
-                            // Check if neighbor already contains the intersection
-                            leftTile.Intersections.TryGetValue(corner.Mirror().Rotate(-1), out intersection);
+                            // Check if neighbor already created the intersection
+                            leftTile.Intersections.TryGetValue(cornerDir.Mirror().Rotate(-1), out intersection);
                         }
 
                         // Check if left tile is valid land
                         if (intersection == null && map.Contains(rx, ry) && (rightTile = map.GetTile(rx, ry)).IsLandTile())
                         {
-                            // Check if neighbor already contains the intersection
-                            rightTile.Intersections.TryGetValue(corner.Mirror().Rotate(1), out intersection);
+                            // Check if neighbor already created the intersection
+                            rightTile.Intersections.TryGetValue(cornerDir.Mirror().Rotate(1), out intersection);
                         }
 
                         // Create intersection if doesn't already exist
                         if(intersection == null)
                         {
-                            intersection = new Intersection(corner.HasDownwardsFacingIntersection());
+                            intersection = new Intersection(cornerDir.HasDownwardsFacingIntersection());
+
+                            // (Debug) Randomize building and owner
                             intersection.Building = (Intersection.BuildingType)Math.Max(0, Utils.Random.Next(-2, 3));
                             if (intersection.Building != Intersection.BuildingType.None) intersection.Owner = Utils.Random.Next(4);
+
                             intersections.AddLast(intersection);
                         }
 
                         // Register self at intersection
-                        intersection.AdjacentTiles.Add(corner, tile);
+                        intersection.AdjacentTiles.Add(cornerDir, tile);
 
                         // Register intersection at self
-                        tile.Intersections.Add(corner, intersection);
+                        tile.Intersections.Add(cornerDir, intersection);
                     }
                 }
             }
 
-            return new Board(map, intersections);
+            // Assign edges
+            LinkedList<Edge> edges = new();
+
+            for (int y = 0; y < map.Height; y++)
+            {
+                for (int x = 0; x < map.Width; x++)
+                {
+                    Tile tile = map.GetTile(x, y);
+
+                    // Only generate edges that originate from a land tile
+                    if (!tile.IsLandTile()) continue;
+
+                    foreach (Direction.Tile tileDir in (Direction.Tile[])Enum.GetValues(typeof(Direction.Tile)))
+                    {
+                        (int px, int py) = Coordinates.Shift(x, y, tileDir);
+
+                        // Adjacent tile on the other side of the handled edge
+                        Tile adjacentTile;
+                        Edge? edge = null;
+
+                        if(map.Contains(px, py))
+                        {
+                            adjacentTile = map.GetTile(px, py);
+                            // Check if neighbor already created the handled edge
+                            adjacentTile.Edges.TryGetValue(tileDir.Mirror(), out edge);
+                        }
+
+                        // Create edge if doesn't already exist
+                        if (edge == null)
+                        {
+                            edge = new Edge(tileDir.ToEdgeDir());
+
+                            // (Debug) Randomize building and owner
+                            edge.Building = (Edge.BuildingType)Math.Max(0, Utils.Random.Next(-3, 2));
+                            if (edge.Building != Edge.BuildingType.None) edge.Owner = Utils.Random.Next(4);
+
+                            edges.AddLast(edge);
+                        }
+
+                        // Register self at edge
+                        if(tileDir.IsEast())
+                        {
+                            edge.WestTile = tile;
+                        } 
+                        else
+                        {
+                            edge.EastTile = tile;
+                        }
+
+                        // Register edge at self
+                        tile.Edges.Add(tileDir, edge);
+                    }
+                }
+            }
+
+            return new Board(map, intersections, edges);
         }
 
         private static HashSet<Tile> GetAdjacentRedNumbers(HexMap<Tile> map)

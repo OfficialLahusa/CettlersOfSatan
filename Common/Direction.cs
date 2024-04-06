@@ -24,14 +24,17 @@ namespace Common
         }
         public enum Edge
         {
-            UpDown,
-            Left,
-            Right
+            UpDown,  // Vertical Edge
+            LeftTop, // Edge with higher left vertex
+            RightTop // Edge with higher right vertex
         }
 
-        // Pregenerated array of tile direction offsets in cube coordinates
+        // Lookup table of tile direction offsets in cube coordinates
         private static Vector3[] _offsets;
+
+        // Lookup tables for direction conversion
         private static Edge[] _tileToEdge;
+        private static Edge[] _cornerToEdge;
 
         static Direction() 
         {
@@ -47,16 +50,26 @@ namespace Common
 
             _tileToEdge = new Edge[6]
             {
-                Edge.Left,   // SouthWest (down-facing intersection)
-                Edge.Left,   // NorthWest (up-facing   intersection)
-                Edge.UpDown, // North     (down-facing intersection)
-                Edge.Right,  // NorthEast (up-facing   intersection)
-                Edge.Right,  // SouthEast (down-facing intersection)
-                Edge.UpDown  // South     (up-facing   intersection)
+                Edge.UpDown,   // West
+                Edge.RightTop, // NorthWest
+                Edge.LeftTop,  // NorthEast
+                Edge.UpDown,   // East
+                Edge.RightTop, // SouthEast
+                Edge.LeftTop   // SouthWest
+            };
+
+            _cornerToEdge = new Edge[6]
+            {
+                Edge.RightTop, // SouthWest (down-facing intersection)
+                Edge.LeftTop,  // NorthWest (up-facing   intersection)
+                Edge.UpDown,   // North     (down-facing intersection)
+                Edge.RightTop, // NorthEast (up-facing   intersection)
+                Edge.LeftTop,  // SouthEast (down-facing intersection)
+                Edge.UpDown    // South     (up-facing   intersection)
             };
         }
 
-        // Return left and right corners of any given tile direction
+        // Return shared left and right corners of any given tile direction
         public static (Corner left, Corner right) GetAdjacentCorners(this Tile tile)
         {
             return ((Corner)tile, (Corner)tile.Rotate(1));
@@ -97,17 +110,54 @@ namespace Common
             return 150.0f + (int)corner * 60.0f;
         }
 
-        // Converts a corner direction into the edge direction that faces it from the intersection at the corner
-        // Since there are up- and down-facing intersections, the 6 corner directions are mapped to 3 edge directions
-        public static Edge ToInverseEdgeDir(this Corner corner)
+        // Get the direction of the edge shared with the tile in the given direction
+        public static Edge ToEdgeDir(this Tile tile)
         {
-            return _tileToEdge[(int)corner.Mirror()];
+            return _tileToEdge[(int)tile];
+        }
+
+        // Get the direction of the edge facing away from the tile on a given corner
+        // Since there are up- and down-facing intersections, the 6 corner directions are mapped to 3 edge directions
+        public static Edge ToEdgeDir(this Corner corner)
+        {
+            return _cornerToEdge[(int)corner];
         }
 
         // Determines whether the intersection at the corner of a hex faces downwards (otherwise it is upward-facing)
         public static bool HasDownwardsFacingIntersection(this Corner corner)
         {
             return corner == Corner.NorthWest || corner == Corner.NorthEast || corner == Corner.South;
+        }
+
+        public static bool IsEast(this Tile tile)
+        {
+            return tile == Tile.East || tile == Tile.NorthEast || tile == Tile.SouthEast;
+        }
+
+        public static bool IsWest(this Tile tile)
+        {
+            return !IsEast(tile);
+        }
+
+        public static Tile ToWestTileDir(this Edge edge)
+        {
+            return edge switch
+            {
+                Edge.UpDown => Tile.West,
+                Edge.LeftTop => Tile.SouthWest,
+                Edge.RightTop => Tile.NorthWest,
+                _ => throw new NotImplementedException()
+            };
+        }
+        public static Tile ToEastTileDir(this Edge edge)
+        {
+            return edge switch
+            {
+                Edge.UpDown => Tile.East,
+                Edge.LeftTop => Tile.NorthEast,
+                Edge.RightTop => Tile.SouthEast,
+                _ => throw new NotImplementedException()
+            };
         }
     }
 }

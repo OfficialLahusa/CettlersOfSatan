@@ -26,7 +26,7 @@ namespace Client
             ShowWindow(window.SystemHandle, 3);
 
             // Init Screen
-            screen = new MenuScreen(window);
+            screen = new GameScreen(window);
 
             // Init ImGui
             GuiImpl.Init(window);
