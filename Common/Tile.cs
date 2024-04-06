@@ -16,6 +16,7 @@
         };
         public TileType Type { get; set; }
         public int? Number { get; set; }
+        public Port? Port { get; set; }
         public SortedList<Direction.Tile, Tile> Neighbors;
         public SortedList<Direction.Corner, Intersection> Intersections;
         public SortedList<Direction.Tile, Edge> Edges;

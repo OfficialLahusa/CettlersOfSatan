@@ -1,4 +1,5 @@
-﻿using static Common.Tile;
+﻿using System.Numerics;
+using static Common.Tile;
 
 namespace Common
 {
@@ -22,7 +23,7 @@ namespace Common
             HexMap<Tile> map = new HexMap<Tile>(7, 7, new Tile(-1, -1, TileType.NonPlayable, null));
 
             // Shuffle tiles and number tokens
-            List<TileType> types = new List<TileType>(){
+            List<TileType> tileTypes = new(){
                 TileType.Brick, TileType.Brick, TileType.Brick,
                 TileType.Lumber, TileType.Lumber, TileType.Lumber, TileType.Lumber,
                 TileType.Ore, TileType.Ore, TileType.Ore,
@@ -30,12 +31,18 @@ namespace Common
                 TileType.Wool, TileType.Wool, TileType.Wool, TileType.Wool,
                 TileType.Desert
             };
-            List<int> numbers = new List<int>()
+            List<int> numberTokens = new()
             {
                 2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12
             };
-            Utils.Shuffle(types);
-            Utils.Shuffle(numbers);
+            List<Port.TradeType> portTypes = new()
+            {
+                Port.TradeType.Generic, Port.TradeType.Generic, Port.TradeType.Generic, Port.TradeType.Generic,
+                Port.TradeType.Lumber, Port.TradeType.Brick, Port.TradeType.Wool, Port.TradeType.Grain, Port.TradeType.Ore
+            };
+            Utils.Shuffle(tileTypes);
+            Utils.Shuffle(numberTokens);
+            Utils.Shuffle(portTypes);
 
             // Assign tiles and tokens to map
             for (int y = 0; y < map.Height; y++)
@@ -48,14 +55,14 @@ namespace Common
                     // Land tiles
                     if (dist < 3)
                     {
-                        TileType type = types[0];
-                        types.RemoveAt(0);
+                        TileType type = tileTypes[0];
+                        tileTypes.RemoveAt(0);
 
                         int? number = null;
                         if (type != TileType.Desert)
                         {
-                            number = numbers[0];
-                            numbers.RemoveAt(0);
+                            number = numberTokens[0];
+                            numberTokens.RemoveAt(0);
                         }
 
                         map.SetTile(x, y, new Tile(x, y, type, number));
@@ -206,6 +213,32 @@ namespace Common
                         tile.Edges.Add(tileDir, edge);
                     }
                 }
+            }
+
+            // Hard-coded positions and orientations of ports
+            List<(int q, int r, int s, Direction.Tile dir)> portPositions = new()
+            {
+                (-2, -1,  3, Direction.Tile.East),
+                ( 0, -3,  3, Direction.Tile.SouthEast),
+                ( 2, -3,  1, Direction.Tile.SouthWest),
+                ( 3, -2, -1, Direction.Tile.SouthWest),
+                ( 3,  0, -3, Direction.Tile.West),
+                ( 1,  2, -3, Direction.Tile.NorthWest),
+                (-1,  3, -2, Direction.Tile.NorthWest),
+                (-3,  3,  0, Direction.Tile.NorthEast),
+                (-3,  1,  2, Direction.Tile.East)
+            };
+            foreach(var port in portPositions)
+            {
+                // Calculate port coordinates
+                Vector3 centerPos = Coordinates.EvenRToCube(3, 3);
+                Vector3 portPos = new Vector3(centerPos.X + port.q, centerPos.Y + port.r, centerPos.Z + port.s);
+                (int x, int y) = Coordinates.CubeToEvenR(portPos);
+                Tile portTile = map.GetTile(x, y);
+
+                // Initialize port with random type from shuffled list
+                portTile.Port = new Port(portTile, port.dir, portTypes[0]);
+                portTypes.RemoveAt(0);
             }
 
             return new Board(map, intersections, edges);
