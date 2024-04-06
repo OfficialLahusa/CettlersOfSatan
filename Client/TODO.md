@@ -1,0 +1,5 @@
+- SortedList für benachbarte Edges und Intersections jeder jeweiligen Intersection,
+- Klasse Edge
+- Zusätzlicher Pass für Intersections und Edges der Wasser-Tiles
+- Tiles, Intersections und Edges Felder für Referenzen auf Häfen geben
+- Alle Anlieger teilen sich eine globale Instanz jedes Hafens, damit die Privilegienauswertung nachher zentral funktioniert
