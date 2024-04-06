@@ -215,6 +215,8 @@ namespace Common
                 }
             }
 
+            // Place ports in fixed locations with random types
+            LinkedList<Port> ports = new();
             // Hard-coded positions and orientations of ports
             List<(int q, int r, int s, Direction.Tile dir)> portPositions = new()
             {
@@ -228,20 +230,22 @@ namespace Common
                 (-3,  3,  0, Direction.Tile.NorthEast),
                 (-3,  1,  2, Direction.Tile.East)
             };
-            foreach(var port in portPositions)
+            foreach(var portPlacement in portPositions)
             {
                 // Calculate port coordinates
                 Vector3 centerPos = Coordinates.EvenRToCube(3, 3);
-                Vector3 portPos = new Vector3(centerPos.X + port.q, centerPos.Y + port.r, centerPos.Z + port.s);
+                Vector3 portPos = new Vector3(centerPos.X + portPlacement.q, centerPos.Y + portPlacement.r, centerPos.Z + portPlacement.s);
                 (int x, int y) = Coordinates.CubeToEvenR(portPos);
                 Tile portTile = map.GetTile(x, y);
 
                 // Initialize port with random type from shuffled list
-                portTile.Port = new Port(portTile, port.dir, portTypes[0]);
+                Port port = new Port(portTile, portPlacement.dir, portTypes[0]);
+                portTile.Port = port;
+                ports.AddLast(port);
                 portTypes.RemoveAt(0);
             }
 
-            return new Board(map, intersections, edges);
+            return new Board(map, intersections, edges, ports);
         }
 
         private static HashSet<Tile> GetAdjacentRedNumbers(HexMap<Tile> map)

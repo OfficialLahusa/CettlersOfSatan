@@ -20,11 +20,16 @@ namespace Client
         private VertexArray _overlay;
         private VertexArray _roads;
 
-        private Func<Tile.TileType, Color> _tileTypeColorFunc;
+        private Func<TileType, Color> _tileTypeColorFunc;
         private Func<Tile, Color?> _gridColorFunc;
 
-        private Text _coords;
+        // Number tokens
+        private Text _tokenText;
         private CircleShape _tokenBase;
+
+        // Port text
+        private Text _portText;
+
         private CircleShape _intersectionMarker;
         private RectangleShape _intersectionRect;
 
@@ -62,12 +67,16 @@ namespace Client
             _overlay = new VertexArray(PrimitiveType.Triangles);
             _roads = new VertexArray(PrimitiveType.Triangles);
 
-            _coords = new Text("", GameScreen.Font);
-            _coords.CharacterSize = (uint)Math.Round(sideLength * (11.0f/30.0f));
-            _coords.FillColor = Color.Black;
+            _tokenText = new Text("", GameScreen.Font);
+            _tokenText.CharacterSize = (uint)Math.Round(sideLength * (11.0f/30.0f));
+            _tokenText.FillColor = Color.Black;
 
             _tokenBase = new CircleShape(SideLength/3, 64);
             _tokenBase.Origin = new Vector2f(_tokenBase.Radius, _tokenBase.Radius);
+
+            _portText = new Text("", GameScreen.Font);
+            _portText.CharacterSize = (uint)Math.Round(sideLength * (8.0f / 30.0f));
+            _portText.FillColor = Color.White;
 
             _intersectionMarker = new CircleShape(SideLength / 6, 32);
             _intersectionMarker.Origin = new Vector2f(_intersectionMarker.Radius, _intersectionMarker.Radius);
@@ -444,21 +453,21 @@ namespace Client
                         target.Draw(_tokenBase, states);
 
                         // Yield Text (Most frequent numbers 8, 6 are red)
-                        _coords.DisplayedString = value.Number.ToString();
+                        _tokenText.DisplayedString = value.Number.ToString();
                         if (value.Number == 8 || value.Number == 6)
                         {
-                            _coords.FillColor = Color.Red;
-                            _coords.Style = Text.Styles.Bold;
+                            _tokenText.FillColor = Color.Red;
+                            _tokenText.Style = Text.Styles.Bold;
                         }
                         else
                         {
-                            _coords.FillColor = Color.Black;
-                            _coords.Style = Text.Styles.Regular;
+                            _tokenText.FillColor = Color.Black;
+                            _tokenText.Style = Text.Styles.Regular;
                         }
-                        FloatRect bounds = _coords.GetLocalBounds();
-                        _coords.Origin = new Vector2f(bounds.Left + bounds.Width / 2.0f, bounds.Top + bounds.Height / 2.0f);
-                        _coords.Position = center;
-                        target.Draw(_coords, states);
+                        FloatRect bounds = _tokenText.GetLocalBounds();
+                        _tokenText.Origin = new Vector2f(bounds.Left + bounds.Width / 2.0f, bounds.Top + bounds.Height / 2.0f);
+                        _tokenText.Position = center;
+                        target.Draw(_tokenText, states);
                     }
                 }
             }
@@ -488,6 +497,18 @@ namespace Client
                     default:
                         break;
                 }
+            }
+
+            // Draw port text
+            foreach(Port port in Board.Ports)
+            {
+                Vector2f center = GetTileCenter(port.AnchorTile);
+                _portText.DisplayedString = (port.Type == Port.TradeType.Generic) ? "3:1" : "2:1";
+                FloatRect textBounds = _portText.GetLocalBounds();
+                _portText.Origin = new Vector2f(textBounds.Left + textBounds.Width / 2f, textBounds.Top + textBounds.Height / 2f);
+                _portText.Position = center + new Vector2f(-2, 0);
+
+                target.Draw(_portText, states);
             }
         }
     }
