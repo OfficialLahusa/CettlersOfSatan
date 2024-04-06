@@ -18,7 +18,8 @@ namespace Client
         private VertexBuffer _tiles;
         private VertexArray _grid;
         private VertexArray _overlay;
-        
+        private VertexArray _roads;
+
         private Func<Tile, Color> _tileColorFunc;
         private Func<Tile, Color?> _gridColorFunc;
 
@@ -59,6 +60,7 @@ namespace Client
             _tiles = new VertexBuffer(Board.Map.Width * Board.Map.Height * 4 * 3, PrimitiveType.Triangles, VertexBuffer.UsageSpecifier.Static);
             _grid = new VertexArray(PrimitiveType.Triangles);
             _overlay = new VertexArray(PrimitiveType.Triangles);
+            _roads = new VertexArray(PrimitiveType.Triangles);
 
             _coords = new Text("", GameScreen.Font);
             _coords.CharacterSize = (uint)Math.Round(sideLength * (11.0f/30.0f));
@@ -104,7 +106,9 @@ namespace Client
             Vertex[] tempTiles = new Vertex[width * height * 4 * 3];
             _grid.Clear();
             _overlay.Clear();
+            _roads.Clear();
 
+            // Build tiles
             for (int x = 0; x < width; x++)
             {
                 for (int y = 0; y < height; y++)
@@ -124,7 +128,7 @@ namespace Client
                     for (int i = 0; i < 6; i++)
                     {
                         // Hex points
-                        points[i] = center + SideLength * new Vector2f(MathF.Cos((30.0f + 60.0f * i) / 180.0f * MathF.PI), MathF.Sin((30.0f + 60.0f * i) / 180.0f * MathF.PI));
+                        points[i] = center + SideLength * ClientUtils.EulerAngleToVec2f(30.0f + 60.0f * i);
 
                         // Hex vertices
                         vertices[i] = new Vertex(points[i], tileColor);
@@ -145,27 +149,27 @@ namespace Client
                     tempTiles[offset + 7] = vertices[3];
                     tempTiles[offset + 8] = vertices[5];
                     // Bottom triangle
-                    tempTiles[offset + 9] = vertices[3];
+                    tempTiles[offset + 9]  = vertices[3];
                     tempTiles[offset + 10] = vertices[4];
                     tempTiles[offset + 11] = vertices[5];
 
                     // Build grid
                     if(gridColor.HasValue)
                     {
-                        Vector2f[] insetPoints = new Vector2f[6];
+                        Vector2f[] insetPoints  = new Vector2f[6];
                         Vector2f[] outsetPoints = new Vector2f[6];
-                        Vertex[] gridVertices = new Vertex[6];
-                        Vertex[] gridInsetVertices = new Vertex[6];
+                        Vertex[] gridVertices       = new Vertex[6];
+                        Vertex[] gridInsetVertices  = new Vertex[6];
                         Vertex[] gridOutsetVertices = new Vertex[6];
 
                         // Generate vertices
                         for(int i = 0; i < 6; i++)
                         {
                             // Inner points of hex (side length inset by half the border width)
-                            insetPoints[i] = center + (SideLength - _borderWidth / 2) * new Vector2f(MathF.Cos((30.0f + 60.0f * i) / 180.0f * MathF.PI), MathF.Sin((30.0f + 60.0f * i) / 180.0f * MathF.PI));
+                            insetPoints[i]  = center + (SideLength - _borderWidth / 2) * ClientUtils.EulerAngleToVec2f(30.0f + 60.0f * i);
 
                             // Outer points of hex (side length outset by half the border width)
-                            outsetPoints[i] = center + (SideLength + _borderWidth / 2) * new Vector2f(MathF.Cos((30.0f + 60.0f * i) / 180.0f * MathF.PI), MathF.Sin((30.0f + 60.0f * i) / 180.0f * MathF.PI));
+                            outsetPoints[i] = center + (SideLength + _borderWidth / 2) * ClientUtils.EulerAngleToVec2f(30.0f + 60.0f * i);
 
                             // Grid vertices
                             gridVertices[i] = new Vertex(points[i], gridColor.Value);
@@ -233,6 +237,75 @@ namespace Client
                 }
             }
             _tiles.Update(tempTiles);
+
+            // Build roads
+            foreach (Edge edge in Board.Edges)
+            {
+                // Skip edges without roads
+                if (edge.Building == Edge.BuildingType.None) continue;
+
+                // Anchor the edge to one of two neighboring tiles
+                Tile anchor;
+                Direction.Tile anchorDir;
+
+                // Anchor to east tile, if it exists
+                if (edge.EastTile != null)
+                {
+                    anchor = edge.EastTile;
+                    anchorDir = edge.Direction.ToWestTileDir();
+                }
+                // Anchor to west tile otherwise
+                else if (edge.WestTile != null)
+                {
+                    anchor = edge.WestTile;
+                    anchorDir = edge.Direction.ToEastTileDir();
+                }
+                // If there are no adjacent tiles, the edge state must be invalid
+                else
+                {
+                    throw new InvalidOperationException("Edge doesn't have adjacent tiles");
+                }
+
+                // Determine corner positions
+                (Direction.Corner leftCorner, Direction.Corner rightCorner) = anchorDir.GetAdjacentCorners();
+                float leftAngle  = leftCorner.ToAngle();
+                float rightAngle = rightCorner.ToAngle();
+
+                Vector2f tileCenter     = GetTileCenter(anchor);
+                Vector2f leftDir        = ClientUtils.EulerAngleToVec2f(leftAngle);
+                Vector2f rightDir       = ClientUtils.EulerAngleToVec2f(rightAngle);
+                Vector2f leftInnerDir   = ClientUtils.EulerAngleToVec2f(leftCorner.Mirror().ToAngle());
+                Vector2f rightInnerDir  = ClientUtils.EulerAngleToVec2f(rightCorner.Mirror().ToAngle());
+                Vector2f leftOuterDir   = ClientUtils.EulerAngleToVec2f(leftCorner.Rotate(1).ToAngle());
+                Vector2f rightOuterDir  = ClientUtils.EulerAngleToVec2f(rightCorner.Rotate(-1).ToAngle());
+
+                Color playerColor = ClientUtils.GetPlayerColor(edge.Owner);
+
+                // Build vertices
+                Vertex left         = new Vertex(tileCenter + SideLength * leftDir, playerColor);
+                Vertex right        = new Vertex(tileCenter + SideLength * rightDir, playerColor);
+                Vertex leftInset    = new Vertex(left.Position  + leftInnerDir  * (_borderWidth / 2), playerColor);
+                Vertex rightInset   = new Vertex(right.Position + rightInnerDir * (_borderWidth / 2), playerColor);
+                Vertex leftOutset   = new Vertex(left.Position  + leftOuterDir  * (_borderWidth / 2), playerColor);
+                Vertex rightOutset  = new Vertex(right.Position + rightOuterDir * (_borderWidth / 2), playerColor);
+
+
+                _roads.Append(leftInset);
+                _roads.Append(leftOutset);
+                _roads.Append(rightInset);
+
+                _roads.Append(leftOutset);
+                _roads.Append(rightOutset);
+                _roads.Append(rightInset);
+
+                _roads.Append(left);
+                _roads.Append(leftInset);
+                _roads.Append(leftOutset);
+
+                _roads.Append(right);
+                _roads.Append(rightInset);
+                _roads.Append(rightOutset);
+            }
         }
 
         public Vector2f GetTileCenter(Tile tile)
@@ -262,7 +335,7 @@ namespace Client
             Vector2f parentCenter = GetTileCenter(adjacentParent.Value);
             float angle = adjacentParent.Key.ToAngle();
 
-            return parentCenter + SideLength * new Vector2f((float)Math.Cos(angle / 180.0f * MathF.PI), (float)Math.Sin(angle / 180.0f * MathF.PI));
+            return parentCenter + SideLength * ClientUtils.EulerAngleToVec2f(angle);
         }
 
         // Render the HexMap to a RenderTarget
@@ -270,6 +343,7 @@ namespace Client
         {
             target.Draw(_tiles, states);
             target.Draw(_grid, states);
+            target.Draw(_roads, states);
             states.Texture = TextureAtlas.Texture;
             target.Draw(_overlay, states);
 
