@@ -18,6 +18,7 @@ namespace Client
         private VertexBuffer _tiles;
         private VertexArray _grid;
         private VertexArray _overlay;
+        private VertexArray _portBridges;
         private VertexArray _roads;
 
         private Func<TileType, Color> _tileTypeColorFunc;
@@ -65,6 +66,7 @@ namespace Client
             _tiles = new VertexBuffer(Board.Map.Width * Board.Map.Height * 4 * 3, PrimitiveType.Triangles, VertexBuffer.UsageSpecifier.Static);
             _grid = new VertexArray(PrimitiveType.Triangles);
             _overlay = new VertexArray(PrimitiveType.Triangles);
+            _portBridges = new VertexArray(PrimitiveType.Triangles);
             _roads = new VertexArray(PrimitiveType.Triangles);
 
             _tokenText = new Text("", GameScreen.Font);
@@ -201,7 +203,107 @@ namespace Client
                         }
                     }
 
-                    // Build static overlay
+                    // Build port bridges and icons
+                    if(tile.Port != null)
+                    {
+                        // Coastal bridges
+                        Direction.Corner leftCorner, rightCorner;
+                        float leftAngle, rightAngle;
+
+                        (leftCorner, rightCorner) = tile.Port.AnchorDirection.GetAdjacentCorners();
+                        leftAngle = leftCorner.ToAngle();
+                        rightAngle = rightCorner.ToAngle();
+
+                        Vector2f leftDir = ClientUtils.EulerAngleToVec2f(leftAngle);
+                        Vector2f rightDir = ClientUtils.EulerAngleToVec2f(rightAngle);
+
+                        Color bridgeColor = new Color(0x5E, 0x2C, 0x04);
+
+                        Vertex vertLeftOuter  = new Vertex(center + (SideLength - _borderWidth / 2f) * leftDir,  bridgeColor);
+                        Vertex vertRightOuter = new Vertex(center + (SideLength - _borderWidth / 2f) * rightDir, bridgeColor);
+                        Vertex vertLeftInner  = new Vertex(center + SideLength * 0.75f * leftDir,  bridgeColor);
+                        Vertex vertRightInner = new Vertex(center + SideLength * 0.75f * rightDir, bridgeColor);
+
+                        _portBridges.Append(vertLeftOuter);
+                        _portBridges.Append(vertRightOuter);
+                        _portBridges.Append(vertLeftInner);
+
+                        _portBridges.Append(vertLeftInner);
+                        _portBridges.Append(vertRightOuter);
+                        _portBridges.Append(vertRightInner);
+                        
+
+                        // Icons
+                        float iconSize = SideLength * 7 / 15;
+
+                        // Port icon (bottom)
+                        Color color = new Color(88, 57, 39);
+                        IntRect textureRect = TextureAtlas.Sprite.Port.GetTextureRect();
+
+                        Vector2f position = new Vector2f(center.X - iconSize / 2, center.Y - iconSize / 2 + (SideLength / 2.5f));
+                        Vertex vertTopLeft = new Vertex(position, color, new Vector2f(textureRect.Left, textureRect.Top));
+                        Vertex vertTopRight = new Vertex(position + new Vector2f(iconSize, 0), color, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top));
+                        Vertex vertBottomLeft = new Vertex(position + new Vector2f(0, iconSize), color, new Vector2f(textureRect.Left, textureRect.Top + textureRect.Height));
+                        Vertex vertBottomRight = new Vertex(position + new Vector2f(iconSize, iconSize), color, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top + textureRect.Height));
+
+                        _overlay.Append(vertTopLeft);
+                        _overlay.Append(vertTopRight);
+                        _overlay.Append(vertBottomLeft);
+                        _overlay.Append(vertTopRight);
+                        _overlay.Append(vertBottomRight);
+                        _overlay.Append(vertBottomLeft);
+
+                        // Type icon (top)
+                        byte max; float fac;
+                        switch (tile.Port.Type)
+                        {
+                            case Port.TradeType.Lumber:
+                                color = _tileTypeColorFunc(TileType.Lumber) * new Color(128, 128, 128);
+                                textureRect = TextureAtlas.Sprite.Lumber.GetTextureRect();
+                                break;
+                            case Port.TradeType.Brick:
+                                color = _tileTypeColorFunc(TileType.Brick);
+                                max = Math.Max(color.R, Math.Max(color.G, color.B));
+                                fac = 255.0f / max * 0.7f;
+                                color *= new Color((byte)(color.R * fac), (byte)(color.G * fac), (byte)(color.B * fac));
+                                textureRect = TextureAtlas.Sprite.Brick.GetTextureRect();
+                                break;
+                            case Port.TradeType.Wool:
+                                color = new Color(230, 230, 230);
+                                textureRect = TextureAtlas.Sprite.Wool.GetTextureRect();
+                                break;
+                            case Port.TradeType.Grain:
+                                color = _tileTypeColorFunc(TileType.Grain);
+                                max = Math.Max(color.R, Math.Max(color.G, color.B));
+                                fac = 255.0f / max * 0.8f;
+                                color *= new Color((byte)(color.R * fac), (byte)(color.G * fac), (byte)(color.B * fac));
+                                textureRect = TextureAtlas.Sprite.Grain.GetTextureRect();
+                                break;
+                            case Port.TradeType.Ore:
+                                color = _tileTypeColorFunc(TileType.Ore) * new Color(128, 128, 128);
+                                textureRect = TextureAtlas.Sprite.Ore.GetTextureRect();
+                                break;
+                            case Port.TradeType.Generic:
+                            default:
+                                color = new Color(230, 230, 230);
+                                textureRect = TextureAtlas.Sprite.QuestionMark.GetTextureRect();
+                                break;
+                        }
+
+                        position = new Vector2f(center.X - iconSize / 2, center.Y - iconSize / 2 - (SideLength / 2.5f));
+                        vertTopLeft = new Vertex(position, color, new Vector2f(textureRect.Left, textureRect.Top));
+                        vertTopRight = new Vertex(position + new Vector2f(iconSize, 0), color, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top));
+                        vertBottomLeft = new Vertex(position + new Vector2f(0, iconSize), color, new Vector2f(textureRect.Left, textureRect.Top + textureRect.Height));
+                        vertBottomRight = new Vertex(position + new Vector2f(iconSize, iconSize), color, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top + textureRect.Height));
+
+                        _overlay.Append(vertTopLeft);
+                        _overlay.Append(vertTopRight);
+                        _overlay.Append(vertBottomLeft);
+                        _overlay.Append(vertTopRight);
+                        _overlay.Append(vertBottomRight);
+                        _overlay.Append(vertBottomLeft);
+                    }
+
                     // Yield icons for land tiles
                     if(tile.IsLandTile())
                     {
@@ -244,78 +346,6 @@ namespace Client
                             _overlay.Append(vertBR);
                             _overlay.Append(vertBL);
                         }
-                    }
-                    // Port overlay
-                    else if(tile.Port != null)
-                    {
-                        float iconSize = SideLength * 7 / 15;
-
-                        // Port icon (bottom)
-                        Color color = new Color(88, 57, 39);
-                        IntRect textureRect = TextureAtlas.Sprite.Port.GetTextureRect();
-
-                        Vector2f position = new Vector2f(center.X - iconSize / 2, center.Y - iconSize / 2 + (SideLength / 2.5f));
-                        Vertex vertTL = new Vertex(position, color, new Vector2f(textureRect.Left, textureRect.Top));
-                        Vertex vertTR = new Vertex(position + new Vector2f(iconSize, 0), color, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top));
-                        Vertex vertBL = new Vertex(position + new Vector2f(0, iconSize), color, new Vector2f(textureRect.Left, textureRect.Top + textureRect.Height));
-                        Vertex vertBR = new Vertex(position + new Vector2f(iconSize, iconSize), color, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top + textureRect.Height));
-
-                        _overlay.Append(vertTL);
-                        _overlay.Append(vertTR);
-                        _overlay.Append(vertBL);
-                        _overlay.Append(vertTR);
-                        _overlay.Append(vertBR);
-                        _overlay.Append(vertBL);
-
-                        // Type icon (top)
-                        byte max; float fac;
-                        switch(tile.Port.Type)
-                        {
-                            case Port.TradeType.Lumber:
-                                color = _tileTypeColorFunc(TileType.Lumber) * new Color(128, 128, 128);
-                                textureRect = TextureAtlas.Sprite.Lumber.GetTextureRect();
-                                break;
-                            case Port.TradeType.Brick:
-                                color = _tileTypeColorFunc(TileType.Brick);
-                                max = Math.Max(color.R, Math.Max(color.G, color.B));
-                                fac = 255.0f / max * 0.7f;
-                                color *= new Color((byte)(color.R * fac), (byte)(color.G * fac), (byte)(color.B * fac));
-                                textureRect = TextureAtlas.Sprite.Brick.GetTextureRect();
-                                break;
-                            case Port.TradeType.Wool:
-                                color = new Color(230, 230, 230);
-                                textureRect = TextureAtlas.Sprite.Wool.GetTextureRect();
-                                break;
-                            case Port.TradeType.Grain:
-                                color = _tileTypeColorFunc(TileType.Grain);
-                                max = Math.Max(color.R, Math.Max(color.G, color.B));
-                                fac = 255.0f / max * 0.8f;
-                                color *= new Color((byte)(color.R * fac), (byte)(color.G * fac), (byte)(color.B * fac));
-                                textureRect = TextureAtlas.Sprite.Grain.GetTextureRect();
-                                break;
-                            case Port.TradeType.Ore:
-                                color = _tileTypeColorFunc(TileType.Ore) * new Color(128, 128, 128);
-                                textureRect = TextureAtlas.Sprite.Ore.GetTextureRect();
-                                break;
-                            case Port.TradeType.Generic:
-                            default:
-                                color = new Color(230, 230, 230);
-                                textureRect = TextureAtlas.Sprite.QuestionMark.GetTextureRect();
-                                break;
-                        }
-
-                        position = new Vector2f(center.X - iconSize / 2, center.Y - iconSize / 2 - (SideLength / 2.5f));
-                        vertTL = new Vertex(position, color, new Vector2f(textureRect.Left, textureRect.Top));
-                        vertTR = new Vertex(position + new Vector2f(iconSize, 0), color, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top));
-                        vertBL = new Vertex(position + new Vector2f(0, iconSize), color, new Vector2f(textureRect.Left, textureRect.Top + textureRect.Height));
-                        vertBR = new Vertex(position + new Vector2f(iconSize, iconSize), color, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top + textureRect.Height));
-
-                        _overlay.Append(vertTL);
-                        _overlay.Append(vertTR);
-                        _overlay.Append(vertBL);
-                        _overlay.Append(vertTR);
-                        _overlay.Append(vertBR);
-                        _overlay.Append(vertBL);
                     }
                 }
             }
@@ -426,6 +456,7 @@ namespace Client
         {
             target.Draw(_tiles, states);
             target.Draw(_grid, states);
+            target.Draw(_portBridges, states);
             target.Draw(_roads, states);
             states.Texture = TextureAtlas.Texture;
             target.Draw(_overlay, states);
