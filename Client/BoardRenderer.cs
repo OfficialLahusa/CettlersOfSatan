@@ -117,6 +117,7 @@ namespace Client
             Vertex[] tempTiles = new Vertex[width * height * 4 * 3];
             _grid.Clear();
             _overlay.Clear();
+            _portBridges.Clear();
             _roads.Clear();
 
             // Build tiles
@@ -206,6 +207,8 @@ namespace Client
                     // Build port bridges and icons
                     if(tile.Port != null)
                     {
+                        Color portColor = new Color(0x65, 0x35, 0x0F);
+
                         // Coastal bridges
                         Direction.Corner leftCorner, rightCorner;
                         float leftAngle, rightAngle;
@@ -217,12 +220,12 @@ namespace Client
                         Vector2f leftDir = ClientUtils.EulerAngleToVec2f(leftAngle);
                         Vector2f rightDir = ClientUtils.EulerAngleToVec2f(rightAngle);
 
-                        Color bridgeColor = new Color(0x5E, 0x2C, 0x04);
+                        
 
-                        Vertex vertLeftOuter  = new Vertex(center + (SideLength - _borderWidth / 2f) * leftDir,  bridgeColor);
-                        Vertex vertRightOuter = new Vertex(center + (SideLength - _borderWidth / 2f) * rightDir, bridgeColor);
-                        Vertex vertLeftInner  = new Vertex(center + SideLength * 0.75f * leftDir,  bridgeColor);
-                        Vertex vertRightInner = new Vertex(center + SideLength * 0.75f * rightDir, bridgeColor);
+                        Vertex vertLeftOuter  = new Vertex(center + (SideLength - _borderWidth / 2f) * leftDir,  portColor);
+                        Vertex vertRightOuter = new Vertex(center + (SideLength - _borderWidth / 2f) * rightDir, portColor);
+                        Vertex vertLeftInner  = new Vertex(center + SideLength * 0.75f * leftDir,  portColor);
+                        Vertex vertRightInner = new Vertex(center + SideLength * 0.75f * rightDir, portColor);
 
                         _portBridges.Append(vertLeftOuter);
                         _portBridges.Append(vertRightOuter);
@@ -237,14 +240,13 @@ namespace Client
                         float iconSize = SideLength * 7 / 15;
 
                         // Port icon (bottom)
-                        Color color = new Color(88, 57, 39);
                         IntRect textureRect = TextureAtlas.Sprite.Port.GetTextureRect();
 
                         Vector2f position = new Vector2f(center.X - iconSize / 2, center.Y - iconSize / 2 + (SideLength / 2.5f));
-                        Vertex vertTopLeft = new Vertex(position, color, new Vector2f(textureRect.Left, textureRect.Top));
-                        Vertex vertTopRight = new Vertex(position + new Vector2f(iconSize, 0), color, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top));
-                        Vertex vertBottomLeft = new Vertex(position + new Vector2f(0, iconSize), color, new Vector2f(textureRect.Left, textureRect.Top + textureRect.Height));
-                        Vertex vertBottomRight = new Vertex(position + new Vector2f(iconSize, iconSize), color, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top + textureRect.Height));
+                        Vertex vertTopLeft     = new Vertex(position, portColor, new Vector2f(textureRect.Left, textureRect.Top));
+                        Vertex vertTopRight    = new Vertex(position + new Vector2f(iconSize, 0), portColor, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top));
+                        Vertex vertBottomLeft  = new Vertex(position + new Vector2f(0, iconSize), portColor, new Vector2f(textureRect.Left, textureRect.Top + textureRect.Height));
+                        Vertex vertBottomRight = new Vertex(position + new Vector2f(iconSize, iconSize), portColor, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top + textureRect.Height));
 
                         _overlay.Append(vertTopLeft);
                         _overlay.Append(vertTopRight);
@@ -254,47 +256,48 @@ namespace Client
                         _overlay.Append(vertBottomLeft);
 
                         // Type icon (top)
+                        Color resourceColor;
                         byte max; float fac;
                         switch (tile.Port.Type)
                         {
                             case Port.TradeType.Lumber:
-                                color = _tileTypeColorFunc(TileType.Lumber) * new Color(128, 128, 128);
+                                resourceColor = _tileTypeColorFunc(TileType.Lumber) * new Color(128, 128, 128);
                                 textureRect = TextureAtlas.Sprite.Lumber.GetTextureRect();
                                 break;
                             case Port.TradeType.Brick:
-                                color = _tileTypeColorFunc(TileType.Brick);
-                                max = Math.Max(color.R, Math.Max(color.G, color.B));
+                                resourceColor = _tileTypeColorFunc(TileType.Brick);
+                                max = Math.Max(resourceColor.R, Math.Max(resourceColor.G, resourceColor.B));
                                 fac = 255.0f / max * 0.7f;
-                                color *= new Color((byte)(color.R * fac), (byte)(color.G * fac), (byte)(color.B * fac));
+                                resourceColor *= new Color((byte)(resourceColor.R * fac), (byte)(resourceColor.G * fac), (byte)(resourceColor.B * fac));
                                 textureRect = TextureAtlas.Sprite.Brick.GetTextureRect();
                                 break;
                             case Port.TradeType.Wool:
-                                color = new Color(230, 230, 230);
+                                resourceColor = new Color(230, 230, 230);
                                 textureRect = TextureAtlas.Sprite.Wool.GetTextureRect();
                                 break;
                             case Port.TradeType.Grain:
-                                color = _tileTypeColorFunc(TileType.Grain);
-                                max = Math.Max(color.R, Math.Max(color.G, color.B));
+                                resourceColor = _tileTypeColorFunc(TileType.Grain);
+                                max = Math.Max(resourceColor.R, Math.Max(resourceColor.G, resourceColor.B));
                                 fac = 255.0f / max * 0.8f;
-                                color *= new Color((byte)(color.R * fac), (byte)(color.G * fac), (byte)(color.B * fac));
+                                resourceColor *= new Color((byte)(resourceColor.R * fac), (byte)(resourceColor.G * fac), (byte)(resourceColor.B * fac));
                                 textureRect = TextureAtlas.Sprite.Grain.GetTextureRect();
                                 break;
                             case Port.TradeType.Ore:
-                                color = _tileTypeColorFunc(TileType.Ore) * new Color(128, 128, 128);
+                                resourceColor = _tileTypeColorFunc(TileType.Ore) * new Color(128, 128, 128);
                                 textureRect = TextureAtlas.Sprite.Ore.GetTextureRect();
                                 break;
                             case Port.TradeType.Generic:
                             default:
-                                color = new Color(230, 230, 230);
+                                resourceColor = new Color(230, 230, 230);
                                 textureRect = TextureAtlas.Sprite.QuestionMark.GetTextureRect();
                                 break;
                         }
 
                         position = new Vector2f(center.X - iconSize / 2, center.Y - iconSize / 2 - (SideLength / 2.5f));
-                        vertTopLeft = new Vertex(position, color, new Vector2f(textureRect.Left, textureRect.Top));
-                        vertTopRight = new Vertex(position + new Vector2f(iconSize, 0), color, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top));
-                        vertBottomLeft = new Vertex(position + new Vector2f(0, iconSize), color, new Vector2f(textureRect.Left, textureRect.Top + textureRect.Height));
-                        vertBottomRight = new Vertex(position + new Vector2f(iconSize, iconSize), color, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top + textureRect.Height));
+                        vertTopLeft = new Vertex(position, resourceColor, new Vector2f(textureRect.Left, textureRect.Top));
+                        vertTopRight = new Vertex(position + new Vector2f(iconSize, 0), resourceColor, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top));
+                        vertBottomLeft = new Vertex(position + new Vector2f(0, iconSize), resourceColor, new Vector2f(textureRect.Left, textureRect.Top + textureRect.Height));
+                        vertBottomRight = new Vertex(position + new Vector2f(iconSize, iconSize), resourceColor, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top + textureRect.Height));
 
                         _overlay.Append(vertTopLeft);
                         _overlay.Append(vertTopRight);
