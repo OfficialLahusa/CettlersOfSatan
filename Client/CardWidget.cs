@@ -36,11 +36,6 @@ namespace Client
 
         public void Update(float deltaTime, Vector2f mousePos)
         {
-            // Hover über Stack
-            // => Tooltip anzeigen
-            // => Karten etwas nach oben verschieben mit smooth Easing
-            // => Tooltip transparency
-
             float offsetX = 0f;
 
             foreach (CardSet.CardType cardType in Enum.GetValues(typeof(CardSet.CardType)))
@@ -66,16 +61,6 @@ namespace Client
                         }
 
                         offsetX += CARD_SHIFT;
-                    }
-
-                    Console.WriteLine($"X: {mousePos.X}, Y: {mousePos.Y}");
-                    if(hovering)
-                    {
-                        Console.WriteLine($"Hovering Stack {cardType}");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Not Hovering Stack {cardType}");
                     }
 
                     // Smoothly hover/unhover
