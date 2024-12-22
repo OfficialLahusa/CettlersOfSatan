@@ -1,4 +1,7 @@
-﻿using SFML.Graphics;
+﻿using Common;
+using SFML.Graphics;
+using static Common.CardSet;
+using static Common.Direction;
 using static Common.Tile;
 
 namespace Client
@@ -56,9 +59,9 @@ namespace Client
             return (sprite != Sprite.None) ? new IntRect(((int)sprite % 8) * 512, ((int)sprite / 8) * 512, 512, 512) : new IntRect(0, 0, 0, 0);
         }
 
-        public static Sprite GetSprite(TileType tileType)
+        public static Sprite GetSprite(TileType type)
         {
-            return tileType switch
+            return type switch
             {
                 TileType.Lumber => Sprite.Lumber,
                 TileType.Brick => Sprite.Brick,
@@ -70,6 +73,42 @@ namespace Client
             };
         }
 
-        
+        public static Sprite GetSprite(Port.TradeType type)
+        {
+            return type switch
+            {
+                Port.TradeType.Generic => Sprite.QuestionMark,
+                Port.TradeType.Lumber => Sprite.Lumber,
+                Port.TradeType.Brick => Sprite.Brick,
+                Port.TradeType.Wool => Sprite.Wool,
+                Port.TradeType.Grain => Sprite.Grain,
+                Port.TradeType.Ore => Sprite.Ore,
+                _ => throw new InvalidOperationException(),
+            };
+        }
+
+        public static Sprite GetSprite(CardType type)
+        {
+            return type switch
+            {
+                CardType.Unknown => Sprite.QuestionMark,
+
+                // Resource
+                CardType.Lumber => Sprite.Lumber,
+                CardType.Brick => Sprite.Brick,
+                CardType.Wool => Sprite.Wool,
+                CardType.Grain => Sprite.Grain,
+                CardType.Ore => Sprite.Ore,
+
+                // Development
+                CardType.Knight => Sprite.Knight,
+                CardType.RoadBuilding => Sprite.Road,
+                CardType.YearOfPlenty => Sprite.YearOfPlenty,
+                CardType.Monopoly => Sprite.Monopoly,
+                CardType.VictoryPoint => Sprite.VictoryPoint,
+
+                _ => throw new InvalidOperationException()
+            };
+        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Common;
 using SFML.Graphics;
 using SFML.System;
+using SFML.Window;
 using static Common.Tile;
 using Color = SFML.Graphics.Color;
 
@@ -13,6 +14,7 @@ namespace Client
         // Rendering options
         public bool DrawTokenShadows = true;
         public bool DrawIntersectionMarkers = false;
+        public bool DrawEdgeMarkers = false;
 
         // Static geometry
         private VertexBuffer _tiles;
@@ -20,9 +22,6 @@ namespace Client
         private VertexArray _overlay;
         private VertexArray _portBridges;
         private VertexArray _roads;
-
-        private Func<TileType, Color> _tileTypeColorFunc;
-        private Func<Tile, Color?> _gridColorFunc;
 
         // Number tokens
         private Text _tokenText;
@@ -33,6 +32,7 @@ namespace Client
 
         private CircleShape _intersectionMarker;
         private RectangleShape _intersectionRect;
+        private RectangleShape _edgeMarker;
 
         #region Hexagon Dimensions
         private float _sideLength;
@@ -80,7 +80,7 @@ namespace Client
             _portText.CharacterSize = (uint)Math.Round(sideLength * (8.0f / 30.0f));
             _portText.FillColor = Color.White;
 
-            _intersectionMarker = new CircleShape(SideLength / 6, 32);
+            _intersectionMarker = new CircleShape(SideLength / 4, 32);
             _intersectionMarker.Origin = new Vector2f(_intersectionMarker.Radius, _intersectionMarker.Radius);
             _intersectionMarker.FillColor = Color.Red;
 
@@ -88,22 +88,9 @@ namespace Client
             _intersectionRect.Origin = new Vector2f(_intersectionRect.Size.X / 2, _intersectionRect.Size.Y / 2);
             _intersectionRect.Texture = TextureAtlas.Texture;
 
-            _tileTypeColorFunc = val => val switch
-            {
-                TileType.Water => new Color(0x2d, 0x64, 0x9d), // dark blue
-                TileType.Lumber => new Color(0x44, 0x92, 0x47), // dark green
-                TileType.Brick => new Color(0xd1, 0x70, 0x40), // orange-red
-                TileType.Wool => new Color(0x96, 0xb1, 0x41), //light green
-                TileType.Grain => new Color(0xe9, 0xbb, 0x4e), // yellow
-                TileType.Ore => new Color(0xa5, 0xaa, 0xa7), // gray
-                TileType.Desert => new Color(0xd6, 0xcf, 0x9d), // beige
-                _ => Color.Transparent // non-playable => transparent
-            };
-            _gridColorFunc = val => val.Type switch
-            {
-                TileType.Water or TileType.NonPlayable => null, // transparent for water/non-playable
-                _ => new Color(0xd5, 0xbe, 0x84) // white for land tiles
-            };
+            _edgeMarker = new RectangleShape(new Vector2f(SideLength * 0.35f, SideLength));
+            _edgeMarker.Origin = _edgeMarker.Size / 2;
+            _edgeMarker.FillColor = Color.Cyan;
 
             // Create Geometry
             Update();
@@ -128,8 +115,8 @@ namespace Client
                     Tile tile = Board.Map.GetTile(x, y);
 
                     // Calculate Color from Tile Value
-                    Color tileColor = _tileTypeColorFunc(Board.Map.GetTile(x, y).Type);
-                    Color? gridColor = _gridColorFunc(Board.Map.GetTile(x, y));
+                    Color tileColor = ColorPalette.GetTileColor(Board.Map.GetTile(x, y).Type);
+                    Color? gridColor = ColorPalette.GetTileBorderColor(Board.Map.GetTile(x, y));
 
                     Vector2f center = new Vector2f(x * 2 * FlatSideLength + ((y % 2 == 0) ? FlatSideLength : 0), y * 1.5f * SideLength);
                     
@@ -256,42 +243,8 @@ namespace Client
                         _overlay.Append(vertBottomLeft);
 
                         // Type icon (top)
-                        Color resourceColor;
-                        byte max; float fac;
-                        switch (tile.Port.Type)
-                        {
-                            case Port.TradeType.Lumber:
-                                resourceColor = _tileTypeColorFunc(TileType.Lumber) * new Color(128, 128, 128);
-                                textureRect = TextureAtlas.Sprite.Lumber.GetTextureRect();
-                                break;
-                            case Port.TradeType.Brick:
-                                resourceColor = _tileTypeColorFunc(TileType.Brick);
-                                max = Math.Max(resourceColor.R, Math.Max(resourceColor.G, resourceColor.B));
-                                fac = 255.0f / max * 0.7f;
-                                resourceColor *= new Color((byte)(resourceColor.R * fac), (byte)(resourceColor.G * fac), (byte)(resourceColor.B * fac));
-                                textureRect = TextureAtlas.Sprite.Brick.GetTextureRect();
-                                break;
-                            case Port.TradeType.Wool:
-                                resourceColor = new Color(230, 230, 230);
-                                textureRect = TextureAtlas.Sprite.Wool.GetTextureRect();
-                                break;
-                            case Port.TradeType.Grain:
-                                resourceColor = _tileTypeColorFunc(TileType.Grain);
-                                max = Math.Max(resourceColor.R, Math.Max(resourceColor.G, resourceColor.B));
-                                fac = 255.0f / max * 0.8f;
-                                resourceColor *= new Color((byte)(resourceColor.R * fac), (byte)(resourceColor.G * fac), (byte)(resourceColor.B * fac));
-                                textureRect = TextureAtlas.Sprite.Grain.GetTextureRect();
-                                break;
-                            case Port.TradeType.Ore:
-                                resourceColor = _tileTypeColorFunc(TileType.Ore) * new Color(128, 128, 128);
-                                textureRect = TextureAtlas.Sprite.Ore.GetTextureRect();
-                                break;
-                            case Port.TradeType.Generic:
-                            default:
-                                resourceColor = new Color(230, 230, 230);
-                                textureRect = TextureAtlas.Sprite.QuestionMark.GetTextureRect();
-                                break;
-                        }
+                        Color resourceColor = ColorPalette.GetPortIconColor(tile.Port.Type);
+                        textureRect = TextureAtlas.GetSprite(tile.Port.Type).GetTextureRect();
 
                         position = new Vector2f(center.X - iconSize / 2, center.Y - iconSize / 2 - (SideLength / 2.5f));
                         vertTopLeft = new Vertex(position, resourceColor, new Vector2f(textureRect.Left, textureRect.Top));
@@ -310,25 +263,7 @@ namespace Client
                     // Yield icons for land tiles
                     if(tile.IsLandTile())
                     {
-                        Color color = _tileTypeColorFunc(tile.Type);
-
-                        // Grain/Brick: Increase primary intensity
-                        if(tile.Type == TileType.Grain || tile.Type == TileType.Brick)
-                        {
-                            byte max = Math.Max(color.R, Math.Max(color.G, color.B));
-                            float fac = 255.0f / max * ((tile.Type == TileType.Grain) ? 0.8f : 0.7f);
-                            color *= new Color((byte)(color.R * fac), (byte)(color.G * fac), (byte)(color.B * fac));
-                        }
-                        // Wool: Static light gray/white shade
-                        else if (tile.Type == TileType.Wool)
-                        {
-                            color = new Color(230, 230, 230);
-                        }
-                        // Ore/Lumber/Desert: Reduce color intensity by 50%
-                        else
-                        {
-                            color *= new Color(128, 128, 128);
-                        }
+                        Color color = ColorPalette.GetTileIconColor(tile.Type);
 
                         IntRect textureRect = TextureAtlas.GetSprite(tile.Type).GetTextureRect();
                         float iconSize = SideLength * 7 / 15;
@@ -360,27 +295,8 @@ namespace Client
                 // Skip edges without roads
                 if (edge.Building == Edge.BuildingType.None) continue;
 
-                // Anchor the edge to one of two neighboring tiles
-                Tile anchor;
-                Direction.Tile anchorDir;
-
-                // Anchor to east tile, if it exists
-                if (edge.EastTile != null)
-                {
-                    anchor = edge.EastTile;
-                    anchorDir = edge.Direction.ToWestTileDir();
-                }
-                // Anchor to west tile otherwise
-                else if (edge.WestTile != null)
-                {
-                    anchor = edge.WestTile;
-                    anchorDir = edge.Direction.ToEastTileDir();
-                }
-                // If there are no adjacent tiles, the edge state must be invalid
-                else
-                {
-                    throw new InvalidOperationException("Edge doesn't have adjacent tiles");
-                }
+                // Anchor edge to one of its two neighboring tiles
+                (Tile anchor, Direction.Tile anchorDir) = GetEdgeAnchor(edge);
 
                 // Determine corner positions
                 (Direction.Corner leftCorner, Direction.Corner rightCorner) = anchorDir.GetAdjacentCorners();
@@ -395,7 +311,7 @@ namespace Client
                 Vector2f leftOuterDir   = ClientUtils.EulerAngleToVec2f(leftCorner.Rotate(1).ToAngle());
                 Vector2f rightOuterDir  = ClientUtils.EulerAngleToVec2f(rightCorner.Rotate(-1).ToAngle());
 
-                Color playerColor = ClientUtils.GetPlayerColor(edge.Owner);
+                Color playerColor = ColorPalette.GetPlayerColor(edge.Owner);
 
                 // Build vertices
                 Vertex left         = new Vertex(tileCenter + SideLength * leftDir, playerColor);
@@ -454,6 +370,53 @@ namespace Client
             return parentCenter + SideLength * ClientUtils.EulerAngleToVec2f(angle);
         }
 
+        public (Tile anchor, Direction.Tile anchorDir) GetEdgeAnchor(Edge edge)
+        {
+            // Anchor the edge to one of two neighboring tiles
+            Tile anchor;
+            Direction.Tile anchorDir;
+
+            // Anchor to east tile, if it exists
+            if (edge.EastTile != null)
+            {
+                anchor = edge.EastTile;
+                anchorDir = edge.Direction.ToWestTileDir();
+            }
+            // Anchor to west tile otherwise
+            else if (edge.WestTile != null)
+            {
+                anchor = edge.WestTile;
+                anchorDir = edge.Direction.ToEastTileDir();
+            }
+            // If there are no adjacent tiles, the edge state must be invalid
+            else
+            {
+                throw new InvalidOperationException("Edge doesn't have adjacent tiles");
+            }
+
+            return (anchor, anchorDir);
+        }
+
+        public (Vector2f left, Vector2f right) GetEdgePoints(Edge edge)
+        {
+            // Anchor edge to one of its two neighboring tiles
+            (Tile anchor, Direction.Tile anchorDir) = GetEdgeAnchor(edge);
+
+            // Determine corner positions
+            (Direction.Corner leftCorner, Direction.Corner rightCorner) = anchorDir.GetAdjacentCorners();
+            float leftAngle = leftCorner.ToAngle();
+            float rightAngle = rightCorner.ToAngle();
+
+            Vector2f tileCenter = GetTileCenter(anchor);
+            Vector2f leftDir = ClientUtils.EulerAngleToVec2f(leftAngle);
+            Vector2f rightDir = ClientUtils.EulerAngleToVec2f(rightAngle);
+
+            Vector2f left = tileCenter + SideLength * leftDir;
+            Vector2f right = tileCenter + SideLength * rightDir;
+
+            return (left, right);
+        }
+
         // Render the HexMap to a RenderTarget
         public void Draw(RenderTarget target, RenderStates states)
         {
@@ -506,6 +469,27 @@ namespace Client
                 }
             }
 
+            // Draw edge markers
+            if (DrawEdgeMarkers)
+            {
+                foreach(Edge edge in Board.Edges)
+                {
+                    (Vector2f left, Vector2f right) = GetEdgePoints(edge);
+
+                    _edgeMarker.Position = (left + right) / 2f;
+
+                    _edgeMarker.Rotation = edge.Direction switch
+                    {
+                        Direction.Edge.UpDown => 0f,
+                        Direction.Edge.LeftTop => -60f,
+                        Direction.Edge.RightTop => 60f,
+                        _ => throw new InvalidOperationException()
+                    };
+
+                    target.Draw(_edgeMarker, states);
+                }
+            }
+
             // Draw intersection markers
             if (DrawIntersectionMarkers)
             {
@@ -517,7 +501,7 @@ namespace Client
             }
 
             // Draw intersection buildings
-            foreach(Intersection intersection in Board.Intersections)
+            foreach (Intersection intersection in Board.Intersections)
             {
                 switch(intersection.Building)
                 {
@@ -525,7 +509,7 @@ namespace Client
                     case Intersection.BuildingType.City:
                         _intersectionRect.Position = GetIntersectionCenter(intersection);
                         _intersectionRect.TextureRect = TextureAtlas.GetTextureRect(intersection.Building == Intersection.BuildingType.Settlement ? TextureAtlas.Sprite.Settlement : TextureAtlas.Sprite.City);
-                        _intersectionRect.FillColor = ClientUtils.GetPlayerColor(intersection.Owner);
+                        _intersectionRect.FillColor = ColorPalette.GetPlayerColor(intersection.Owner);
                         target.Draw(_intersectionRect, states);
                         break;
                     default:

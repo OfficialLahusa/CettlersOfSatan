@@ -18,7 +18,7 @@ namespace Common
             BlackNumberPredicate    = tile => tile.Number.HasValue &&  tile.Number.Value != 6 && tile.Number.Value != 8;
         }
 
-        public static Board GenerateRandomClassic()
+        public static Board GenerateRandomClassic(bool centerDesert = false)
         {
             HexMap<Tile> map = new HexMap<Tile>(7, 7, new Tile(-1, -1, TileType.NonPlayable, null));
 
@@ -28,18 +28,22 @@ namespace Common
                 TileType.Lumber, TileType.Lumber, TileType.Lumber, TileType.Lumber,
                 TileType.Ore, TileType.Ore, TileType.Ore,
                 TileType.Grain, TileType.Grain, TileType.Grain, TileType.Grain,
-                TileType.Wool, TileType.Wool, TileType.Wool, TileType.Wool,
-                TileType.Desert
+                TileType.Wool, TileType.Wool, TileType.Wool, TileType.Wool
             };
+            // Only shuffle desert if it isn't centered
+            if (!centerDesert) tileTypes.Add(TileType.Desert);
+
             List<int> numberTokens = new()
             {
                 2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12
             };
+
             List<Port.TradeType> portTypes = new()
             {
                 Port.TradeType.Generic, Port.TradeType.Generic, Port.TradeType.Generic, Port.TradeType.Generic,
                 Port.TradeType.Lumber, Port.TradeType.Brick, Port.TradeType.Wool, Port.TradeType.Grain, Port.TradeType.Ore
             };
+
             Utils.Shuffle(tileTypes);
             Utils.Shuffle(numberTokens);
             Utils.Shuffle(portTypes);
@@ -52,8 +56,13 @@ namespace Common
                     // Distance from center (3, 3)
                     int dist = Coordinates.Distance(x, y, 3, 3);
 
+                    // Center tile Desert option
+                    if (centerDesert && dist == 0)
+                    {
+                        map.SetTile(x, y, new Tile(x, y, TileType.Desert, null));
+                    }
                     // Land tiles
-                    if (dist < 3)
+                    else if (dist < 3)
                     {
                         TileType type = tileTypes[0];
                         tileTypes.RemoveAt(0);
@@ -145,8 +154,8 @@ namespace Common
                             intersection = new Intersection(cornerDir.HasDownwardsFacingIntersection());
 
                             // (Debug) Randomize building and owner
-                            intersection.Building = (Intersection.BuildingType)Math.Max(0, Utils.Random.Next(-2, 3));
-                            if (intersection.Building != Intersection.BuildingType.None) intersection.Owner = Utils.Random.Next(4);
+                            //intersection.Building = (Intersection.BuildingType)Math.Max(0, Utils.Random.Next(-2, 3));
+                            //if (intersection.Building != Intersection.BuildingType.None) intersection.Owner = Utils.Random.Next(4);
 
                             intersections.AddLast(intersection);
                         }
@@ -193,8 +202,8 @@ namespace Common
                             edge = new Edge(tileDir.ToEdgeDir());
 
                             // (Debug) Randomize building and owner
-                            edge.Building = (Edge.BuildingType)Math.Max(0, Utils.Random.Next(-3, 2));
-                            if (edge.Building != Edge.BuildingType.None) edge.Owner = Utils.Random.Next(4);
+                            //edge.Building = (Edge.BuildingType)Math.Max(0, Utils.Random.Next(-3, 2));
+                            //if (edge.Building != Edge.BuildingType.None) edge.Owner = Utils.Random.Next(4);
 
                             edges.AddLast(edge);
                         }
