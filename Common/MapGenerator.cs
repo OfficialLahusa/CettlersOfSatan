@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Net.Http.Headers;
+using System.Numerics;
 using static Common.Tile;
 
 namespace Common
@@ -21,6 +22,7 @@ namespace Common
         public static Board GenerateRandomClassic(bool centerDesert = false)
         {
             HexMap<Tile> map = new HexMap<Tile>(7, 7, new Tile(-1, -1, TileType.NonPlayable, null));
+            Tile? robber = null;
 
             // Shuffle tiles and number tokens
             List<TileType> tileTypes = new(){
@@ -60,6 +62,7 @@ namespace Common
                     if (centerDesert && dist == 0)
                     {
                         map.SetTile(x, y, new Tile(x, y, TileType.Desert, null));
+                        robber = map.GetTile(x, y);
                     }
                     // Land tiles
                     else if (dist < 3)
@@ -75,6 +78,11 @@ namespace Common
                         }
 
                         map.SetTile(x, y, new Tile(x, y, type, number));
+
+                        if(type == TileType.Desert)
+                        {
+                            robber = map.GetTile(x, y);
+                        }
                     }
                     // Water tiles
                     else if (dist < 4) map.SetTile(x, y, new Tile(x, y, TileType.Water, null));
@@ -254,7 +262,7 @@ namespace Common
                 portTypes.RemoveAt(0);
             }
 
-            return new Board(map, intersections, edges, ports);
+            return new Board(map, intersections, edges, ports, robber);
         }
 
         private static HashSet<Tile> GetAdjacentRedNumbers(HexMap<Tile> map)

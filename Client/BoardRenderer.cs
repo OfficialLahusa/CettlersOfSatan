@@ -16,6 +16,7 @@ namespace Client
         public bool DrawTokenShadows = true;
         public bool DrawIntersectionMarkers = false;
         public bool DrawEdgeMarkers = false;
+        public bool DrawCenterMarkers = false;
 
         // Static geometry
         private VertexBuffer _tiles;
@@ -32,9 +33,13 @@ namespace Client
         // Port text
         private Text _portText;
 
+        // Robber
+        private RectangleShape _robber;
+
         private CircleShape _intersectionMarker;
         private RectangleShape _intersectionRect;
         private RectangleShape _edgeMarker;
+        private CircleShape _centerMarker;
 
         #region Hexagon Dimensions
         private float _sideLength;
@@ -58,6 +63,11 @@ namespace Client
             private set;
         }
         #endregion
+
+        public float IconSize
+        {
+            get => SideLength * 7 / 15;
+        }
 
         public BoardRenderer(Board board, float sideLength, float borderWidth)
         {
@@ -85,6 +95,12 @@ namespace Client
             _portText.CharacterSize = (uint)Math.Round(sideLength * (8.0f / 30.0f));
             _portText.FillColor = Color.White;
 
+            _robber = new RectangleShape(new Vector2f(IconSize, IconSize));
+            _robber.Origin = _robber.Size / 2;
+            _robber.Texture = TextureAtlas.Texture;
+            _robber.TextureRect = TextureAtlas.Sprite.Robber.GetTextureRect();
+            _robber.FillColor = Color.Black;
+
             _intersectionMarker = new CircleShape(SideLength / 4, 32);
             _intersectionMarker.Origin = new Vector2f(_intersectionMarker.Radius, _intersectionMarker.Radius);
             _intersectionMarker.FillColor = Color.Red;
@@ -96,6 +112,10 @@ namespace Client
             _edgeMarker = new RectangleShape(new Vector2f(SideLength * 0.35f, SideLength));
             _edgeMarker.Origin = _edgeMarker.Size / 2;
             _edgeMarker.FillColor = Color.Cyan;
+
+            _centerMarker = new CircleShape(SideLength * 0.85f, 32);
+            _centerMarker.Origin = new Vector2f(_centerMarker.Radius, _centerMarker.Radius);
+            _centerMarker.FillColor = Color.Magenta;
 
             // Create Geometry
             Update();
@@ -229,16 +249,14 @@ namespace Client
                         
 
                         // Icons
-                        float iconSize = SideLength * 7 / 15;
-
                         // Port icon (bottom)
                         IntRect textureRect = TextureAtlas.Sprite.Port.GetTextureRect();
 
-                        Vector2f position = new Vector2f(center.X - iconSize / 2, center.Y - iconSize / 2 + (SideLength / 2.5f));
+                        Vector2f position = new Vector2f(center.X - IconSize / 2, center.Y - IconSize / 2 + (SideLength / 2.5f));
                         Vertex vertTopLeft     = new Vertex(position, portColor, new Vector2f(textureRect.Left, textureRect.Top));
-                        Vertex vertTopRight    = new Vertex(position + new Vector2f(iconSize, 0), portColor, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top));
-                        Vertex vertBottomLeft  = new Vertex(position + new Vector2f(0, iconSize), portColor, new Vector2f(textureRect.Left, textureRect.Top + textureRect.Height));
-                        Vertex vertBottomRight = new Vertex(position + new Vector2f(iconSize, iconSize), portColor, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top + textureRect.Height));
+                        Vertex vertTopRight    = new Vertex(position + new Vector2f(IconSize, 0), portColor, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top));
+                        Vertex vertBottomLeft  = new Vertex(position + new Vector2f(0, IconSize), portColor, new Vector2f(textureRect.Left, textureRect.Top + textureRect.Height));
+                        Vertex vertBottomRight = new Vertex(position + new Vector2f(IconSize, IconSize), portColor, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top + textureRect.Height));
 
                         _overlay.Append(vertTopLeft);
                         _overlay.Append(vertTopRight);
@@ -251,11 +269,11 @@ namespace Client
                         Color resourceColor = ColorPalette.GetPortIconColor(tile.Port.Type);
                         textureRect = TextureAtlas.GetSprite(tile.Port.Type).GetTextureRect();
 
-                        position = new Vector2f(center.X - iconSize / 2, center.Y - iconSize / 2 - (SideLength / 2.5f));
+                        position = new Vector2f(center.X - IconSize / 2, center.Y - IconSize / 2 - (SideLength / 2.5f));
                         vertTopLeft = new Vertex(position, resourceColor, new Vector2f(textureRect.Left, textureRect.Top));
-                        vertTopRight = new Vertex(position + new Vector2f(iconSize, 0), resourceColor, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top));
-                        vertBottomLeft = new Vertex(position + new Vector2f(0, iconSize), resourceColor, new Vector2f(textureRect.Left, textureRect.Top + textureRect.Height));
-                        vertBottomRight = new Vertex(position + new Vector2f(iconSize, iconSize), resourceColor, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top + textureRect.Height));
+                        vertTopRight = new Vertex(position + new Vector2f(IconSize, 0), resourceColor, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top));
+                        vertBottomLeft = new Vertex(position + new Vector2f(0, IconSize), resourceColor, new Vector2f(textureRect.Left, textureRect.Top + textureRect.Height));
+                        vertBottomRight = new Vertex(position + new Vector2f(IconSize, IconSize), resourceColor, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top + textureRect.Height));
 
                         _overlay.Append(vertTopLeft);
                         _overlay.Append(vertTopRight);
@@ -496,6 +514,16 @@ namespace Client
                 }
             }
 
+            // Draw center markers
+            if (DrawCenterMarkers)
+            {
+                foreach (Tile tile in Board.Map.Where(x => x.IsLandTile()))
+                {
+                    _centerMarker.Position = GetTileCenter(tile);
+                    target.Draw(_centerMarker, states);
+                }
+            }
+
             // Draw edge markers
             if (DrawEdgeMarkers)
             {
@@ -542,6 +570,16 @@ namespace Client
                     default:
                         break;
                 }
+            }
+
+            // Draw robber
+            if(Board.Robber != null)
+            {
+                _robber.Position = GetTileCenter(Board.Robber) + new Vector2f(-SideLength / 2.5f - IconSize / 3.25f, 0);
+                target.Draw(_robber, states);
+
+                _robber.Position = GetTileCenter(Board.Robber) + new Vector2f(SideLength / 2.5f + IconSize / 3.25f, 0);
+                target.Draw(_robber, states);
             }
 
             // Draw port text

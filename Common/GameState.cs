@@ -24,9 +24,10 @@ namespace Common
             }
         }
 
-        public uint[,] AwardYields(int number)
+        public (uint[,] yieldSummary, uint robbedYields) AwardYields(int number)
         {
             uint[,] yieldSummary = new uint[PlayerCards.Length, CardSet.RESOURCE_CARD_TYPES.Length];
+            uint robbedYields = 0;
 
             foreach (Tile tile in Board.Map.Where(x => x.HasYield() && x.Number == number))
             {
@@ -43,14 +44,20 @@ namespace Common
                     {
                         // TODO: Subtract and limit bank stock
 
-                        PlayerCards[intersection.Owner].Add(tile.Type.ToCardType(), yieldCount);
-
-                        yieldSummary[intersection.Owner, Array.IndexOf(CardSet.RESOURCE_CARD_TYPES, tile.Type.ToCardType())] += yieldCount;
+                        if(tile != Board.Robber)
+                        {
+                            PlayerCards[intersection.Owner].Add(tile.Type.ToCardType(), yieldCount);
+                            yieldSummary[intersection.Owner, Array.IndexOf(CardSet.RESOURCE_CARD_TYPES, tile.Type.ToCardType())] += yieldCount;
+                        }
+                        else
+                        {
+                            robbedYields += yieldCount;
+                        }
                     }
                 }
             }
 
-            return yieldSummary;
+            return (yieldSummary, robbedYields);
         }
 
         public void ResetCards()

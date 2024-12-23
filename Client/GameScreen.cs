@@ -1,5 +1,6 @@
 ﻿using Common;
 using ImGuiNET;
+using Microsoft.VisualBasic;
 using SFML.Audio;
 using SFML.Graphics;
 using SFML.System;
@@ -45,6 +46,7 @@ namespace Client
         // Point-and-click building
         private CircleShape _intersectionHitbox;
         private RectangleShape _edgeHitbox;
+        private CircleShape _centerHitbox;
         private Sound _placeSound;
 
         static GameScreen()
@@ -72,6 +74,9 @@ namespace Client
 
             _edgeHitbox = new RectangleShape(new Vector2f(_renderer.SideLength * 0.35f, _renderer.SideLength));
             _edgeHitbox.Origin = _edgeHitbox.Size / 2;
+
+            _centerHitbox = new CircleShape(_renderer.SideLength * 0.85f, 32);
+            _centerHitbox.Origin = new Vector2f(_centerHitbox.Radius, _centerHitbox.Radius);
 
             _placeSound = new Sound(Sounds.Place);
             _placeSound.Volume = 40f;
@@ -135,6 +140,7 @@ namespace Client
             ImGui.Checkbox("Show Shadows", ref _renderer.DrawTokenShadows);
             ImGui.Checkbox("Show Intersections", ref _renderer.DrawIntersectionMarkers);
             ImGui.Checkbox("Show Edges", ref _renderer.DrawEdgeMarkers);
+            ImGui.Checkbox("Show Centers", ref _renderer.DrawCenterMarkers);
 
             ImGui.Separator();
 
@@ -367,6 +373,31 @@ namespace Client
                     return;
                 }
             }
+
+            // Center clicking
+            foreach(Tile tile in _state.Board.Map.Where(x => x.IsLandTile()))
+            {
+                _centerHitbox.Position = _renderer.GetTileCenter(tile);
+
+                float dist = MathF.Sqrt(
+                    MathF.Pow(mapMousePos.X - _centerHitbox.Position.X, 2)
+                    + MathF.Pow(mapMousePos.Y - _centerHitbox.Position.Y, 2)
+                );
+
+                // Click was on intersection
+                if (e.Button == Mouse.Button.Left && dist < _centerHitbox.Radius)
+                {
+                    // Move robber
+                    _state.Board.Robber = tile;
+
+                    // Play place sound
+                    _placeSound.Play();
+
+                    _eventLog.WriteLine(new PlayerEntry(_playerIndex), new StrEntry("moved the robber"));
+
+                    return;
+                }
+            }
         }
 
         public void RollDice()
@@ -386,7 +417,7 @@ namespace Client
             else
             {
                 // Award yields
-                uint[,] yieldSummary = _state.AwardYields(total);
+                (uint[,] yieldSummary, uint robbedYields) = _state.AwardYields(total);
 
                 for (int player = 0; player < yieldSummary.GetLength(0); player++)
                 {
@@ -403,6 +434,15 @@ namespace Client
                             );
                         }
                     }
+                }
+
+                if(robbedYields > 0)
+                {
+                    string msg = $"The robber stole {robbedYields} yield";
+
+                    if (robbedYields > 1) msg += "s";
+
+                    _eventLog.WriteLine(new StrEntry(msg));
                 }
             }
         }
