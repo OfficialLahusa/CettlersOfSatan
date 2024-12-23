@@ -12,6 +12,7 @@ namespace Client
         public Board Board { get; set; }
 
         // Rendering options
+        public bool DrawYieldPoints = true;
         public bool DrawTokenShadows = true;
         public bool DrawIntersectionMarkers = false;
         public bool DrawEdgeMarkers = false;
@@ -26,6 +27,7 @@ namespace Client
         // Number tokens
         private Text _tokenText;
         private CircleShape _tokenBase;
+        private CircleShape _yieldPoint;
 
         // Port text
         private Text _portText;
@@ -75,6 +77,9 @@ namespace Client
 
             _tokenBase = new CircleShape(SideLength/3, 64);
             _tokenBase.Origin = new Vector2f(_tokenBase.Radius, _tokenBase.Radius);
+
+            _yieldPoint = new CircleShape(SideLength / 40, 6);
+            _yieldPoint.Origin = new Vector2f(_yieldPoint.Radius, _yieldPoint.Radius);
 
             _portText = new Text("", GameScreen.Font);
             _portText.CharacterSize = (uint)Math.Round(sideLength * (8.0f / 30.0f));
@@ -435,7 +440,7 @@ namespace Client
                     Tile value = Board.Map.GetTile(x, y);
                     if (value.HasYield())
                     {
-                        // Token Base Circle
+                        // Token base circle
                         Vector2f center = GetTileCenter(x, y);
                         // Shadow
                         if(DrawTokenShadows)
@@ -449,7 +454,7 @@ namespace Client
                         _tokenBase.Position = ClientUtils.RoundVec2f(center);
                         target.Draw(_tokenBase, states);
 
-                        // Yield Text (Most frequent numbers 8, 6 are red)
+                        // Dice value text (Most frequent numbers 8, 6 are red)
                         _tokenText.DisplayedString = value.Number.ToString();
                         if (value.Number == 8 || value.Number == 6)
                         {
@@ -465,6 +470,28 @@ namespace Client
                         _tokenText.Origin = new Vector2f(bounds.Left + bounds.Width / 2.0f, bounds.Top + bounds.Height / 2.0f);
                         _tokenText.Position = center;
                         target.Draw(_tokenText, states);
+
+                        // Yield points
+                        if (DrawYieldPoints)
+                        {
+                            int yieldPoints = value.YieldPoints;
+                            float yieldPointOffset = _tokenBase.Radius / 6f;
+
+                            _yieldPoint.Position = center + new Vector2f(-yieldPointOffset * (yieldPoints - 1) / 2f, _tokenBase.Radius / 1.6f);
+
+                            _yieldPoint.FillColor = value.Number switch
+                            {
+                                6 or 8 => Color.Red,
+                                _ => Color.Black
+                            };
+
+                            for (int i = 0; i < yieldPoints; i++)
+                            {
+                                target.Draw(_yieldPoint, states);
+
+                                _yieldPoint.Position += new Vector2f(yieldPointOffset, 0);
+                            }
+                        }
                     }
                 }
             }

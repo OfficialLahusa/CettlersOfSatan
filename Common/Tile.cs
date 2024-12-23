@@ -20,6 +20,22 @@ namespace Common
         };
         public TileType Type { get; set; }
         public int? Number { get; set; }
+        public int YieldPoints
+        {
+            get
+            {
+                return Number switch
+                {
+                    2 or 12 => 1,
+                    3 or 11 => 2,
+                    4 or 10 => 3,
+                    5 or 9 => 4,
+                    6 or 8 => 5,
+                    _ => 0
+                };
+            }
+        }
+
         public Port? Port { get; set; }
         public SortedList<Direction.Tile, Tile> Neighbors;
         public SortedList<Direction.Corner, Intersection> Intersections;

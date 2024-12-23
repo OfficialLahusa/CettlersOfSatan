@@ -4,7 +4,6 @@ using SFML.Audio;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
-using static Common.Direction;
 using Edge = Common.Edge;
 
 namespace Client
@@ -22,6 +21,7 @@ namespace Client
         private DiceWidget _diceWidget;
 
         private EventLog _eventLog;
+        private float[] _rollDistribution;
 
         public static Font Font;
 
@@ -64,6 +64,8 @@ namespace Client
             _diceWidget.Active = true;
 
             _eventLog = new EventLog();
+
+            _rollDistribution = new float[11]; // First two indices are unused
 
             _intersectionHitbox = new CircleShape(_renderer.SideLength / 4, 32);
             _intersectionHitbox.Origin = new Vector2f(_intersectionHitbox.Radius, _intersectionHitbox.Radius);
@@ -129,6 +131,7 @@ namespace Client
 
             ImGui.Separator();
 
+            ImGui.Checkbox("Show Yield Points", ref _renderer.DrawYieldPoints);
             ImGui.Checkbox("Show Shadows", ref _renderer.DrawTokenShadows);
             ImGui.Checkbox("Show Intersections", ref _renderer.DrawIntersectionMarkers);
             ImGui.Checkbox("Show Edges", ref _renderer.DrawEdgeMarkers);
@@ -145,6 +148,14 @@ namespace Client
             ImGui.Separator();
             
             _eventLog.Draw();
+
+            ImGui.Separator();
+
+            if(ImGui.TreeNode("Analytics"))
+            {
+                ImGui.TextUnformatted("Roll Result Distibution:");
+                ImGui.PlotHistogram(string.Empty, ref _rollDistribution[0], _rollDistribution.Length, 0, string.Empty, 0, _rollDistribution.Max(), new System.Numerics.Vector2(225, 100));
+            }
 
             ImGui.End();
             GuiImpl.Render(_window);
@@ -361,6 +372,8 @@ namespace Client
         public void RollDice()
         {
             int total = _diceWidget.Roll();
+
+            _rollDistribution[total] += 1;
 
             _eventLog.WriteLine(new SeparatorEntry());
             _eventLog.WriteLine(new PlayerEntry(_playerIndex), new StrEntry($"rolled {_diceWidget.Total} ({_diceWidget.First}+{_diceWidget.Second})"));
