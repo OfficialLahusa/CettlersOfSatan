@@ -1,9 +1,10 @@
-﻿using System.Linq;
+﻿using System.Collections;
+using System.Linq;
 using System.Numerics;
 
 namespace Common
 {
-    public class HexMap<T>
+    public class HexMap<T> : IEnumerable<T>
     {
         private T[] _values;
 
@@ -126,6 +127,16 @@ namespace Common
         {
             (int x, int y) = Coordinates.CubeToEvenR(pos);
             return Contains(x, y);
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            return ((IEnumerable<T>)_values).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return _values.GetEnumerator();
         }
     }
 }

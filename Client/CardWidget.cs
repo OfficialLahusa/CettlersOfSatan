@@ -127,5 +127,11 @@ namespace Client
                 }
             }
         }
+
+        public void SetCardSet(CardSet cardSet)
+        {
+            _cardSet = cardSet;
+            Array.Clear(_cardStackHover);
+        }
     }
 }

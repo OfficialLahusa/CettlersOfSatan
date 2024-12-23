@@ -1,4 +1,8 @@
-﻿namespace Common
+﻿using System.Runtime.CompilerServices;
+using static Common.CardSet;
+using static Common.Tile;
+
+namespace Common
 {
     public class Tile
     {
@@ -40,6 +44,22 @@
         public bool HasYield()
         {
             return IsLandTile() && Type != TileType.Desert && Number != null;
+        }
+    }
+
+    public static class TileTypeExtensions
+    {
+        public static CardType ToCardType(this TileType tileType)
+        {
+            return tileType switch
+            {
+                TileType.Lumber => CardType.Lumber,
+                TileType.Brick => CardType.Brick,
+                TileType.Wool => CardType.Wool,
+                TileType.Grain => CardType.Grain,
+                TileType.Ore => CardType.Ore,
+                _ => throw new InvalidOperationException()
+            };
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Common;
 using SFML.Graphics;
 using SFML.System;
+using System.Numerics;
 using static Common.Direction;
 using static Common.Tile;
 using Tile = Common.Tile;
@@ -147,6 +148,16 @@ namespace Client
 
                 _ => throw new InvalidOperationException()
             };
+        }
+
+        public static Color Vec3ToColor(Vector3 color)
+        {
+            return new Color((byte)(255 * color.X), (byte)(255 * color.Y), (byte)(255 * color.Z));
+        }
+
+        public static Vector4 ColorToVec4(Color color)
+        {
+            return new Vector4(color.R / 255f, color.G / 255f, color.B / 255f, color.A / 255f);
         }
     }
 }

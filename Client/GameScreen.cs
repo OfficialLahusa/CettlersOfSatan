@@ -1,11 +1,11 @@
 ﻿using Common;
 using ImGuiNET;
-using Microsoft.VisualBasic;
 using SFML.Audio;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
-using static SFML.Graphics.Text;
+using static Common.Direction;
+using Edge = Common.Edge;
 
 namespace Client
 {
@@ -15,12 +15,13 @@ namespace Client
         private View _mapView;
         private View _uiView;
 
-        private Board _board;
-        private CardSet _cardSet;
+        private GameState _state;
 
         private BoardRenderer _renderer;
         private CardWidget _cardWidget;
         private DiceWidget _diceWidget;
+
+        private EventLog _eventLog;
 
         public static Font Font;
 
@@ -55,13 +56,14 @@ namespace Client
         {
             _window = window;
 
-            _board = MapGenerator.GenerateRandomClassic();
-            _cardSet = CardSet.CreateSample();
+            _state = new GameState(MapGenerator.GenerateRandomClassic(), PLAYER_COUNT);
 
-            _renderer = new BoardRenderer(_board, 120, 20);
-            _cardWidget = new CardWidget(window, _cardSet);
+            _renderer = new BoardRenderer(_state.Board, 120, 20);
+            _cardWidget = new CardWidget(window, _state.PlayerCards[_playerIndex]);
             _diceWidget = new DiceWidget(window);
             _diceWidget.Active = true;
+
+            _eventLog = new EventLog();
 
             _intersectionHitbox = new CircleShape(_renderer.SideLength / 4, 32);
             _intersectionHitbox.Origin = new Vector2f(_intersectionHitbox.Radius, _intersectionHitbox.Radius);
@@ -106,8 +108,7 @@ namespace Client
             ImGui.Separator();
 
             Color playerColor = ColorPalette.GetPlayerColor(_playerIndex);
-            System.Numerics.Vector4 imPlayerColor = new System.Numerics.Vector4(playerColor.R, playerColor.G, playerColor.B, playerColor.A);
-            ImGui.PushStyleColor(ImGuiCol.Text, imPlayerColor);
+            ImGui.PushStyleColor(ImGuiCol.Text, ColorPalette.ColorToVec4(playerColor));
             if (ImGui.InputInt("Player", ref _playerIndex))
             {
                 if (_playerIndex < 0)
@@ -118,6 +119,11 @@ namespace Client
                 {
                     _playerIndex = 0;
                 }
+
+                _cardWidget.SetCardSet(_state.PlayerCards[_playerIndex]);
+
+                _eventLog.WriteLine(new SeparatorEntry());
+                _eventLog.WriteLine(new StrEntry("Switching to"), new PlayerEntry(_playerIndex));
             }
             ImGui.PopStyleColor();
 
@@ -135,6 +141,10 @@ namespace Client
             {
                 RegenerateMap();
             }
+
+            ImGui.Separator();
+            
+            _eventLog.Draw();
 
             ImGui.End();
             GuiImpl.Render(_window);
@@ -191,8 +201,12 @@ namespace Client
 
         private void RegenerateMap()
         {
-            _board = MapGenerator.GenerateRandomClassic(_centerDesert);
-            _renderer.Board = _board;
+            _state.Board = MapGenerator.GenerateRandomClassic(_centerDesert);
+            _state.ResetCards();
+
+            _eventLog.Clear();
+
+            _renderer.Board = _state.Board;
             _renderer.Update();
         }
 
@@ -216,7 +230,7 @@ namespace Client
         {
             if (e.Code == Keyboard.Key.Enter)
             {
-                _diceWidget.Roll();
+                RollDice();
             }
         }
 
@@ -228,7 +242,7 @@ namespace Client
             // Dice widget clicking
             if (e.Button == Mouse.Button.Left && _diceWidget.Contains(uiMousePos.X, uiMousePos.Y))
             {
-                _diceWidget.Roll();
+                RollDice();
                 return;
             }
 
@@ -236,7 +250,7 @@ namespace Client
             Vector2f mapMousePos = _window.MapPixelToCoords(new Vector2i(e.X, e.Y), _mapView);
 
             // Intersection clicking
-            foreach (Intersection intersection in _board.Intersections)
+            foreach (Intersection intersection in _state.Board.Intersections)
             {
                 _intersectionHitbox.Position = _renderer.GetIntersectionCenter(intersection);
 
@@ -263,6 +277,15 @@ namespace Client
                             Intersection.BuildingType.City => Intersection.BuildingType.None,
                             _ => throw new InvalidOperationException()
                         };
+
+                        if (intersection.Building == Intersection.BuildingType.Settlement)
+                        {
+                            _eventLog.WriteLine(new PlayerEntry(_playerIndex), new StrEntry("placed a settlement"));
+                        }
+                        else if(intersection.Building == Intersection.BuildingType.City)
+                        {
+                            _eventLog.WriteLine(new PlayerEntry(_playerIndex), new StrEntry("promoted a settlement to a city"));
+                        }
                     }
 
                     // Claim intersection for current player
@@ -279,7 +302,7 @@ namespace Client
             }
 
             // Edge clicking
-            foreach (Edge edge in _board.Edges)
+            foreach (Edge edge in _state.Board.Edges)
             {
                 // Transform hitbox
                 (Vector2f left, Vector2f right) = _renderer.GetEdgePoints(edge);
@@ -314,6 +337,11 @@ namespace Client
                             Edge.BuildingType.Road => Edge.BuildingType.None,
                             _ => throw new InvalidOperationException(),
                         };
+
+                        if(edge.Building == Edge.BuildingType.Road)
+                        {
+                            _eventLog.WriteLine(new PlayerEntry(_playerIndex), new StrEntry("placed a road"));
+                        }
                     }
 
                     // Claim edge for current player
@@ -326,6 +354,42 @@ namespace Client
                     _renderer.Update();
 
                     return;
+                }
+            }
+        }
+
+        public void RollDice()
+        {
+            int total = _diceWidget.Roll();
+
+            _eventLog.WriteLine(new SeparatorEntry());
+            _eventLog.WriteLine(new PlayerEntry(_playerIndex), new StrEntry($"rolled {_diceWidget.Total} ({_diceWidget.First}+{_diceWidget.Second})"));
+
+            if (total == 7)
+            {
+                // TODO: Trigger Robber
+                _eventLog.WriteLine(new StrEntry("The robber was triggered"));
+            }
+            else
+            {
+                // Award yields
+                uint[,] yieldSummary = _state.AwardYields(total);
+
+                for (int player = 0; player < yieldSummary.GetLength(0); player++)
+                {
+                    for (int resource = 0; resource < yieldSummary.GetLength(1); resource++)
+                    {
+                        uint yieldAmount = yieldSummary[player, resource];
+
+                        if (yieldAmount > 0)
+                        {
+                            _eventLog.WriteLine(
+                                new PlayerEntry(player),
+                                new StrEntry($"earned {yieldAmount}"),
+                                new CardEntry(CardSet.RESOURCE_CARD_TYPES[resource])
+                            );
+                        }
+                    }
                 }
             }
         }

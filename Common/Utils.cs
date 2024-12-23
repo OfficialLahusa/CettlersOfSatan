@@ -1,4 +1,7 @@
-﻿namespace Common
+﻿using static Common.CardSet;
+using static Common.Tile;
+
+namespace Common
 {
     public static class Utils
     {

@@ -38,6 +38,11 @@ namespace Client
             }
         }
 
+        public int Total
+        {
+            get { return First + Second; }
+        }
+
         public bool Active { 
             get { return _active; }
             set
@@ -57,6 +62,7 @@ namespace Client
             _secondDie.Texture = TextureAtlas.Texture;
 
             _diceRollSound = new Sound(Sounds.DiceRolling);
+            _diceRollSound.Volume = 50f;
 
             Active = false;
 
@@ -75,11 +81,13 @@ namespace Client
             }
         }
 
-        public void Roll()
+        public int Roll()
         {
             SetValues();
             UpdateSprites();
             _diceRollSound.Play();
+
+            return Total;
         }
 
         private void SetValues(int? first = null, int? second = null)
