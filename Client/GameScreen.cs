@@ -65,7 +65,7 @@ namespace Client
 
             _eventLog = new EventLog();
 
-            _rollDistribution = new float[11]; // First two indices are unused
+            _rollDistribution = new float[11]; // Bucket indices are (roll total - 2)
 
             _intersectionHitbox = new CircleShape(_renderer.SideLength / 4, 32);
             _intersectionHitbox.Origin = new Vector2f(_intersectionHitbox.Radius, _intersectionHitbox.Radius);
@@ -373,7 +373,7 @@ namespace Client
         {
             int total = _diceWidget.Roll();
 
-            _rollDistribution[total] += 1;
+            _rollDistribution[total-2] += 1;
 
             _eventLog.WriteLine(new SeparatorEntry());
             _eventLog.WriteLine(new PlayerEntry(_playerIndex), new StrEntry($"rolled {_diceWidget.Total} ({_diceWidget.First}+{_diceWidget.Second})"));
