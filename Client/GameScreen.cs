@@ -1,6 +1,7 @@
 ﻿using Common;
 using ImGuiNET;
 using Microsoft.VisualBasic;
+using SFML.Audio;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
@@ -40,9 +41,10 @@ namespace Client
         private int _playerIndex = 0;
         public const int PLAYER_COUNT = 4;
 
-        // Click hitboxes
+        // Point-and-click building
         private CircleShape _intersectionHitbox;
         private RectangleShape _edgeHitbox;
+        private Sound _placeSound;
 
         static GameScreen()
         {
@@ -66,6 +68,9 @@ namespace Client
 
             _edgeHitbox = new RectangleShape(new Vector2f(_renderer.SideLength * 0.35f, _renderer.SideLength));
             _edgeHitbox.Origin = _edgeHitbox.Size / 2;
+
+            _placeSound = new Sound(Sounds.Place);
+            _placeSound.Volume = 40f;
 
             _mapView = new View(ClientUtils.RoundVec2f(_renderer.GetTileCenter(3, 3)), new Vector2f(window.Size.X, window.Size.Y)); ;
             _uiView = new View(new Vector2f(0, 0), _mapView.Size);
@@ -263,6 +268,9 @@ namespace Client
                     // Claim intersection for current player
                     intersection.Owner = _playerIndex;
 
+                    // Play place sound
+                    _placeSound.Play();
+
                     // Rebuild geometry
                     _renderer.Update();
 
@@ -310,6 +318,9 @@ namespace Client
 
                     // Claim edge for current player
                     edge.Owner = _playerIndex;
+
+                    // Play place sound
+                    _placeSound.Play();
 
                     // Rebuild geometry
                     _renderer.Update();
