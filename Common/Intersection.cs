@@ -7,7 +7,7 @@
 
         public readonly bool FacesDownwards;
 
-        public enum BuildingType
+        public enum BuildingType : byte
         {
             None = 0,
             Settlement = 1,

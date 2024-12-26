@@ -4,7 +4,7 @@ namespace Common
 {
     public static class Direction
     {
-        public enum Tile
+        public enum Tile : byte
         {
             West = 0,
             NorthWest = 1,
@@ -13,7 +13,7 @@ namespace Common
             SouthEast = 4,
             SouthWest = 5
         }
-        public enum Corner
+        public enum Corner : byte
         {
             SouthWest = 0,
             NorthWest = 1,
@@ -22,7 +22,7 @@ namespace Common
             SouthEast = 4,
             South = 5
         }
-        public enum Edge
+        public enum Edge : byte
         {
             UpDown,  // Vertical Edge
             LeftTop, // Edge with higher left vertex

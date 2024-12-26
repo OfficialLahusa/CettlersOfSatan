@@ -2,7 +2,7 @@
 {
     public class CardSet
     {
-        public enum CardType
+        public enum CardType : byte
         {
             Unknown = 0,
             // Resource

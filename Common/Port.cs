@@ -14,7 +14,7 @@ namespace Common
         // Facing direction inside the tile
         public Direction.Tile AnchorDirection { get; set; }
 
-        public enum TradeType
+        public enum TradeType : byte
         {
             Generic, // 3:1 
             Lumber,  // 2:1

@@ -16,6 +16,7 @@ namespace Client
 
         private Text _tooltip;
 
+        private FloatRect _cardStackHitbox;
         private float[] _cardStackHover;
 
         private const float CARD_SHIFT = 20f;
@@ -30,6 +31,8 @@ namespace Client
             _tooltip = new Text("Test", GameScreen.Font, 24);
             _tooltip.OutlineColor = new Color(64, 64, 64, 255);
             _tooltip.OutlineThickness = 1;
+
+            _cardStackHitbox = new FloatRect(-window.Size.X / 2 + 25, window.Size.Y / 2 - 50 - Card.Size.Y, Card.Size.X, Card.Size.Y + 25);
 
             _cardStackHover = new float[Enum.GetNames(typeof(CardSet.CardType)).Length];
         }
@@ -48,9 +51,12 @@ namespace Client
                 }
                 else
                 {
-                    bool hovering = false;
+                    _cardStackHitbox.Left = -_window.Size.X / 2 + 25 + offsetX;
+                    _cardStackHitbox.Width = Card.Size.X + (countOfType - 1) * CARD_SHIFT;
 
-                    for (uint i = 0; i < countOfType; i++)
+                    bool hovering = _cardStackHitbox.Contains(mousePos.X, mousePos.Y);
+
+                    /*for (uint i = 0; i < countOfType; i++)
                     {
                         _cardPrimitive.Position = new Vector2f(-_window.Size.X / 2 + 25 + offsetX, _window.Size.Y / 2 - 25 - Card.Size.Y);
 
@@ -61,13 +67,13 @@ namespace Client
                         }
 
                         offsetX += CARD_SHIFT;
-                    }
+                    }*/
 
                     // Smoothly hover/unhover
                     _cardStackHover[(int)cardType] += (hovering ? 5f : -5f) * deltaTime;
                     _cardStackHover[(int)cardType] = MathF.Max(MathF.Min(_cardStackHover[(int)cardType], 1f), 0f);
 
-                    offsetX += Card.Size.X;
+                    offsetX += Card.Size.X + countOfType * CARD_SHIFT;
                 }
             }
         }

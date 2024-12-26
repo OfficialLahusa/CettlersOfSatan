@@ -14,7 +14,7 @@ namespace Common
 
         public readonly Direction.Edge Direction;
 
-        public enum BuildingType
+        public enum BuildingType : byte
         {
             None = 0,
             Road = 1,

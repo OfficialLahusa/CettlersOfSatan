@@ -12,10 +12,10 @@ namespace Client
         private Sound _diceRollSound;
         private static readonly int _size = 180;
         private static readonly Color _inactiveColor = new Color(255, 255, 255, 85);
-        private int _first;
-        private int _second;
+        private byte _first;
+        private byte _second;
         private bool _active;
-        public int First
+        public byte First
         {
             get { return _first; }
             set
@@ -26,7 +26,7 @@ namespace Client
                 }
             }
         }
-        public int Second
+        public byte Second
         {
             get { return _second; }
             set
@@ -38,9 +38,9 @@ namespace Client
             }
         }
 
-        public int Total
+        public byte Total
         {
-            get { return First + Second; }
+            get { return (byte)(First + Second); }
         }
 
         public bool Active { 
@@ -92,8 +92,8 @@ namespace Client
 
         private void SetValues(int? first = null, int? second = null)
         {
-            if (first == null)  First  = Utils.Random.Next(6) + 1;
-            if (second == null) Second = Utils.Random.Next(6) + 1;
+            if (first == null)  First  = (byte)(Utils.Random.Next(6) + 1);
+            if (second == null) Second = (byte)(Utils.Random.Next(6) + 1);
         }
 
         private void UpdatePosition(RenderWindow window)
@@ -105,8 +105,8 @@ namespace Client
 
         private void UpdateSprites()
         {
-            _firstDie.TextureRect = TextureAtlas.GetTextureRect(TextureAtlas.Sprite.DiceOne + (_first - 1));
-            _secondDie.TextureRect = TextureAtlas.GetTextureRect(TextureAtlas.Sprite.DiceOne + (_second - 1));
+            _firstDie.TextureRect = TextureAtlas.GetTextureRect(TextureAtlas.Sprite.DiceOne + _first - 1);
+            _secondDie.TextureRect = TextureAtlas.GetTextureRect(TextureAtlas.Sprite.DiceOne + _second - 1);
         }
 
         public void Draw(RenderTarget target, RenderStates states)

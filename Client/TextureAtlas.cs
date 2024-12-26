@@ -10,9 +10,9 @@ namespace Client
     {
         public static readonly Texture Texture;
 
-        public enum Sprite
+        public enum Sprite : byte
         {
-            None = -1,
+            None = 255,
             Lumber = 0,
             Brick = 1,
             Wool = 2,

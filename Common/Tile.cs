@@ -7,16 +7,16 @@ namespace Common
     public class Tile
     {
         public readonly int X, Y;
-        public enum TileType
+        public enum TileType : byte
         {
-            NonPlayable = -1,
             Water,
             Lumber,
             Brick,
             Wool,
             Grain,
             Ore,
-            Desert
+            Desert,
+            NonPlayable = 255,
         };
         public TileType Type { get; set; }
         public int? Number { get; set; }
@@ -47,6 +47,7 @@ namespace Common
             Y = y;
             Type = type;
             Number = number;
+
             Neighbors = new SortedList<Direction.Tile, Tile>();
             Intersections = new SortedList<Direction.Corner, Intersection>();
             Edges = new SortedList<Direction.Tile, Edge>();
