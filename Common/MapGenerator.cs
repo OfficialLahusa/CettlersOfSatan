@@ -122,7 +122,7 @@ namespace Common
             }
 
             // Assign intersections
-            LinkedList<Intersection> intersections = new();
+            List<Intersection> intersections = new();
 
             for (int y = 0; y < map.Height; y++)
             {
@@ -165,7 +165,7 @@ namespace Common
                             //intersection.Building = (Intersection.BuildingType)Math.Max(0, Utils.Random.Next(-2, 3));
                             //if (intersection.Building != Intersection.BuildingType.None) intersection.Owner = Utils.Random.Next(4);
 
-                            intersections.AddLast(intersection);
+                            intersections.Add(intersection);
                         }
 
                         // Register self at intersection
@@ -178,7 +178,7 @@ namespace Common
             }
 
             // Assign edges
-            LinkedList<Edge> edges = new();
+            List<Edge> edges = new();
 
             for (int y = 0; y < map.Height; y++)
             {
@@ -213,7 +213,7 @@ namespace Common
                             //edge.Building = (Edge.BuildingType)Math.Max(0, Utils.Random.Next(-3, 2));
                             //if (edge.Building != Edge.BuildingType.None) edge.Owner = Utils.Random.Next(4);
 
-                            edges.AddLast(edge);
+                            edges.Add(edge);
                         }
 
                         // Register self at edge
@@ -233,7 +233,7 @@ namespace Common
             }
 
             // Place ports in fixed locations with random types
-            LinkedList<Port> ports = new();
+            List<Port> ports = new();
             // Hard-coded positions and orientations of ports
             List<(int q, int r, int s, Direction.Tile dir)> portPositions = new()
             {
@@ -258,7 +258,7 @@ namespace Common
                 // Initialize port with random type from shuffled list
                 Port port = new Port(portTile, portPlacement.dir, portTypes[0]);
                 portTile.Port = port;
-                ports.AddLast(port);
+                ports.Add(port);
                 portTypes.RemoveAt(0);
             }
 

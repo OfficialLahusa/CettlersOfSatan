@@ -3,12 +3,12 @@
     public class Board
     {
         public HexMap<Tile> Map { get; set; }
-        public LinkedList<Intersection> Intersections { get; set; }
-        public LinkedList<Edge> Edges { get; set; }
-        public LinkedList<Port> Ports { get; set; }
+        public List<Intersection> Intersections { get; set; }
+        public List<Edge> Edges { get; set; }
+        public List<Port> Ports { get; set; }
         public Tile? Robber;
 
-        public Board(HexMap<Tile> map, LinkedList<Intersection> intersections, LinkedList<Edge> edges, LinkedList<Port> ports, Tile? robber)
+        public Board(HexMap<Tile> map, List<Intersection> intersections, List<Edge> edges, List<Port> ports, Tile? robber)
         {
             Map = map;
             Intersections = intersections;
