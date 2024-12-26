@@ -412,18 +412,10 @@ namespace Client
         {
             CardSet playerHand = _state.PlayerCards[_playerIndex];
 
-            bool canBuildRoad = false;
-            bool canBuildSettlement = false;
-            bool canBuildCity = false;
-            bool canBuyDevelopmentCard = false;
-
-            canBuildRoad = playerHand.Contains(CardSet.CardType.Lumber) && playerHand.Contains(CardSet.CardType.Brick);
-            canBuildSettlement = canBuildRoad && playerHand.Contains(CardSet.CardType.Wool) && playerHand.Contains(CardSet.CardType.Grain);
-            canBuildCity = playerHand.Contains(CardSet.CardType.Grain, 2) && playerHand.Contains(CardSet.CardType.Ore, 3);
-            canBuyDevelopmentCard = playerHand.Contains(CardSet.CardType.Wool) && playerHand.Contains(CardSet.CardType.Grain) && playerHand.Contains(CardSet.CardType.Ore);
-
-            // TODO: Check stock/bank
-            // TODO: Check available spaces
+            bool canBuildRoad = _state.CanBuildRoad(_playerIndex);
+            bool canBuildSettlement = _state.CanBuildSettlement(_playerIndex);
+            bool canBuildCity = _state.CanBuildCity(_playerIndex);
+            bool canBuyDevelopmentCard = _state.CanBuyDevelopmentCard(_playerIndex);
 
             if (!canBuildRoad)
             {

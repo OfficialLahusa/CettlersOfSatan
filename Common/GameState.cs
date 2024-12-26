@@ -11,16 +11,19 @@ namespace Common
         public Board Board { get; set; }
         public CardSet Bank { get; set; }
         public CardSet[] PlayerCards { get; set; }
+        public BuildingStock[] PlayerStock { get; set; }
 
         public GameState(Board board, uint playerCount)
         {
             Board = board;
             Bank = CardSet.CreateBank();
             PlayerCards = new CardSet[playerCount];
+            PlayerStock = new BuildingStock[playerCount];
 
             for(int i = 0; i < playerCount; i++)
             {
                 PlayerCards[i] = new CardSet();
+                PlayerStock[i] = new BuildingStock();
             }
         }
 
@@ -58,6 +61,44 @@ namespace Common
             }
 
             return (yieldSummary, robbedYields);
+        }
+
+        public bool CanBuildRoad(int playerIdx)
+        {
+            bool canAfford = PlayerCards[playerIdx].CanAffordRoad();
+            bool hasPiece = PlayerStock[playerIdx].RemainingRoads > 0;
+
+            // TODO: Check available spaces
+
+            return canAfford && hasPiece;
+        }
+
+        public bool CanBuildSettlement(int playerIdx)
+        {
+            bool canAfford = PlayerCards[playerIdx].CanAffordSettlement();
+            bool hasPiece = PlayerStock[playerIdx].RemainingSettlements > 0;
+
+            // TODO: Check available spaces
+
+            return canAfford && hasPiece;
+        }
+
+        public bool CanBuildCity(int playerIdx)
+        {
+            bool canAfford = PlayerCards[playerIdx].CanAffordCity();
+            bool hasPiece = PlayerStock[playerIdx].RemainingCities > 0;
+
+            // TODO: Check available spaces
+
+            return canAfford && hasPiece;
+        }
+
+        public bool CanBuyDevelopmentCard(int playerIdx)
+        {
+            bool canAfford = PlayerCards[playerIdx].CanAffordDevelopmentCard();
+            bool bankHasCard = Bank.GetDevelopmentCardCount() > 0;
+
+            return canAfford && bankHasCard;
         }
 
         public void ResetCards()
