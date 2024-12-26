@@ -1,6 +1,7 @@
 - Actions abstrahieren und Handler implementieren
 - Bank/Port trades implementieren (Dropdown für Zielressource)
 - Tracken, ob Dev Cards bereits eine Runde alt sind und gespielt werden können
+- Longest Road und Largest Army tracken
 - Kartenlimit beim Räuber enforcen
 - Bank Card Stock und Building Stock enforcen
 - Edit Mode im Interface klar abtrennen
