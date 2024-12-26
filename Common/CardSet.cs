@@ -83,6 +83,49 @@
             return bank;
         }
 
+        public CardType? DrawByType(CardType[] allowedTypes, bool consume = true)
+        {
+            // Weighted random draw
+            uint totalWeight = 0;
+
+            foreach(CardType type in allowedTypes)
+            {
+                totalWeight += _cards[(int)type];
+            }
+
+            // No valid cards in set
+            if(totalWeight == 0)
+            {
+                return null;
+            }
+
+            uint draw = (uint)Utils.Random.Next((int)totalWeight);
+
+            CardType? result = null;
+
+            foreach(CardType type in allowedTypes)
+            {
+                uint typeWeight = _cards[(int)type];
+
+                if (draw < typeWeight)
+                {
+                    result = type;
+
+                    // Remove drawn card from stock
+                    if(consume)
+                    {
+                        _cards[(int)type] = typeWeight - 1;
+                    }
+
+                    break;
+                }
+
+                draw -= typeWeight;
+            }
+
+            return result;
+        }
+
         public static string GetName(CardType type)
         {
             return type switch
@@ -143,7 +186,7 @@
             _cards[(int)type] -= amount;
         }
 
-        public bool Contains(CardType type, uint amount)
+        public bool Contains(CardType type, uint amount = 1)
         {
             return _cards[(int)type] >= amount;
         }

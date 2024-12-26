@@ -67,7 +67,9 @@ namespace Client
 
             _eventLog = new EventLog();
 
-            _rollDistribution = new float[11]; // Bucket indices are (roll total - 2)
+            // Bucket indices are the roll totals
+            // Padded for symmetric plotting with correct indices
+            _rollDistribution = new float[15];
 
             _intersectionHitbox = new CircleShape(_renderer.SideLength / 4, 32);
             _intersectionHitbox.Origin = new Vector2f(_intersectionHitbox.Radius, _intersectionHitbox.Radius);
@@ -150,6 +152,12 @@ namespace Client
             {
                 RegenerateMap();
             }
+
+            ImGui.Separator();
+
+            ImGui.TextUnformatted("Shop:");
+
+            DisplayShop();
 
             ImGui.Separator();
             
@@ -400,11 +408,103 @@ namespace Client
             }
         }
 
+        public void DisplayShop()
+        {
+            CardSet playerHand = _state.PlayerCards[_playerIndex];
+
+            bool canBuildRoad = false;
+            bool canBuildSettlement = false;
+            bool canBuildCity = false;
+            bool canBuyDevelopmentCard = false;
+
+            canBuildRoad = playerHand.Contains(CardSet.CardType.Lumber) && playerHand.Contains(CardSet.CardType.Brick);
+            canBuildSettlement = canBuildRoad && playerHand.Contains(CardSet.CardType.Wool) && playerHand.Contains(CardSet.CardType.Grain);
+            canBuildCity = playerHand.Contains(CardSet.CardType.Grain, 2) && playerHand.Contains(CardSet.CardType.Ore, 3);
+            canBuyDevelopmentCard = playerHand.Contains(CardSet.CardType.Wool) && playerHand.Contains(CardSet.CardType.Grain) && playerHand.Contains(CardSet.CardType.Ore);
+
+            // TODO: Check stock/bank
+            // TODO: Check available spaces
+
+            if (!canBuildRoad)
+            {
+                ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.5f);
+            }
+            if (ImGui.Button("Build Road") && canBuildRoad)
+            {
+                _eventLog.WriteLine(new PlayerEntry(_playerIndex), new StrEntry("built a road"));
+
+                playerHand.Remove(CardSet.CardType.Lumber, 1);
+                playerHand.Remove(CardSet.CardType.Brick, 1);
+            }
+            if (!canBuildRoad)
+            {
+                ImGui.PopStyleVar();
+            }
+
+            if (!canBuildSettlement)
+            {
+                ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.5f);
+            }
+            if (ImGui.Button("Build Settlement") && canBuildSettlement)
+            {
+                _eventLog.WriteLine(new PlayerEntry(_playerIndex), new StrEntry("built a settlement"));
+
+                playerHand.Remove(CardSet.CardType.Lumber, 1);
+                playerHand.Remove(CardSet.CardType.Brick, 1);
+                playerHand.Remove(CardSet.CardType.Wool, 1);
+                playerHand.Remove(CardSet.CardType.Grain, 1);
+            }
+            if (!canBuildSettlement)
+            {
+                ImGui.PopStyleVar();
+            }
+
+
+            if (!canBuildCity)
+            {
+                ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.5f);
+            }
+            if (ImGui.Button("Build City") && canBuildCity)
+            {
+                _eventLog.WriteLine(new PlayerEntry(_playerIndex), new StrEntry("built a city"));
+
+                playerHand.Remove(CardSet.CardType.Grain, 2);
+                playerHand.Remove(CardSet.CardType.Ore, 3);
+            }
+            if (!canBuildCity)
+            {
+                ImGui.PopStyleVar();
+            }
+
+            if (!canBuyDevelopmentCard)
+            {
+                ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.5f);
+            }
+            if (ImGui.Button("Buy Development Card") && canBuyDevelopmentCard)
+            {
+                // Draw random development card from bank (might be empty)
+                CardSet.CardType? drawnType = _state.Bank.DrawByType(CardSet.DEVELOPMENT_CARD_TYPES);
+
+                if (drawnType.HasValue)
+                {
+                    playerHand.Add(drawnType.Value, 1);
+
+                    playerHand.Remove(CardSet.CardType.Wool, 1);
+                    playerHand.Remove(CardSet.CardType.Grain, 1);
+                    playerHand.Remove(CardSet.CardType.Ore, 1);
+                }
+            }
+            if (!canBuyDevelopmentCard)
+            {
+                ImGui.PopStyleVar();
+            }
+        }
+
         public void RollDice()
         {
             int total = _diceWidget.Roll();
 
-            _rollDistribution[total-2] += 1;
+            _rollDistribution[total] += 1;
 
             _eventLog.WriteLine(new SeparatorEntry());
             _eventLog.WriteLine(new PlayerEntry(_playerIndex), new StrEntry($"rolled {_diceWidget.Total} ({_diceWidget.First}+{_diceWidget.Second})"));
