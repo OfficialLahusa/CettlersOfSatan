@@ -1,2 +1,8 @@
-- SortedList für benachbarte Edges und Intersections jeder jeweiligen Intersection,
-- Tiles, Intersections und Edges Felder für Referenzen auf Häfen geben
+- Actions abstrahieren und Handler implementieren
+- Bank/Port trades implementieren (Dropdown für Zielressource)
+- Kartenlimit beim Räuber enforcen
+- Bank Card Stock und Building Stock enforcen
+- Edit Mode im Interface klar abtrennen
+- Legal Actions auflisten
+- RandomAgent hinzufügen
+- Turn/Round States und Order implementieren und im Interface oben anzeigen
