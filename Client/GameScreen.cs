@@ -61,7 +61,7 @@ namespace Client
             _state = new GameState(MapGenerator.GenerateRandomClassic(), PLAYER_COUNT);
 
             _renderer = new BoardRenderer(_state.Board, 120, 20);
-            _cardWidget = new CardWidget(window, _state.PlayerCards[_playerIndex]);
+            _cardWidget = new CardWidget(window, _state.Players[_playerIndex].CardSet);
             _diceWidget = new DiceWidget(window);
             _diceWidget.Active = true;
 
@@ -129,7 +129,7 @@ namespace Client
                     _playerIndex = 0;
                 }
 
-                _cardWidget.SetCardSet(_state.PlayerCards[_playerIndex]);
+                _cardWidget.SetCardSet(_state.Players[_playerIndex].CardSet);
 
                 _eventLog.WriteLine(new SeparatorEntry());
                 _eventLog.WriteLine(new StrEntry("Switching to"), new PlayerEntry(_playerIndex));
@@ -410,7 +410,7 @@ namespace Client
 
         public void DisplayShop()
         {
-            CardSet playerHand = _state.PlayerCards[_playerIndex];
+            CardSet playerHand = _state.Players[_playerIndex].CardSet;
 
             bool canBuildRoad = _state.CanBuildRoad(_playerIndex);
             bool canBuildSettlement = _state.CanBuildSettlement(_playerIndex);

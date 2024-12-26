@@ -10,26 +10,23 @@ namespace Common
     {
         public Board Board { get; set; }
         public CardSet Bank { get; set; }
-        public CardSet[] PlayerCards { get; set; }
-        public BuildingStock[] PlayerStock { get; set; }
+        public PlayerState[] Players { get; set; }
 
         public GameState(Board board, uint playerCount)
         {
             Board = board;
             Bank = CardSet.CreateBank();
-            PlayerCards = new CardSet[playerCount];
-            PlayerStock = new BuildingStock[playerCount];
+            Players = new PlayerState[playerCount];
 
             for(int i = 0; i < playerCount; i++)
             {
-                PlayerCards[i] = new CardSet();
-                PlayerStock[i] = new BuildingStock();
+                Players[i] = new PlayerState();
             }
         }
 
         public (uint[,] yieldSummary, uint robbedYields) AwardYields(int number)
         {
-            uint[,] yieldSummary = new uint[PlayerCards.Length, CardSet.RESOURCE_CARD_TYPES.Length];
+            uint[,] yieldSummary = new uint[Players.Length, CardSet.RESOURCE_CARD_TYPES.Length];
             uint robbedYields = 0;
 
             foreach (Tile tile in Board.Map.Where(x => x.HasYield() && x.Number == number))
@@ -49,7 +46,7 @@ namespace Common
 
                         if(tile != Board.Robber)
                         {
-                            PlayerCards[intersection.Owner].Add(tile.Type.ToCardType(), yieldCount);
+                            Players[intersection.Owner].CardSet.Add(tile.Type.ToCardType(), yieldCount);
                             yieldSummary[intersection.Owner, Array.IndexOf(CardSet.RESOURCE_CARD_TYPES, tile.Type.ToCardType())] += yieldCount;
                         }
                         else
@@ -65,8 +62,8 @@ namespace Common
 
         public bool CanBuildRoad(int playerIdx)
         {
-            bool canAfford = PlayerCards[playerIdx].CanAffordRoad();
-            bool hasPiece = PlayerStock[playerIdx].RemainingRoads > 0;
+            bool canAfford = Players[playerIdx].CardSet.CanAffordRoad();
+            bool hasPiece = Players[playerIdx].BuildingStock.RemainingRoads > 0;
 
             // TODO: Check available spaces
 
@@ -75,8 +72,8 @@ namespace Common
 
         public bool CanBuildSettlement(int playerIdx)
         {
-            bool canAfford = PlayerCards[playerIdx].CanAffordSettlement();
-            bool hasPiece = PlayerStock[playerIdx].RemainingSettlements > 0;
+            bool canAfford = Players[playerIdx].CardSet.CanAffordSettlement();
+            bool hasPiece = Players[playerIdx].BuildingStock.RemainingSettlements > 0;
 
             // TODO: Check available spaces
 
@@ -85,8 +82,8 @@ namespace Common
 
         public bool CanBuildCity(int playerIdx)
         {
-            bool canAfford = PlayerCards[playerIdx].CanAffordCity();
-            bool hasPiece = PlayerStock[playerIdx].RemainingCities > 0;
+            bool canAfford = Players[playerIdx].CardSet.CanAffordCity();
+            bool hasPiece = Players[playerIdx].BuildingStock.RemainingCities > 0;
 
             // TODO: Check available spaces
 
@@ -95,7 +92,7 @@ namespace Common
 
         public bool CanBuyDevelopmentCard(int playerIdx)
         {
-            bool canAfford = PlayerCards[playerIdx].CanAffordDevelopmentCard();
+            bool canAfford = Players[playerIdx].CardSet.CanAffordDevelopmentCard();
             bool bankHasCard = Bank.GetDevelopmentCardCount() > 0;
 
             return canAfford && bankHasCard;
@@ -105,9 +102,9 @@ namespace Common
         {
             Bank = CardSet.CreateBank();
 
-            foreach(CardSet playerCardSet in PlayerCards)
+            foreach(PlayerState player in Players)
             {
-                playerCardSet.Clear();
+                player.CardSet.Clear();
             }
         }
     }
