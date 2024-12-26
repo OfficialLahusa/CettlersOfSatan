@@ -3,6 +3,7 @@
 - Kartenlimit beim Räuber enforcen
 - Bank Card Stock und Building Stock enforcen
 - Edit Mode im Interface klar abtrennen
+- Visible/Hidden Victory Points berechnen
 - Legal Actions auflisten
 - RandomAgent hinzufügen
 - Turn/Round States und Order implementieren und im Interface oben anzeigen
