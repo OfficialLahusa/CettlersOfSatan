@@ -62,37 +62,34 @@ namespace Common
 
         public bool CanBuildRoad(int playerIdx)
         {
-            bool canAfford = Players[playerIdx].CardSet.CanAffordRoad();
-            bool hasPiece = Players[playerIdx].BuildingStock.RemainingRoads > 0;
+            bool canAfford = Players[playerIdx].CanAffordRoad();
 
             // TODO: Check available spaces
 
-            return canAfford && hasPiece;
+            return canAfford;
         }
 
         public bool CanBuildSettlement(int playerIdx)
         {
-            bool canAfford = Players[playerIdx].CardSet.CanAffordSettlement();
-            bool hasPiece = Players[playerIdx].BuildingStock.RemainingSettlements > 0;
+            bool canAfford = Players[playerIdx].CanAffordSettlement();
 
             // TODO: Check available spaces
 
-            return canAfford && hasPiece;
+            return canAfford;
         }
 
         public bool CanBuildCity(int playerIdx)
         {
-            bool canAfford = Players[playerIdx].CardSet.CanAffordCity();
-            bool hasPiece = Players[playerIdx].BuildingStock.RemainingCities > 0;
+            bool canAfford = Players[playerIdx].CanAffordCity();
 
             // TODO: Check available spaces
 
-            return canAfford && hasPiece;
+            return canAfford;
         }
 
         public bool CanBuyDevelopmentCard(int playerIdx)
         {
-            bool canAfford = Players[playerIdx].CardSet.CanAffordDevelopmentCard();
+            bool canAfford = Players[playerIdx].CanAffordDevelopmentCard();
             bool bankHasCard = Bank.GetDevelopmentCardCount() > 0;
 
             return canAfford && bankHasCard;

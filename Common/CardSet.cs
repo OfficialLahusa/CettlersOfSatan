@@ -126,26 +126,6 @@
             return result;
         }
 
-        public bool CanAffordRoad()
-        {
-            return (_cards[(int)CardType.Lumber] > 0) && (_cards[(int)CardType.Brick] > 0);
-        }
-
-        public bool CanAffordSettlement()
-        {
-            return CanAffordRoad() && (_cards[(int)CardType.Wool] > 0) && (_cards[(int)CardType.Grain] > 0);
-        }
-
-        public bool CanAffordCity()
-        {
-            return (_cards[(int)CardType.Grain] >= 2) && (_cards[(int)CardType.Ore] >= 3);
-        }
-
-        public bool CanAffordDevelopmentCard()
-        {
-            return (_cards[(int)CardType.Wool] > 0) && (_cards[(int)CardType.Grain] > 0) && (_cards[(int)CardType.Ore] > 0);
-        }
-
         public static string GetName(CardType type)
         {
             return type switch
