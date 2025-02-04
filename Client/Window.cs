@@ -1,4 +1,5 @@
-﻿using SFML.Graphics;
+﻿using Common.Actions;
+using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
 using System.Runtime.InteropServices;

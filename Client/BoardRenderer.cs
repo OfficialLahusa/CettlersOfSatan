@@ -1,4 +1,5 @@
 ﻿using Common;
+using Common.Actions;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
@@ -439,9 +440,11 @@ namespace Client
 
             return (left, right);
         }
+        
+        public void Draw(RenderTarget target, RenderStates states) { }
 
         // Render the HexMap to a RenderTarget
-        public void Draw(RenderTarget target, RenderStates states)
+        public void Draw(RenderTarget target, RenderStates states, GameState state, int playerIdx) // TODO: Remove state debug parameter
         {
             target.Draw(_tiles, states);
             target.Draw(_grid, states);
@@ -527,8 +530,14 @@ namespace Client
             // Draw edge markers
             if (DrawEdgeMarkers)
             {
-                foreach(Edge edge in Board.Edges)
+                //foreach(Edge edge in Board.Edges)
+                for (int i = 0; i < Board.Edges.Count; i++)
                 {
+                    Edge edge = Board.Edges[i];
+
+                    RoadAction act = new RoadAction(playerIdx, i);
+                    if (!act.IsValidFor(state)) continue;
+
                     (Vector2f left, Vector2f right) = GetEdgePoints(edge);
 
                     _edgeMarker.Position = (left + right) / 2f;
@@ -548,8 +557,15 @@ namespace Client
             // Draw intersection markers
             if (DrawIntersectionMarkers)
             {
-                foreach (Intersection intersection in Board.Intersections)
+                //foreach (Intersection intersection in Board.Intersections)
+                for (int i = 0; i < Board.Intersections.Count; i++)
                 {
+                    Intersection intersection = Board.Intersections[i];
+
+                    SettlementAction act = new SettlementAction(playerIdx, i);
+                    CityAction act2 = new CityAction(playerIdx, i);
+                    if (!act.IsValidFor(state) && !act2.IsValidFor(state)) continue;
+
                     _intersectionMarker.Position = GetIntersectionCenter(intersection);
                     target.Draw(_intersectionMarker, states);
                 }

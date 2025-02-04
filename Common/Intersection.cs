@@ -25,5 +25,23 @@
             Building = BuildingType.None;
             Owner = -1;
         }
+
+        public SortedList<Direction.Edge, Edge> GetAdjacentRoads()
+        {
+            SortedList<Direction.Edge, Edge> result = new SortedList<Direction.Edge, Edge>();
+
+            foreach ((Direction.Corner anchoredDir, Tile tile) in AdjacentTiles)
+            {
+                // Get the two roads adjacent to the tile and intersection
+                (Direction.Tile leftAdjRoadDir, Direction.Tile rightAdjRoadDir) = anchoredDir.GetAdjacentTiles();
+                Edge leftAdjRoad = tile.Edges[leftAdjRoadDir];
+                Edge rightAdjRoad = tile.Edges[rightAdjRoadDir];
+
+                if (!result.ContainsKey(leftAdjRoad.Direction))  result.Add(leftAdjRoad.Direction,  leftAdjRoad);
+                if (!result.ContainsKey(rightAdjRoad.Direction)) result.Add(rightAdjRoad.Direction, rightAdjRoad);
+            }
+
+            return result;
+        }
     }
 }

@@ -33,5 +33,19 @@ namespace Common
             Building = BuildingType.None;
             Owner = -1;
         }
+
+        public (Intersection top, Intersection bottom) GetIntersections()
+        {
+            bool fromWest = WestTile != null;
+            Tile anchorTile = WestTile ?? EastTile!;
+
+            Direction.Tile tileDir = fromWest ? Direction.ToEastTileDir() : Direction.ToWestTileDir();
+            (Direction.Corner left, Direction.Corner right) = tileDir.GetAdjacentCorners();
+
+            Intersection leftIntersection = anchorTile.Intersections[left];
+            Intersection rightIntersection = anchorTile.Intersections[right];
+
+            return (fromWest ? leftIntersection : rightIntersection, fromWest ? rightIntersection : leftIntersection);
+        }
     }
 }

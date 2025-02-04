@@ -1,10 +1,12 @@
 ﻿using Common;
+using Common.Actions;
 using ImGuiNET;
 using Microsoft.VisualBasic;
 using SFML.Audio;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
+using Action = Common.Actions.Action;
 using Edge = Common.Edge;
 
 namespace Client
@@ -49,6 +51,9 @@ namespace Client
         private CircleShape _centerHitbox;
         private Sound _placeSound;
 
+        // Legal Actions
+        private List<Action> _legalActions = [];
+
         static GameScreen()
         {
             Font = new Font(@"..\..\..\res\Open_Sans\static\OpenSans-Regular.ttf");
@@ -92,6 +97,8 @@ namespace Client
             _window.Resized += Window_Resized;
             _window.KeyPressed += Window_KeyPressed;
             _window.MouseButtonPressed += Window_MouseButtonPressed;
+
+            _legalActions = LegalActionProvider.GetActionsForState(_state);
         }
 
         public void Draw(Time deltaTime)
@@ -101,7 +108,8 @@ namespace Client
             // Draw map
             _window.SetView(_mapView);
 
-            _window.Draw(_renderer);
+            //_window.Draw(_renderer);
+            _renderer.Draw(_window, RenderStates.Default, _state, _playerIndex);
 
             // Draw UI
             _window.SetView(_uiView);
@@ -172,6 +180,43 @@ namespace Client
             }
 
             ImGui.End();
+
+            // Legal action window
+            ImGui.Begin("Actions", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.AlwaysVerticalScrollbar);
+
+            ImGui.Text($"Turn: {_state.Turn.RoundCounter}");
+            ImGui.Text($"Player: {_state.Turn.PlayerIndex}");
+            ImGui.Text($"RoundType: {_state.Turn.TypeOfRound}");
+            ImGui.Text($"MustRoll: {_state.Turn.MustRoll}");
+            ImGui.Text($"MustDiscard: {_state.Turn.MustDiscard} ({_state.Turn.AwaitedDiscards} players)");
+            ImGui.Text($"MustMoveRobber: {_state.Turn.MustMoveRobber}");
+
+            ImGui.Separator();
+
+            if(ImGui.Button("Recalculate"))
+            {
+                _legalActions = LegalActionProvider.GetActionsForState(_state);
+            }
+
+            if (ImGui.Button("Play Random [R]"))
+            {
+                PlayRandomAction();
+            }
+
+            ImGui.Text($"{_legalActions.Count} Legal Actions");
+
+            foreach (Action action in _legalActions)
+            {
+                if (ImGui.Button(action.ToString()))
+                {
+                    action.Apply(_state);
+                    _legalActions = LegalActionProvider.GetActionsForState(_state);
+                    _renderer.Update();
+                }
+            }
+
+            ImGui.End();
+
             GuiImpl.Render(_window);
 
             _window.Display();
@@ -203,6 +248,11 @@ namespace Client
             {
                 RegenerateMap();
             }
+
+            if(Keyboard.IsKeyPressed(Keyboard.Key.R))
+            {
+                PlayRandomAction();
+            }
         }
 
         public void Update(Time deltaTime)
@@ -224,15 +274,28 @@ namespace Client
             GuiImpl.Update(_window, deltaTime);
         }
 
+        private void PlayRandomAction()
+        {
+            int minIdx = _legalActions.Count > 1 && _legalActions[0] is EndTurnAction ? 1 : 0;
+            int actionIdx = Utils.Random.Next(minIdx, _legalActions.Count);
+            _legalActions[actionIdx].Apply(_state);
+            _legalActions = LegalActionProvider.GetActionsForState(_state);
+            _renderer.Update();
+        }
+
         private void RegenerateMap()
         {
             _state.Board = MapGenerator.GenerateRandomClassic(_centerDesert);
-            _state.ResetCards();
+            _state.Reset();
 
             _eventLog.Clear();
 
             _renderer.Board = _state.Board;
             _renderer.Update();
+
+            _cardWidget.SetCardSet(_state.Players[_playerIndex].CardSet);
+
+            _legalActions = LegalActionProvider.GetActionsForState(_state);
         }
 
         private void Window_MouseWheelScrolled(object? sender, MouseWheelScrollEventArgs e)
@@ -412,10 +475,10 @@ namespace Client
         {
             CardSet playerHand = _state.Players[_playerIndex].CardSet;
 
-            bool canBuildRoad = _state.CanBuildRoad(_playerIndex);
-            bool canBuildSettlement = _state.CanBuildSettlement(_playerIndex);
-            bool canBuildCity = _state.CanBuildCity(_playerIndex);
-            bool canBuyDevelopmentCard = _state.CanBuyDevelopmentCard(_playerIndex);
+            bool canBuildRoad = _state.Players[_playerIndex].CanAffordRoad();
+            bool canBuildSettlement = _state.Players[_playerIndex].CanAffordSettlement();
+            bool canBuildCity = _state.Players[_playerIndex].CanAffordCity();
+            bool canBuyDevelopmentCard = _state.Players[_playerIndex].CanAffordDevelopmentCard();
 
             if (!canBuildRoad)
             {
@@ -499,7 +562,7 @@ namespace Client
             _rollDistribution[total] += 1;
 
             _eventLog.WriteLine(new SeparatorEntry());
-            _eventLog.WriteLine(new PlayerEntry(_playerIndex), new StrEntry($"rolled {_diceWidget.Total} ({_diceWidget.First}+{_diceWidget.Second})"));
+            _eventLog.WriteLine(new PlayerEntry(_playerIndex), new StrEntry($"rolled {_diceWidget.RollResult.Total} ({_diceWidget.RollResult.First}+{_diceWidget.RollResult.Second})"));
 
             if (total == 7)
             {

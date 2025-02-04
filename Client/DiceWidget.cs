@@ -12,35 +12,12 @@ namespace Client
         private Sound _diceRollSound;
         private static readonly int _size = 180;
         private static readonly Color _inactiveColor = new Color(255, 255, 255, 85);
-        private byte _first;
-        private byte _second;
         private bool _active;
-        public byte First
-        {
-            get { return _first; }
-            set
-            {
-                if(value >= 1 && value <= 6)
-                {
-                    _first = value;
-                }
-            }
-        }
-        public byte Second
-        {
-            get { return _second; }
-            set
-            {
-                if (value >= 1 && value <= 6)
-                {
-                    _second = value;
-                }
-            }
-        }
 
-        public byte Total
+        public RollResult RollResult
         {
-            get { return (byte)(First + Second); }
+            get;
+            private set;
         }
 
         public bool Active { 
@@ -66,7 +43,7 @@ namespace Client
 
             Active = false;
 
-            SetValues();
+            RollResult = RollResult.GetRandom();
             UpdateSprites();
             UpdatePosition(window);
 
@@ -83,17 +60,11 @@ namespace Client
 
         public int Roll()
         {
-            SetValues();
+            RollResult = RollResult.GetRandom();
             UpdateSprites();
             _diceRollSound.Play();
 
-            return Total;
-        }
-
-        private void SetValues(int? first = null, int? second = null)
-        {
-            if (first == null)  First  = (byte)(Utils.Random.Next(6) + 1);
-            if (second == null) Second = (byte)(Utils.Random.Next(6) + 1);
+            return RollResult.Total;
         }
 
         private void UpdatePosition(RenderWindow window)
@@ -105,8 +76,8 @@ namespace Client
 
         private void UpdateSprites()
         {
-            _firstDie.TextureRect = TextureAtlas.GetTextureRect(TextureAtlas.Sprite.DiceOne + _first - 1);
-            _secondDie.TextureRect = TextureAtlas.GetTextureRect(TextureAtlas.Sprite.DiceOne + _second - 1);
+            _firstDie.TextureRect = TextureAtlas.GetTextureRect(TextureAtlas.Sprite.DiceOne + RollResult.First - 1);
+            _secondDie.TextureRect = TextureAtlas.GetTextureRect(TextureAtlas.Sprite.DiceOne + RollResult.Second - 1);
         }
 
         public void Draw(RenderTarget target, RenderStates states)

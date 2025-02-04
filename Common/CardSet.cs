@@ -1,4 +1,7 @@
-﻿namespace Common
+﻿using System.Runtime.CompilerServices;
+using static Common.CardSet;
+
+namespace Common
 {
     public class CardSet
     {
@@ -194,6 +197,56 @@
         public void Clear()
         {
             _cards = new uint[11];
+        }
+
+        public bool Contains(CardSet subset)
+        {
+            foreach(CardType cardType in Enum.GetValues(typeof(CardType)))
+            {
+                if (subset.Get(cardType) > Get(cardType)) return false;
+            }
+
+            return true;
+        }
+
+        public void Add(CardSet subset)
+        {
+            foreach (CardType cardType in Enum.GetValues(typeof(CardType)))
+            {
+                _cards[(int)cardType] += subset.Get(cardType);
+            }
+        }
+
+        public void Remove(CardSet subset)
+        {
+            if (!Contains(subset)) throw new InvalidOperationException("Removal amount exceeds available card count");
+
+            foreach (CardType cardType in Enum.GetValues(typeof(CardType)))
+            {
+                _cards[(int)cardType] -= subset.Get(cardType);
+            }
+        }
+    }
+
+    public static class CardTypeExtensions
+    {
+        public static string GetAbbreviation(this CardType type)
+        {
+            return type switch
+            {
+                CardType.Unknown => "U",
+                CardType.Lumber => "L",
+                CardType.Brick => "B",
+                CardType.Wool => "W",
+                CardType.Grain => "G",
+                CardType.Ore => "O",
+                CardType.Knight => "K",
+                CardType.RoadBuilding => "R",
+                CardType.YearOfPlenty => "Y",
+                CardType.Monopoly => "M",
+                CardType.VictoryPoint => "V",
+                _ => throw new InvalidOperationException()
+            };
         }
     }
 }

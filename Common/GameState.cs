@@ -8,12 +8,16 @@ namespace Common
 {
     public class GameState
     {
+        public GameSettings Settings { get; set; }
+        public TurnState Turn { get; set; }
         public Board Board { get; set; }
         public CardSet Bank { get; set; }
         public PlayerState[] Players { get; set; }
 
         public GameState(Board board, uint playerCount)
         {
+            Settings = new GameSettings();
+            Turn = new TurnState(0);
             Board = board;
             Bank = CardSet.CreateBank();
             Players = new PlayerState[playerCount];
@@ -43,11 +47,19 @@ namespace Common
                     if (yieldCount > 0)
                     {
                         // TODO: Subtract and limit bank stock
+                        uint bankedAmount = Bank.Get(tile.Type.ToCardType());
+                        uint awardedAmount = bankedAmount < yieldCount ? bankedAmount : yieldCount;
+
+                        if (awardedAmount == 0) continue;
+
+                        // TODO: If stock is empty for more than one player, nobody gets yields from that resource
+                        // Approach: Complete yield summary first, then award based on summary
 
                         if(tile != Board.Robber)
                         {
-                            Players[intersection.Owner].CardSet.Add(tile.Type.ToCardType(), yieldCount);
-                            yieldSummary[intersection.Owner, Array.IndexOf(CardSet.RESOURCE_CARD_TYPES, tile.Type.ToCardType())] += yieldCount;
+                            Bank.Remove(tile.Type.ToCardType(), awardedAmount);
+                            Players[intersection.Owner].CardSet.Add(tile.Type.ToCardType(), awardedAmount);
+                            yieldSummary[intersection.Owner, Array.IndexOf(CardSet.RESOURCE_CARD_TYPES, tile.Type.ToCardType())] += awardedAmount;
                         }
                         else
                         {
@@ -60,41 +72,6 @@ namespace Common
             return (yieldSummary, robbedYields);
         }
 
-        public bool CanBuildRoad(int playerIdx)
-        {
-            bool canAfford = Players[playerIdx].CanAffordRoad();
-
-            // TODO: Check available spaces
-
-            return canAfford;
-        }
-
-        public bool CanBuildSettlement(int playerIdx)
-        {
-            bool canAfford = Players[playerIdx].CanAffordSettlement();
-
-            // TODO: Check available spaces
-
-            return canAfford;
-        }
-
-        public bool CanBuildCity(int playerIdx)
-        {
-            bool canAfford = Players[playerIdx].CanAffordCity();
-
-            // TODO: Check available spaces
-
-            return canAfford;
-        }
-
-        public bool CanBuyDevelopmentCard(int playerIdx)
-        {
-            bool canAfford = Players[playerIdx].CanAffordDevelopmentCard();
-            bool bankHasCard = Bank.GetDevelopmentCardCount() > 0;
-
-            return canAfford && bankHasCard;
-        }
-
         public void ResetCards()
         {
             Bank = CardSet.CreateBank();
@@ -102,6 +79,18 @@ namespace Common
             foreach(PlayerState player in Players)
             {
                 player.CardSet.Clear();
+            }
+        }
+
+        public void Reset()
+        {
+            Turn = new TurnState(0);
+            Bank = CardSet.CreateBank();
+            Players = new PlayerState[Players.Length];
+
+            for (int i = 0; i < Players.Length; i++)
+            {
+                Players[i] = new PlayerState();
             }
         }
     }
