@@ -50,7 +50,11 @@ namespace Common.Actions
                 buildingStock.RemainingRoads--;
             }
 
-            // TODO: Recalculate longest road and award VPs accordingly
+            // Recalculate longest road and award VPs accordingly
+            state.CalculateLongestRoad(PlayerIndex);
+
+            // Check for match completion
+            state.CheckForCompletion();
         }
 
         public override bool IsTurnValid(TurnState turn)

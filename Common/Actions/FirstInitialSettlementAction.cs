@@ -28,6 +28,9 @@ namespace Common.Actions
 
             // Remove piece from stock
             state.Players[PlayerIndex].BuildingStock.RemainingSettlements--;
+
+            // Award VP
+            state.Players[PlayerIndex].VictoryPoints.SettlementPoints++;
         }
 
         public override bool IsTurnValid(TurnState turn)

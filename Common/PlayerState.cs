@@ -9,6 +9,10 @@ namespace Common
 {
     public class PlayerState
     {
+        public VictoryPointTracker VictoryPoints;
+        public uint PlayedKnights;
+        public uint LongestRoadLength;
+
         public CardSet CardSet;
         // Index: Development Card Type Index (Knight = 0)
         public uint[] NewDevelopmentCards;
@@ -18,6 +22,10 @@ namespace Common
 
         public PlayerState()
         {
+            VictoryPoints = new VictoryPointTracker();
+            PlayedKnights = 0;
+            LongestRoadLength = 0;
+
             CardSet = new CardSet();
             NewDevelopmentCards = new uint[DEVELOPMENT_CARD_TYPES.Length];
 

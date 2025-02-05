@@ -43,6 +43,8 @@ namespace Common.Actions
             state.Turn.MustMoveRobber = false;
             state.Turn.AwaitedDiscards = 0;
             state.Turn.HasPlayedDevelopmentCard = false;
+
+            state.CalculateLongestRoad(PlayerIndex);
         }
 
         public override bool IsTurnValid(TurnState turn)

@@ -40,6 +40,13 @@ namespace Common.Actions
 
             // Add previous piece to stock
             state.Players[PlayerIndex].BuildingStock.RemainingSettlements++;
+
+            // Award VP
+            state.Players[PlayerIndex].VictoryPoints.SettlementPoints--;
+            state.Players[PlayerIndex].VictoryPoints.CityPoints += 2;
+
+            // Check for match completion
+            state.CheckForCompletion();
         }
 
         public override bool IsTurnValid(TurnState turn)

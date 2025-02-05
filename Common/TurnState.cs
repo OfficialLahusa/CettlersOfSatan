@@ -14,7 +14,8 @@ namespace Common
         {
             Normal,
             FirstInitial,
-            SecondInitial
+            SecondInitial,
+            MatchEnded
         }
 
         public RoundType TypeOfRound { get; set; }

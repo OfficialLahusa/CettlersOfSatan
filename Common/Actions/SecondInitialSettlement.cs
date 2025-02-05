@@ -38,6 +38,9 @@ namespace Common.Actions
                     state.Bank.Remove(adjTile.Type.ToCardType(), 1);
                 }
             }
+
+            // Award VP
+            state.Players[PlayerIndex].VictoryPoints.SettlementPoints++;
         }
 
         public override bool IsTurnValid(TurnState turn)

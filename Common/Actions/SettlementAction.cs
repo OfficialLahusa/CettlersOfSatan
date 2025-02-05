@@ -42,7 +42,30 @@ namespace Common.Actions
             // Remove piece from stock
             state.Players[PlayerIndex].BuildingStock.RemainingSettlements--;
 
-            // TODO: Recalculate longest road and award VPs accordingly, since it can be broken here
+            // Award VP
+            state.Players[PlayerIndex].VictoryPoints.SettlementPoints++;
+            
+            // Check if the settlement might have broken the longest road, which can only happen if there are two adjacent roads from another player
+            int? adjPlayer = null;
+            foreach (Edge adjRoad in intersection.GetAdjacentRoads().Values)
+            {
+                if (adjRoad.Building == Edge.BuildingType.None || adjRoad.Owner == PlayerIndex) continue;
+
+                // First road from another player
+                if (adjPlayer == null)
+                {
+                    adjPlayer = adjRoad.Owner;
+                }
+                // Second road from another player
+                else if (adjPlayer == adjRoad.Owner)
+                {
+                    // Recalculate longest road and award VPs accordingly, since it can be broken here
+                    state.CalculateLongestRoad(adjRoad.Owner, true);
+                }
+            }
+
+            // Check for match completion
+            state.CheckForCompletion();
         }
 
         public override bool IsTurnValid(TurnState turn)

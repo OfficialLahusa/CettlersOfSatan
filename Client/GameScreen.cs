@@ -185,11 +185,35 @@ namespace Client
             ImGui.Begin("Actions", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.AlwaysVerticalScrollbar);
 
             ImGui.Text($"Round: {_state.Turn.RoundCounter}");
-            ImGui.Text($"Player: {_state.Turn.PlayerIndex}");
+            using (new ImGuiTextColor(ColorPalette.GetPlayerColor(_state.Turn.PlayerIndex)))
+                ImGui.Text($"Player: {_state.Turn.PlayerIndex}'s Turn");
             ImGui.Text($"RoundType: {_state.Turn.TypeOfRound}");
             ImGui.Text($"MustRoll: {_state.Turn.MustRoll}");
             ImGui.Text($"MustDiscard: {_state.Turn.MustDiscard} ({_state.Turn.AwaitedDiscards} players)");
             ImGui.Text($"MustMoveRobber: {_state.Turn.MustMoveRobber}");
+
+            ImGui.Separator();
+
+            for(int playerIdx = 0; playerIdx < _state.Players.Length; playerIdx++)
+            {
+                using (new ImGuiTextColor(ColorPalette.GetPlayerColor(playerIdx)))
+                    ImGui.Text($"Player {playerIdx}:");
+
+                ImGui.SameLine();
+
+                ImGui.Text($"{_state.Players[playerIdx].VictoryPoints.Total}/{_state.Settings.VictoryPoints} VPs");
+
+                bool hasLongestRoad = _state.Players[playerIdx].VictoryPoints.LongestRoadPoints > 0;
+                bool hasLargestArmy = _state.Players[playerIdx].VictoryPoints.LargestArmyPoints > 0;
+
+                using (new ImGuiTextColor(Color.Yellow, hasLongestRoad))
+                    ImGui.Text($"Road: {_state.Players[playerIdx].LongestRoadLength}");
+
+                ImGui.SameLine();
+
+                using (new ImGuiTextColor(Color.Yellow, hasLargestArmy))
+                    ImGui.Text($"Knights: {_state.Players[playerIdx].PlayedKnights}");
+            }
 
             ImGui.Separator();
 
@@ -557,6 +581,7 @@ namespace Client
             }
         }
 
+        // TODO: Remove, since it is now handled by actions
         public void RollDice()
         {
             int total = _diceWidget.Roll();
@@ -568,7 +593,6 @@ namespace Client
 
             if (total == 7)
             {
-                // TODO: Trigger Robber
                 _eventLog.WriteLine(new StrEntry("The robber was triggered"));
             }
             else

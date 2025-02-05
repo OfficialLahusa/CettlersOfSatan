@@ -27,8 +27,6 @@ namespace Common.Actions
 
             // Update turn state
             state.Turn.HasPlayedDevelopmentCard = true;
-
-            // TODO: Recalculate longest road and award VPs
         }
 
         public override bool IsTurnValid(TurnState turn)

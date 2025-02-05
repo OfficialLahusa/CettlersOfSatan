@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -46,7 +47,7 @@ namespace Common
 
                     if (yieldCount > 0)
                     {
-                        // TODO: Subtract and limit bank stock
+                        // Subtract and limit bank stock
                         uint bankedAmount = Bank.Get(tile.Type.ToCardType());
                         uint awardedAmount = bankedAmount < yieldCount ? bankedAmount : yieldCount;
 
@@ -70,6 +71,157 @@ namespace Common
             }
 
             return (yieldSummary, robbedYields);
+        }
+
+        public void CalculateLargestArmy(int causingPlayerIdx)
+        {
+            uint playerKnights = Players[causingPlayerIdx].PlayedKnights;
+
+            // Abort if minimum army size wasn't reached
+            if (playerKnights < 3) return;
+
+            // Minimum reached => Abort if player isn't ahead in army size
+            for (int playerIdx = 0; playerIdx < Players.Length; playerIdx++)
+            {
+                if (playerIdx != causingPlayerIdx && Players[playerIdx].PlayedKnights >= playerKnights)
+                {
+                    return;
+                }
+            }
+            
+            // Army is largest => Reallocate points to player
+            for (int playerIdx = 0; playerIdx < Players.Length; playerIdx++)
+            {
+                Players[playerIdx].VictoryPoints.LargestArmyPoints = (byte)(playerIdx == causingPlayerIdx ? 2 : 0);
+            }
+        }
+
+        public void CalculateLongestRoad(int causingPlayerIdx, bool checkForBreak = false)
+        {
+            Dictionary<Edge, int> roadIndexLookup = Board.Edges
+                .Select((edge, idx) => (edge, idx))
+                .Where(x => x.edge.Owner == causingPlayerIdx && x.edge.Building != Edge.BuildingType.None)
+                .ToDictionary(x => x.edge, x => x.idx);
+
+            ImmutableHashSet<Edge> playerRoads = roadIndexLookup.Keys.ToImmutableHashSet();
+            HashSet<Edge> longestPlayerRoad = [];
+
+            // Recursively calculate longest road from each possible starting road
+            foreach (Edge startingRoad in playerRoads)
+            {
+                HashSet<Edge> candidate = CalculateLongestRoadRec(causingPlayerIdx, startingRoad, playerRoads.Remove(startingRoad), []);
+                if (candidate.Count > longestPlayerRoad.Count)
+                {
+                    longestPlayerRoad = candidate;
+
+                    // Skip remaining branches, if the candidate length is guaranteed to be maximal
+                    // => No longer road achievable, only permutations
+                    if (longestPlayerRoad.Count == playerRoads.Count) break;
+                }
+            }
+
+            uint roadLength = (uint)longestPlayerRoad.Count;
+            Players[causingPlayerIdx].LongestRoadLength = roadLength;
+
+            // Award VPs
+            // Cause: Road broken by settlement placement
+            if (checkForBreak)
+            {
+                // Check if player was the leader
+                if (Players[causingPlayerIdx].VictoryPoints.LongestRoadPoints == 0) return;
+
+                // Check for minimum length
+                uint globalLongestRoad = Players.Max(state => state.LongestRoadLength);
+                if (globalLongestRoad < 5) return;
+
+                bool isLeading = roadLength == globalLongestRoad;
+                bool isTied = Players.Count(state => state.LongestRoadLength == globalLongestRoad) > 1;
+
+                // Keep VPs if still higher or tied
+                if (isLeading) return;
+
+                // Set VPs aside if tied and behind the tie
+                if (!isLeading && isTied)
+                {
+                    Players[causingPlayerIdx].VictoryPoints.LongestRoadPoints = 0;
+                    return;
+                }
+
+                // Give VPs to new leader if behind and untied
+                for (int playerIdx = 0; playerIdx < Players.Length; playerIdx++)
+                {
+                    bool isNewLeader = Players[playerIdx].LongestRoadLength == globalLongestRoad;
+                    Players[playerIdx].VictoryPoints.LongestRoadPoints = (byte)(isNewLeader ? 2 : 0);
+                }
+            }
+            // Cause: New road placed
+            else
+            {
+                // Check for minimum length
+                if (roadLength < 5) return;
+
+                // Check if another player has at least an equally long road
+                if (Players.Any(player => player != Players[causingPlayerIdx] && player.LongestRoadLength >= roadLength)) return;
+
+                // Move VPs to player
+                for (int playerIdx = 0; playerIdx < Players.Length; playerIdx++)
+                {
+                    Players[playerIdx].VictoryPoints.LongestRoadPoints = (byte)(playerIdx == causingPlayerIdx ? 2 : 0);
+                }
+            }
+        }
+
+        private static HashSet<Edge> CalculateLongestRoadRec(int playerIdx, Edge current, ImmutableHashSet<Edge> remaining, ImmutableHashSet<Edge> contained)
+        {
+            HashSet<Edge> longestPlayerRoad = [.. contained, current];
+
+            // Terminate if all player roads are contained
+            if (remaining.IsEmpty) return longestPlayerRoad;
+
+            // Find possible branches
+            (Intersection top, Intersection bottom) = current.GetIntersections();
+            bool topBlocked = top.Owner != playerIdx && top.Building != Intersection.BuildingType.None;
+            bool bottomBlocked = bottom.Owner != playerIdx && bottom.Building != Intersection.BuildingType.None;
+
+            var topRoads = top.GetAdjacentRoads().Values.Where(edge => edge.Owner == playerIdx && edge != current);
+            var bottomRoads = bottom.GetAdjacentRoads().Values.Where(edge => edge.Owner == playerIdx && edge != current);
+
+            bool topAlreadyConnected = topRoads.Any(contained.Contains);
+            bool bottomAlreadyConnected = bottomRoads.Any(contained.Contains);
+
+            var remainingTopRoads = topRoads.Intersect(remaining);
+            var remainingBottomRoads = bottomRoads.Intersect(remaining);
+
+            HashSet<Edge> possibleBranches = [];
+            if (!topBlocked && !topAlreadyConnected) possibleBranches.UnionWith(remainingTopRoads);
+            if (!bottomBlocked && !bottomAlreadyConnected) possibleBranches.UnionWith(remainingBottomRoads);
+
+            // Recursively evaluate branches
+            foreach (Edge branch in possibleBranches)
+            {
+                HashSet<Edge> candidate = CalculateLongestRoadRec(playerIdx, branch, remaining.Remove(current), [.. longestPlayerRoad]);
+                if (candidate.Count > longestPlayerRoad.Count)
+                {
+                    longestPlayerRoad = candidate;
+
+                    // Skip remaining branches, if the candidate length is guaranteed to be maximal
+                    // => No longer road achievable, only permutations
+                    if (longestPlayerRoad.Count == contained.Count + remaining.Count) break;
+                }
+            }
+
+            return longestPlayerRoad;
+        }
+
+        public void CheckForCompletion()
+        {
+            for(int playerIdx = 0; playerIdx < Players.Length; playerIdx++)
+            {
+                if (Players[playerIdx].VictoryPoints.Total >= Settings.VictoryPoints)
+                {
+                    Turn.TypeOfRound = TurnState.RoundType.MatchEnded;
+                }
+            }
         }
 
         public void ResetCards()

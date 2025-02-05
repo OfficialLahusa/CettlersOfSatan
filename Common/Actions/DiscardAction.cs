@@ -96,11 +96,6 @@ namespace Common.Actions
                     {
                         actions.Add(action);
                     }
-                    // TODO: Remove
-                    else
-                    {
-                        throw new InvalidDataException("Invalid discard permutation");
-                    }
                 }
             }
 

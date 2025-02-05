@@ -23,7 +23,12 @@ namespace Common.Actions
             state.Turn.MustMoveRobber = true;
             state.Turn.HasPlayedDevelopmentCard = true;
 
-            // TODO: Increment largest army and recalculate VPs
+            // Increment largest army and recalculate VPs
+            ++state.Players[PlayerIndex].PlayedKnights;
+            state.CalculateLargestArmy(PlayerIndex);
+
+            // Check for match completion
+            state.CheckForCompletion();
         }
 
         public override bool IsTurnValid(TurnState turn)

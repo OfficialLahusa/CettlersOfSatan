@@ -35,6 +35,15 @@ namespace Common.Actions
 
             // Add to list of new dev cards that cannot be played yet
             state.Players[PlayerIndex].NewDevelopmentCards[drawnType - CardSet.CardType.Knight] += 1;
+
+            // Award VP, if drawn
+            if(drawnType == CardSet.CardType.VictoryPoint)
+            {
+                state.Players[PlayerIndex].VictoryPoints.DevelopmentCardPoints++;
+
+                // Check for match completion
+                state.CheckForCompletion();
+            }
         }
 
         public override bool IsTurnValid(TurnState turn)
