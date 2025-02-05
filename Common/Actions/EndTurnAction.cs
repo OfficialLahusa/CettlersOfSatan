@@ -25,8 +25,12 @@ namespace Common.Actions
             }
 
             // Update turn state
-            int nextPlayerIdx = ++state.Turn.PlayerIndex % state.Players.Length;
-            state.Turn = new TurnState(nextPlayerIdx, ++state.Turn.RoundCounter);
+            state.Turn.PlayerIndex = ++state.Turn.PlayerIndex % state.Players.Length;
+            if(state.Turn.PlayerIndex == 0) state.Turn.RoundCounter++;
+            state.Turn.MustRoll = true;
+            state.Turn.MustMoveRobber = false;
+            state.Turn.AwaitedDiscards = 0;
+            state.Turn.HasPlayedDevelopmentCard = false;
         }
 
         public override bool IsTurnValid(TurnState turn)

@@ -184,7 +184,7 @@ namespace Client
             // Legal action window
             ImGui.Begin("Actions", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.AlwaysVerticalScrollbar);
 
-            ImGui.Text($"Turn: {_state.Turn.RoundCounter}");
+            ImGui.Text($"Round: {_state.Turn.RoundCounter}");
             ImGui.Text($"Player: {_state.Turn.PlayerIndex}");
             ImGui.Text($"RoundType: {_state.Turn.TypeOfRound}");
             ImGui.Text($"MustRoll: {_state.Turn.MustRoll}");

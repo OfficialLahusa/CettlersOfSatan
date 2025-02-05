@@ -31,14 +31,14 @@ namespace Common
         public bool HasPlayedDevelopmentCard { get; set; }
 
 
-        public TurnState(int playerIdx, int roundCounter = 0)
+        public TurnState()
         {
-            PlayerIndex = playerIdx;
+            PlayerIndex = 0;
 
-            TypeOfRound = RoundType.Normal;
-            RoundCounter = roundCounter;
+            TypeOfRound = RoundType.FirstInitial;
+            RoundCounter = 0;
 
-            MustRoll = true;
+            MustRoll = false;
             MustMoveRobber = false;
             AwaitedDiscards = 0;
 

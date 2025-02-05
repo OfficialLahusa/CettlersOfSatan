@@ -17,7 +17,7 @@ namespace Common
         public GameState(Board board, uint playerCount)
         {
             Settings = new GameSettings();
-            Turn = new TurnState(0);
+            Turn = new TurnState();
             Board = board;
             Bank = CardSet.CreateBank();
             Players = new PlayerState[playerCount];
@@ -84,7 +84,7 @@ namespace Common
 
         public void Reset()
         {
-            Turn = new TurnState(0);
+            Turn = new TurnState();
             Bank = CardSet.CreateBank();
             Players = new PlayerState[Players.Length];
 

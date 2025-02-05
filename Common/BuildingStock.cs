@@ -8,6 +8,10 @@ namespace Common
 {
     public class BuildingStock
     {
+        public static readonly uint MAX_ROADS = 15;
+        public static readonly uint MAX_SETTLEMENTS = 5;
+        public static readonly uint MAX_CITIES = 4;
+
         public uint RemainingRoads;
         public uint RemainingSettlements;
         public uint RemainingCities;
@@ -17,9 +21,9 @@ namespace Common
 
         public BuildingStock()
         {
-            RemainingRoads = 15;
-            RemainingSettlements = 5;
-            RemainingCities = 4;
+            RemainingRoads = MAX_ROADS;
+            RemainingSettlements = MAX_SETTLEMENTS;
+            RemainingCities = MAX_CITIES;
 
             FreeRoads = 0;
         }

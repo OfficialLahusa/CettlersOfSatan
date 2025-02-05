@@ -17,6 +17,11 @@ namespace Common.Actions
                 .. DiscardAction.GetActionsForState(state),
                 .. RobberAction.GetActionsForState(state),
 
+                .. FirstInitialSettlementAction.GetActionsForState(state),
+                .. FirstInitialRoadAction.GetActionsForState(state),
+                .. SecondInitialSettlementAction.GetActionsForState(state),
+                .. SecondInitialRoadAction.GetActionsForState(state),
+
                 .. RoadAction.GetActionsForState(state),
                 .. SettlementAction.GetActionsForState(state),
                 .. CityAction.GetActionsForState(state),
