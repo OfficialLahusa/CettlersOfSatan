@@ -1,8 +1,5 @@
 - Besseres Interface für Bank/Port trades implementieren (Dropdown für Zielressource)
 - Edit Mode im Interface klar abtrennen
-- Longest Road und Largest Army tracken
-- Visible/Hidden Victory Points berechnen
-- Nach jeder VP-Änderung checken, ob das Match entschieden ist
 - Agents abstrahieren (z.B. RandomAgent, MCTSAgent)
 - Sounds auch für Actions spielen
 - Würfel-Widget synchronisieren
