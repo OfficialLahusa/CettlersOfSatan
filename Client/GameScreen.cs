@@ -598,7 +598,7 @@ namespace Client
             else
             {
                 // Award yields
-                (uint[,] yieldSummary, uint robbedYields) = _state.AwardYields(total);
+                (uint[,] yieldSummary, uint robbedYields, uint cappedYields) = _state.AwardYields(total);
 
                 for (int player = 0; player < yieldSummary.GetLength(0); player++)
                 {
@@ -622,6 +622,15 @@ namespace Client
                     string msg = $"The robber stole {robbedYields} yield";
 
                     if (robbedYields > 1) msg += "s";
+
+                    _eventLog.WriteLine(new StrEntry(msg));
+                }
+
+                if (cappedYields > 0)
+                {
+                    string msg = $"Limited bank stock prevented {cappedYields} yield";
+
+                    if (cappedYields > 1) msg += "s";
 
                     _eventLog.WriteLine(new StrEntry(msg));
                 }

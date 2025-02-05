@@ -1,9 +1,11 @@
-﻿using System;
+﻿using Microsoft.VisualBasic;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Common.Direction;
 
 namespace Common
 {
@@ -29,14 +31,15 @@ namespace Common
             }
         }
 
-        public (uint[,] yieldSummary, uint robbedYields) AwardYields(int number)
+        public (uint[,] yieldSummary, uint robbedYields, uint cappedYields) AwardYields(int number)
         {
             uint[,] yieldSummary = new uint[Players.Length, CardSet.RESOURCE_CARD_TYPES.Length];
             uint robbedYields = 0;
 
+            // Calculate tile yields
             foreach (Tile tile in Board.Map.Where(x => x.HasYield() && x.Number == number))
             {
-                foreach(Intersection intersection in tile.Intersections.Values)
+                foreach (Intersection intersection in tile.Intersections.Values)
                 {
                     uint yieldCount = intersection.Building switch
                     {
@@ -47,20 +50,9 @@ namespace Common
 
                     if (yieldCount > 0)
                     {
-                        // Subtract and limit bank stock
-                        uint bankedAmount = Bank.Get(tile.Type.ToCardType());
-                        uint awardedAmount = bankedAmount < yieldCount ? bankedAmount : yieldCount;
-
-                        if (awardedAmount == 0) continue;
-
-                        // TODO: If stock is empty for more than one player, nobody gets yields from that resource
-                        // Approach: Complete yield summary first, then award based on summary
-
-                        if(tile != Board.Robber)
+                        if (tile != Board.Robber)
                         {
-                            Bank.Remove(tile.Type.ToCardType(), awardedAmount);
-                            Players[intersection.Owner].CardSet.Add(tile.Type.ToCardType(), awardedAmount);
-                            yieldSummary[intersection.Owner, Array.IndexOf(CardSet.RESOURCE_CARD_TYPES, tile.Type.ToCardType())] += awardedAmount;
+                            yieldSummary[intersection.Owner, Array.IndexOf(CardSet.RESOURCE_CARD_TYPES, tile.Type.ToCardType())] += yieldCount;
                         }
                         else
                         {
@@ -70,7 +62,43 @@ namespace Common
                 }
             }
 
-            return (yieldSummary, robbedYields);
+            // Award yields according to limited bank stock
+            uint cappedYields = 0;
+            for (int resourceTypeIdx = 0; resourceTypeIdx < CardSet.RESOURCE_CARD_TYPES.Length; resourceTypeIdx++)
+            {
+                CardSet.CardType resourceType = CardSet.RESOURCE_CARD_TYPES[resourceTypeIdx];
+                uint bankStock = Bank.Get(resourceType);
+
+                uint totalAwardedAmount = 0;
+                uint affectedPlayers = 0;
+
+                for (int playerIdx = 0; playerIdx < Players.Length; playerIdx++)
+                {
+                    uint awardedAmount = yieldSummary[playerIdx, resourceTypeIdx];
+                    totalAwardedAmount += awardedAmount;
+                    affectedPlayers += awardedAmount > 0 ? 1u : 0u;
+                }
+
+                // Do not award yields, if bank stock is insufficient and more than one player is affected
+                bool insufficientStock = bankStock < totalAwardedAmount;
+                if (insufficientStock && affectedPlayers > 1) 
+                {
+                    cappedYields += totalAwardedAmount;
+                    continue;
+                }
+
+                // Transfer cards from bank to player
+                for (int playerIdx = 0; playerIdx < Players.Length; playerIdx++)
+                {
+                    uint awardedAmount = yieldSummary[playerIdx, resourceTypeIdx];
+                    if (awardedAmount > bankStock) awardedAmount = bankStock;
+
+                    Bank.Remove(resourceType, awardedAmount);
+                    Players[playerIdx].CardSet.Add(resourceType, awardedAmount);
+                }
+            }
+
+            return (yieldSummary, robbedYields, cappedYields);
         }
 
         public void CalculateLargestArmy(int causingPlayerIdx)
