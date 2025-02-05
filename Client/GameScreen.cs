@@ -276,6 +276,8 @@ namespace Client
 
         private void PlayRandomAction()
         {
+            if (_legalActions.Count == 0) return;
+
             int minIdx = _legalActions.Count > 1 && _legalActions[0] is EndTurnAction ? 1 : 0;
             int actionIdx = Utils.Random.Next(minIdx, _legalActions.Count);
             _legalActions[actionIdx].Apply(_state);
