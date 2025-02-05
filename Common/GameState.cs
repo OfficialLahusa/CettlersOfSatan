@@ -227,7 +227,7 @@ namespace Common
             // Recursively evaluate branches
             foreach (Edge branch in possibleBranches)
             {
-                HashSet<Edge> candidate = CalculateLongestRoadRec(playerIdx, branch, remaining.Remove(current), [.. longestPlayerRoad]);
+                HashSet<Edge> candidate = CalculateLongestRoadRec(playerIdx, branch, remaining.Remove(current), [.. contained, current]);
                 if (candidate.Count > longestPlayerRoad.Count)
                 {
                     longestPlayerRoad = candidate;
