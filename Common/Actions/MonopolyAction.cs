@@ -35,8 +35,6 @@ namespace Common.Actions
 
             // Update turn state
             state.Turn.HasPlayedDevelopmentCard = true;
-
-            // TODO: Increment largest army and recalculate VPs
         }
 
         public override bool IsTurnValid(TurnState turn)
@@ -53,11 +51,12 @@ namespace Common.Actions
         {
             bool hasCard = state.Players[PlayerIndex].CardSet.Contains(CardSet.CardType.Monopoly);
 
+            // Check for dev card age
+            bool cardAgeSufficient = state.Players[PlayerIndex].CardSet.Get(CardSet.CardType.Monopoly) > state.Players[PlayerIndex].NewDevelopmentCards[CardSet.CardType.Monopoly - CardSet.CardType.Knight];
+
             bool validChoice = CardSet.RESOURCE_CARD_TYPES.Contains(ChosenType);
 
-            // TODO: Check for dev card age
-
-            return hasCard && validChoice;
+            return hasCard && cardAgeSufficient && validChoice;
         }
 
         public static List<Action> GetActionsForState(GameState state)

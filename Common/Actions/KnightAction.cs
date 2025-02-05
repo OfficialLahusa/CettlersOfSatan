@@ -40,9 +40,10 @@ namespace Common.Actions
         {
             bool hasCard = state.Players[PlayerIndex].CardSet.Contains(CardSet.CardType.Knight);
 
-            // TODO: Check for dev card age
+            // Check for dev card age
+            bool cardAgeSufficient = state.Players[PlayerIndex].CardSet.Get(CardSet.CardType.Knight) > state.Players[PlayerIndex].NewDevelopmentCards[0];
 
-            return hasCard;
+            return hasCard && cardAgeSufficient;
         }
 
         public static List<Action> GetActionsForState(GameState state)

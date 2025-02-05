@@ -51,13 +51,14 @@ namespace Common.Actions
         {
             bool hasCard = state.Players[PlayerIndex].CardSet.Contains(CardSet.CardType.YearOfPlenty);
 
+            // Check for dev card age
+            bool cardAgeSufficient = state.Players[PlayerIndex].CardSet.Get(CardSet.CardType.YearOfPlenty) > state.Players[PlayerIndex].NewDevelopmentCards[CardSet.CardType.YearOfPlenty - CardSet.CardType.Knight];
+
             bool validTypes = CardSet.RESOURCE_CARD_TYPES.Contains(FirstChoice) && CardSet.RESOURCE_CARD_TYPES.Contains(SecondChoice);
 
             bool bankHasCards = FirstChoice == SecondChoice ? state.Bank.Contains(FirstChoice, 2) : state.Bank.Contains(FirstChoice, 1) && state.Bank.Contains(SecondChoice, 1);
 
-            // TODO: Check for dev card age
-
-            return hasCard && validTypes && bankHasCards;
+            return hasCard && cardAgeSufficient && validTypes && bankHasCards;
         }
 
         public static List<Action> GetActionsForState(GameState state)

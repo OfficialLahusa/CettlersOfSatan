@@ -24,6 +24,9 @@ namespace Common.Actions
                 stock.FreeRoads = 0;
             }
 
+            // Allow newly acquired dev cards to be played
+            Array.Fill<uint>(state.Players[PlayerIndex].NewDevelopmentCards, 0);
+
             // Update turn state
             state.Turn.PlayerIndex = ++state.Turn.PlayerIndex % state.Players.Length;
             if(state.Turn.PlayerIndex == 0) state.Turn.RoundCounter++;

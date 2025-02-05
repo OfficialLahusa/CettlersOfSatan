@@ -45,9 +45,10 @@ namespace Common.Actions
         {
             bool hasCard = state.Players[PlayerIndex].CardSet.Contains(CardSet.CardType.RoadBuilding);
 
-            // TODO: Check for dev card age
+            // Check for dev card age
+            bool cardAgeSufficient = state.Players[PlayerIndex].CardSet.Get(CardSet.CardType.RoadBuilding) > state.Players[PlayerIndex].NewDevelopmentCards[CardSet.CardType.RoadBuilding - CardSet.CardType.Knight];
 
-            return hasCard;
+            return hasCard && cardAgeSufficient;
         }
 
         public static List<Action> GetActionsForState(GameState state)
