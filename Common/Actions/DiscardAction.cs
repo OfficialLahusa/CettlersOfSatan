@@ -50,7 +50,7 @@ namespace Common.Actions
             // Terminate early if discarding isn't required
             if (excessCards <= 0) return false;
 
-            bool validAmount = SelectedCards.GetResourceCardCount() == excessCards;
+            bool validAmount = SelectedCards.GetResourceCardCount() == playerCards.GetResourceCardCount() / 2;
             bool validSubset = playerCards.Contains(SelectedCards);
 
             return validAmount && validSubset;
@@ -78,7 +78,7 @@ namespace Common.Actions
                     )
                     .ToArray();
 
-                List<CardSet.CardType[]> subsets = Utils.GetSubsets(heldResources, excessCards);
+                List<CardSet.CardType[]> subsets = Utils.GetSubsets(heldResources, heldResources.Length / 2);
 
                 // Create actions for each subset
                 foreach (CardSet.CardType[] subset in subsets)
