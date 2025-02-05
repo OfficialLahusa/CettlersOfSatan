@@ -74,7 +74,7 @@ namespace Common.Actions
             bool canAfford = state.Players[PlayerIndex].CanAffordRoad();
 
             // Get the two intersections on the ends of the road
-            (Intersection top, Intersection bottom) = road.GetIntersections();
+            (Intersection top, Intersection bottom) = road.Intersections;
 
             // Check if one of the intersections has a building owned by the player
             bool hasTopBuilding = top.Owner == PlayerIndex && top.Building != Intersection.BuildingType.None;
@@ -90,7 +90,7 @@ namespace Common.Actions
             bool bottomHasAdjRoad = false;
 
             // Check if one of the adjacent roads of the top intersection was built by the player
-            foreach(Edge adjacentRoad in top.GetAdjacentRoads().Values)
+            foreach(Edge adjacentRoad in top.AdjacentEdges.Values)
             {
                 if (adjacentRoad.Owner == PlayerIndex && adjacentRoad.Building != Edge.BuildingType.None)
                 {
@@ -100,7 +100,7 @@ namespace Common.Actions
             }
 
             // Check if one of the adjacent roads of the bottom intersection was built by the player
-            foreach (Edge adjacentRoad in bottom.GetAdjacentRoads().Values)
+            foreach (Edge adjacentRoad in bottom.AdjacentEdges.Values)
             {
                 if (adjacentRoad.Owner == PlayerIndex && adjacentRoad.Building != Edge.BuildingType.None)
                 {

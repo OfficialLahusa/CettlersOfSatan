@@ -25,6 +25,32 @@ namespace Common
         // -1 => None, 0/1/.. => Player 1/2/..
         public int Owner { get; set; }
 
+        public Intersection Top
+        {
+            get
+            {
+                if (_topIntersection == null)
+                    (_topIntersection, _bottomIntersection) = GetIntersections();
+                return _topIntersection;
+            }
+        }
+        public Intersection Bottom
+        {
+            get
+            {
+                if (_bottomIntersection == null)
+                    (_topIntersection, _bottomIntersection) = GetIntersections();
+                return _bottomIntersection;
+            }
+        }
+        public (Intersection Top, Intersection Bottom) Intersections
+        {
+            get => (Top, Bottom);
+        }
+
+        private Intersection? _topIntersection;
+        private Intersection? _bottomIntersection;
+
         public Edge(Direction.Edge direction)
         {
             WestTile = null;
@@ -34,7 +60,7 @@ namespace Common
             Owner = -1;
         }
 
-        public (Intersection top, Intersection bottom) GetIntersections()
+        private (Intersection top, Intersection bottom) GetIntersections()
         {
             bool fromWest = WestTile != null;
             Tile anchorTile = WestTile ?? EastTile!;

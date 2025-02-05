@@ -47,7 +47,7 @@ namespace Common.Actions
             
             // Check if the settlement might have broken the longest road, which can only happen if there are two adjacent roads from another player
             int? adjPlayer = null;
-            foreach (Edge adjRoad in intersection.GetAdjacentRoads().Values)
+            foreach (Edge adjRoad in intersection.AdjacentEdges.Values)
             {
                 if (adjRoad.Building == Edge.BuildingType.None || adjRoad.Owner == PlayerIndex) continue;
 
@@ -88,14 +88,14 @@ namespace Common.Actions
             // Has adjacent road
             bool hasAdjacentRoad = false;
             bool hasAdjacentSettlement = false;
-            foreach(Edge adjacentRoad in intersection.GetAdjacentRoads().Values)
+            foreach(Edge adjacentRoad in intersection.AdjacentEdges.Values)
             {
                 if (adjacentRoad.Owner == PlayerIndex && adjacentRoad.Building != Edge.BuildingType.None)
                 {
                     hasAdjacentRoad = true;
                 }
 
-                (Intersection top, Intersection bottom) = adjacentRoad.GetIntersections();
+                (Intersection top, Intersection bottom) = adjacentRoad.Intersections;
                 if (top.Building != Intersection.BuildingType.None || bottom.Building != Intersection.BuildingType.None)
                 {
                     hasAdjacentSettlement = true;

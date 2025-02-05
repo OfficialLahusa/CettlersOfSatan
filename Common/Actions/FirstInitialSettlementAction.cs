@@ -48,9 +48,9 @@ namespace Common.Actions
 
             // No adjacent settlements
             bool hasAdjacentSettlement = false;
-            foreach (Edge adjacentRoad in intersection.GetAdjacentRoads().Values)
+            foreach (Edge adjacentRoad in intersection.AdjacentEdges.Values)
             {
-                (Intersection top, Intersection bottom) = adjacentRoad.GetIntersections();
+                (Intersection top, Intersection bottom) = adjacentRoad.Intersections;
                 if (top.Building != Intersection.BuildingType.None || bottom.Building != Intersection.BuildingType.None)
                 {
                     hasAdjacentSettlement = true;
