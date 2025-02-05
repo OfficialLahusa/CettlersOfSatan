@@ -1,10 +1,12 @@
-- Besseres Interface für Bank/Port trades implementieren (Dropdown für Zielressource)
-- Edit Mode im Interface klar abtrennen
+- Logging in Actions verschieben
+- GameScreen aufräumen
 - Agents abstrahieren (z.B. RandomAgent, MCTSAgent)
+- Edit Mode im Interface klar abtrennen
 - Sounds auch für Actions spielen
 - Würfel-Widget synchronisieren
 - "Sync Player" Checkbox, um immer das richtige Card Widget zu sehen
 - Ranking System
+- Besseres Interface für Bank/Port Trades implementieren (Dropdown für Zielressource)
 
 Quellen lesen:
 - Catan MCTS => https://www.researchgate.net/publication/220716999_Monte-Carlo_Tree_Search_in_Settlers_of_Catan
