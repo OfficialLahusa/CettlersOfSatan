@@ -227,6 +227,13 @@ namespace Client
                 PlayRandomAction();
             }
 
+            ImGui.SameLine();
+
+            if (ImGui.Button("Full Playout [E]"))
+            {
+                PlayFullRandomPlayout();
+            }
+
             ImGui.Text($"{_legalActions.Count} Legal Actions");
 
             foreach (Action action in _legalActions)
@@ -277,6 +284,11 @@ namespace Client
             {
                 PlayRandomAction();
             }
+
+            if(Keyboard.IsKeyPressed(Keyboard.Key.E))
+            {
+                PlayFullRandomPlayout();
+            }
         }
 
         public void Update(Time deltaTime)
@@ -296,6 +308,26 @@ namespace Client
 
             _window.DispatchEvents();
             GuiImpl.Update(_window, deltaTime);
+        }
+
+        private void PlayFullRandomPlayout()
+        {
+            if (_legalActions.Count == 0) return;
+
+            Clock playoutClock = new Clock();
+
+            while(_legalActions.Count > 0)
+            {
+                int minIdx = _legalActions.Count > 1 && _legalActions[0] is EndTurnAction ? 1 : 0;
+                int actionIdx = Utils.Random.Next(minIdx, _legalActions.Count);
+                _legalActions[actionIdx].Apply(_state);
+                _legalActions = LegalActionProvider.GetActionsForState(_state);
+            }
+
+            float ms = playoutClock.ElapsedTime.AsSeconds() * 1000f;
+            Console.WriteLine($"Full playout of {_state.Turn.RoundCounter} rounds took {ms}ms ({ms / _state.Turn.RoundCounter}ms/Round)");
+
+            _renderer.Update();
         }
 
         private void PlayRandomAction()
