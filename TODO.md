@@ -1,5 +1,4 @@
 - Besseres Interface für Bank/Port trades implementieren (Dropdown für Zielressource)
-- Tracken, ob Dev Cards bereits eine Runde alt sind und gespielt werden können
 - Edit Mode im Interface klar abtrennen
 - Longest Road und Largest Army tracken
 - Visible/Hidden Victory Points berechnen
