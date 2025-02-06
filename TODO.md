@@ -1,4 +1,3 @@
-- Gewinnen nur auf eigenem Zug erlauben
 - Logging durch Callbacks in Actions verschieben
 - Sounds auch für Actions spielen, aber nicht in die Actions verlegen
 - Unknown Cards in UnknownResource und UnknownDevelopment unterteilen
@@ -11,6 +10,7 @@
 - Reversible Actions
 	- Nested Class Result mit fehlenden Informationen über den Ausgang der Action
 - Observation Filter (Agents nur die für sie sichtbaren Informationen geben)
+- Board in Static und Dynamic unterteilen?
 - Action für variable Domestic Trades
 - Datensatz für einfache ML Starting Position Value Function generieren
 - RandomAgent
