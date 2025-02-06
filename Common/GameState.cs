@@ -243,12 +243,10 @@ namespace Common
 
         public void CheckForCompletion()
         {
-            for(int playerIdx = 0; playerIdx < Players.Length; playerIdx++)
+            // Players can only win on their own turn
+            if (Players[Turn.PlayerIndex].VictoryPoints.Total >= Settings.VictoryPoints)
             {
-                if (Players[playerIdx].VictoryPoints.Total >= Settings.VictoryPoints)
-                {
-                    Turn.TypeOfRound = TurnState.RoundType.MatchEnded;
-                }
+                Turn.TypeOfRound = TurnState.RoundType.MatchEnded;
             }
         }
 

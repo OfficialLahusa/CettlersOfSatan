@@ -34,6 +34,9 @@ namespace Common.Actions
             state.Turn.MustMoveRobber = false;
             state.Turn.AwaitedDiscards = 0;
             state.Turn.HasPlayedDevelopmentCard = false;
+
+            // Players might have had enough VPs to win before their own turn
+            state.CheckForCompletion();
         }
 
         public override bool IsTurnValid(TurnState turn)
