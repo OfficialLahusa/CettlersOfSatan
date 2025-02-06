@@ -11,6 +11,7 @@
 - Reversible Actions
 	- Nested Class Result mit fehlenden Informationen über den Ausgang der Action
 - Observation Filter (Agents nur die für sie sichtbaren Informationen geben)
+- Action für variable Domestic Trades
 - Datensatz für einfache ML Starting Position Value Function generieren
 - RandomAgent
 	- Discarden durch Shuffle randomizen, nicht durch Action Space
