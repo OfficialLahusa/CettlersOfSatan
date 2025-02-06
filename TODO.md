@@ -1,8 +1,8 @@
-- Logging in Actions verschieben
+- Logging durch Callbacks in Actions verschieben
+- Sounds auch für Actions spielen, aber nicht in die Actions verlegen
 - GameScreen aufräumen
 - Agents abstrahieren (z.B. RandomAgent, MCTSAgent)
 - Edit Mode im Interface klar abtrennen
-- Sounds auch für Actions spielen
 - Würfel-Widget synchronisieren
 - "Sync Player" Checkbox, um immer das richtige Card Widget zu sehen
 - Ranking System
