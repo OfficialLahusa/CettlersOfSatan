@@ -34,8 +34,8 @@ namespace Common.Actions
             {
                 if(adjTile != null && adjTile.HasYield())
                 {
-                    state.Players[PlayerIndex].CardSet.Add(adjTile.Type.ToCardType(), 1);
-                    state.Bank.Remove(adjTile.Type.ToCardType(), 1);
+                    state.Players[PlayerIndex].ResourceCards.Add(adjTile.Type.ToCardType(), 1);
+                    state.ResourceBank.Remove(adjTile.Type.ToCardType(), 1);
                 }
             }
 

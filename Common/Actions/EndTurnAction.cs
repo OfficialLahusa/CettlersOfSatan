@@ -25,7 +25,7 @@ namespace Common.Actions
             }
 
             // Allow newly acquired dev cards to be played
-            Array.Fill<uint>(state.Players[PlayerIndex].NewDevelopmentCards, 0);
+            state.Players[PlayerIndex].NewDevelopmentCards = new();
 
             // Update turn state
             state.Turn.PlayerIndex = ++state.Turn.PlayerIndex % state.Players.Length;

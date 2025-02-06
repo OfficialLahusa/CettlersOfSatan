@@ -17,7 +17,7 @@ namespace Common.Actions
             base.Apply(state);
 
             // Remove card
-            state.Players[PlayerIndex].CardSet.Remove(CardSet.CardType.RoadBuilding, 1);
+            state.Players[PlayerIndex].DevelopmentCards.Remove(DevelopmentCardType.RoadBuilding, 1);
 
             // Add free road stock (up to 2)
             BuildingStock buildingStock = state.Players[PlayerIndex].BuildingStock;
@@ -46,10 +46,10 @@ namespace Common.Actions
 
         public bool IsBoardValid(GameState state)
         {
-            bool hasCard = state.Players[PlayerIndex].CardSet.Contains(CardSet.CardType.RoadBuilding);
+            bool hasCard = state.Players[PlayerIndex].DevelopmentCards.Contains(DevelopmentCardType.RoadBuilding);
 
             // Check for dev card age
-            bool cardAgeSufficient = state.Players[PlayerIndex].CardSet.Get(CardSet.CardType.RoadBuilding) > state.Players[PlayerIndex].NewDevelopmentCards[CardSet.CardType.RoadBuilding - CardSet.CardType.Knight];
+            bool cardAgeSufficient = state.Players[PlayerIndex].DevelopmentCards.Get(DevelopmentCardType.RoadBuilding) > state.Players[PlayerIndex].NewDevelopmentCards.Get(DevelopmentCardType.RoadBuilding);
 
             return hasCard && cardAgeSufficient;
         }

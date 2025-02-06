@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static Common.CardSet;
 
 namespace Common
 {
@@ -13,9 +12,9 @@ namespace Common
         public uint PlayedKnights;
         public uint LongestRoadLength;
 
-        public CardSet CardSet;
-        // Index: Development Card Type Index (Knight = 0)
-        public uint[] NewDevelopmentCards;
+        public CardSet<ResourceCardType> ResourceCards;
+        public CardSet<DevelopmentCardType> DevelopmentCards;
+        public CardSet<DevelopmentCardType> NewDevelopmentCards;
 
         public BuildingStock BuildingStock;
         public PortPrivileges PortPrivileges;
@@ -26,8 +25,9 @@ namespace Common
             PlayedKnights = 0;
             LongestRoadLength = 0;
 
-            CardSet = new CardSet();
-            NewDevelopmentCards = new uint[DEVELOPMENT_CARD_TYPES.Length];
+            ResourceCards = new();
+            DevelopmentCards = new();
+            NewDevelopmentCards = new();
 
             BuildingStock = new BuildingStock();
             PortPrivileges = PortPrivileges.None;
@@ -36,25 +36,25 @@ namespace Common
         public bool CanAffordRoad()
         {
             bool hasFreeRoad = BuildingStock.FreeRoads > 0;
-            bool canBuyNormally = BuildingStock.RemainingRoads > 0 && CardSet.Contains(CardType.Lumber) && CardSet.Contains(CardType.Brick);
+            bool canBuyNormally = BuildingStock.RemainingRoads > 0 && ResourceCards.Contains(ResourceCardType.Lumber) && ResourceCards.Contains(ResourceCardType.Brick);
             return hasFreeRoad || canBuyNormally;
         }
 
         public bool CanAffordSettlement()
         {
             return BuildingStock.RemainingSettlements > 0 
-                && CardSet.Contains(CardType.Lumber) && CardSet.Contains(CardType.Brick) 
-                && CardSet.Contains(CardType.Wool) && CardSet.Contains(CardType.Grain);
+                && ResourceCards.Contains(ResourceCardType.Lumber) && ResourceCards.Contains(ResourceCardType.Brick) 
+                && ResourceCards.Contains(ResourceCardType.Wool) && ResourceCards.Contains(ResourceCardType.Grain);
         }
 
         public bool CanAffordCity()
         {
-            return BuildingStock.RemainingCities > 0 && CardSet.Contains(CardType.Grain, 2) && CardSet.Contains(CardType.Ore, 3);
+            return BuildingStock.RemainingCities > 0 && ResourceCards.Contains(ResourceCardType.Grain, 2) && ResourceCards.Contains(ResourceCardType.Ore, 3);
         }
 
         public bool CanAffordDevelopmentCard()
         {
-            return CardSet.Contains(CardType.Wool) && CardSet.Contains(CardType.Grain) && CardSet.Contains(CardType.Ore);
+            return ResourceCards.Contains(ResourceCardType.Wool) && ResourceCards.Contains(ResourceCardType.Grain) && ResourceCards.Contains(ResourceCardType.Ore);
         }
     }
 

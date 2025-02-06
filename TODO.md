@@ -1,8 +1,5 @@
 - Logging durch Callbacks in Actions verschieben
 - Sounds auch für Actions spielen, aber nicht in die Actions verlegen
-- Unknown Cards in UnknownResource und UnknownDevelopment unterteilen
-- Separate Card Sets für Resources und Dev Cards
-	- Generic Enum Type?
 - Wasted Monopoly und schlechtes YOP erlauben
 	- YOP wenn Bank nur noch eine Ressource hat möglich
 	- Sonst müssen immer 2 gezogen werden

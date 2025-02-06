@@ -2,6 +2,7 @@
 using SFML.Graphics;
 using SFML.System;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using static Common.Direction;
 using static Common.Tile;
 using Tile = Common.Tile;
@@ -106,48 +107,42 @@ namespace Client
             };
         }
 
-        public static Color GetCardColor(CardSet.CardType type)
+        public static Color GetCardColor(ResourceCardType type)
         {
             return type switch
             {
-                CardSet.CardType.Unknown => DevelopmentCardPurple,
-
-                CardSet.CardType.Lumber => GetTileColor(TileType.Lumber),
-                CardSet.CardType.Brick => GetTileColor(TileType.Brick),
-                CardSet.CardType.Wool => GetTileColor(TileType.Wool),
-                CardSet.CardType.Grain => GetTileColor(TileType.Grain),
-                CardSet.CardType.Ore => GetTileColor(TileType.Ore),
-
-                CardSet.CardType.Knight => DevelopmentCardPurple,
-                CardSet.CardType.RoadBuilding => DevelopmentCardPurple,
-                CardSet.CardType.YearOfPlenty => DevelopmentCardPurple,
-                CardSet.CardType.Monopoly => DevelopmentCardPurple,
-                CardSet.CardType.VictoryPoint => DevelopmentCardPurple,
-
+                ResourceCardType.Unknown => DevelopmentCardPurple,
+                ResourceCardType.Lumber => GetTileColor(TileType.Lumber),
+                ResourceCardType.Brick => GetTileColor(TileType.Brick),
+                ResourceCardType.Wool => GetTileColor(TileType.Wool),
+                ResourceCardType.Grain => GetTileColor(TileType.Grain),
+                ResourceCardType.Ore => GetTileColor(TileType.Ore),
                 _ => throw new InvalidOperationException()
             };
         }
 
-        public static Color GetCardIconColor(CardSet.CardType type)
+        public static Color GetCardColor(DevelopmentCardType type)
+        {
+            return DevelopmentCardPurple;
+        }
+
+        public static Color GetCardIconColor(ResourceCardType type)
         {
             return type switch
             {
-                CardSet.CardType.Unknown => DevelopmentCardDarkPurple,
-
-                CardSet.CardType.Lumber => GetTileIconColor(TileType.Lumber),
-                CardSet.CardType.Brick => GetTileIconColor(TileType.Brick),
-                CardSet.CardType.Wool => GetTileIconColor(TileType.Wool),
-                CardSet.CardType.Grain => GetTileIconColor(TileType.Grain),
-                CardSet.CardType.Ore => GetTileIconColor(TileType.Ore),
-
-                CardSet.CardType.Knight => DevelopmentCardDarkPurple,
-                CardSet.CardType.RoadBuilding => DevelopmentCardDarkPurple,
-                CardSet.CardType.YearOfPlenty => DevelopmentCardDarkPurple,
-                CardSet.CardType.Monopoly => DevelopmentCardDarkPurple,
-                CardSet.CardType.VictoryPoint => DevelopmentCardDarkPurple,
-
+                ResourceCardType.Unknown => DevelopmentCardDarkPurple,
+                ResourceCardType.Lumber => GetTileIconColor(TileType.Lumber),
+                ResourceCardType.Brick => GetTileIconColor(TileType.Brick),
+                ResourceCardType.Wool => GetTileIconColor(TileType.Wool),
+                ResourceCardType.Grain => GetTileIconColor(TileType.Grain),
+                ResourceCardType.Ore => GetTileIconColor(TileType.Ore),
                 _ => throw new InvalidOperationException()
             };
+        }
+
+        public static Color GetCardIconColor(DevelopmentCardType type)
+        {
+            return DevelopmentCardDarkPurple;
         }
 
         public static Color Vec3ToColor(Vector3 color)

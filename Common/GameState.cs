@@ -14,7 +14,8 @@ namespace Common
         public GameSettings Settings { get; set; }
         public TurnState Turn { get; set; }
         public Board Board { get; set; }
-        public CardSet Bank { get; set; }
+        public CardSet<ResourceCardType> ResourceBank { get; set; }
+        public CardSet<DevelopmentCardType> DevelopmentBank { get; set; }
         public PlayerState[] Players { get; set; }
         public bool HasEnded => Turn.TypeOfRound == TurnState.RoundType.MatchEnded;
 
@@ -23,7 +24,7 @@ namespace Common
             Settings = new GameSettings();
             Turn = new TurnState();
             Board = board;
-            Bank = CardSet.CreateBank();
+            (ResourceBank, DevelopmentBank) = CreateBank();
             Players = new PlayerState[playerCount];
 
             for(int i = 0; i < playerCount; i++)
@@ -34,7 +35,7 @@ namespace Common
 
         public (uint[,] yieldSummary, uint robbedYields, uint cappedYields) AwardYields(int number)
         {
-            uint[,] yieldSummary = new uint[Players.Length, CardSet.RESOURCE_CARD_TYPES.Length];
+            uint[,] yieldSummary = new uint[Players.Length, CardSet<ResourceCardType>.Values.Count];
             uint robbedYields = 0;
 
             // Calculate tile yields
@@ -53,7 +54,7 @@ namespace Common
                     {
                         if (tile != Board.Robber)
                         {
-                            yieldSummary[intersection.Owner, Array.IndexOf(CardSet.RESOURCE_CARD_TYPES, tile.Type.ToCardType())] += yieldCount;
+                            yieldSummary[intersection.Owner, CardSet<ResourceCardType>.ToInt(tile.Type.ToCardType())] += yieldCount;
                         }
                         else
                         {
@@ -65,10 +66,10 @@ namespace Common
 
             // Award yields according to limited bank stock
             uint cappedYields = 0;
-            for (int resourceTypeIdx = 0; resourceTypeIdx < CardSet.RESOURCE_CARD_TYPES.Length; resourceTypeIdx++)
+            for (int resourceTypeIdx = 0; resourceTypeIdx < CardSet<ResourceCardType>.Values.Count; resourceTypeIdx++)
             {
-                CardSet.CardType resourceType = CardSet.RESOURCE_CARD_TYPES[resourceTypeIdx];
-                uint bankStock = Bank.Get(resourceType);
+                ResourceCardType resourceType = CardSet<ResourceCardType>.Values[resourceTypeIdx];
+                uint bankStock = ResourceBank.Get(resourceType);
 
                 uint totalAwardedAmount = 0;
                 uint affectedPlayers = 0;
@@ -94,8 +95,8 @@ namespace Common
                     uint awardedAmount = yieldSummary[playerIdx, resourceTypeIdx];
                     if (awardedAmount > bankStock) awardedAmount = bankStock;
 
-                    Bank.Remove(resourceType, awardedAmount);
-                    Players[playerIdx].CardSet.Add(resourceType, awardedAmount);
+                    ResourceBank.Remove(resourceType, awardedAmount);
+                    Players[playerIdx].ResourceCards.Add(resourceType, awardedAmount);
                 }
             }
 
@@ -254,23 +255,44 @@ namespace Common
         public bool CanPlayerAct(int playerIdx)
         {
             // TODO: Eventually account for trade offers from other players to target player
-            return !Turn.MustDiscard && Turn.PlayerIndex == playerIdx || Turn.MustDiscard && Players[playerIdx].CardSet.GetResourceCardCount() > Settings.RobberCardLimit;
+            return !Turn.MustDiscard && Turn.PlayerIndex == playerIdx || Turn.MustDiscard && Players[playerIdx].ResourceCards.Count() > Settings.RobberCardLimit;
+        }
+
+        public static (CardSet<ResourceCardType> resources, CardSet<DevelopmentCardType> development) CreateBank()
+        {
+            CardSet<ResourceCardType> resources = new();
+            CardSet<DevelopmentCardType> development = new();
+
+            resources.Add(ResourceCardType.Lumber, 19);
+            resources.Add(ResourceCardType.Brick, 19);
+            resources.Add(ResourceCardType.Wool, 19);
+            resources.Add(ResourceCardType.Grain, 19);
+            resources.Add(ResourceCardType.Ore, 19);
+
+            development.Add(DevelopmentCardType.Knight, 14);
+            development.Add(DevelopmentCardType.RoadBuilding, 2);
+            development.Add(DevelopmentCardType.YearOfPlenty, 2);
+            development.Add(DevelopmentCardType.Monopoly, 2);
+            development.Add(DevelopmentCardType.VictoryPoint, 5);
+
+            return (resources, development);
         }
 
         public void ResetCards()
         {
-            Bank = CardSet.CreateBank();
+            (ResourceBank, DevelopmentBank) = CreateBank();
 
             foreach(PlayerState player in Players)
             {
-                player.CardSet.Clear();
+                player.ResourceCards = new();
+                player.DevelopmentCards = new();
             }
         }
 
         public void Reset()
         {
             Turn = new TurnState();
-            Bank = CardSet.CreateBank();
+            (ResourceBank, DevelopmentBank) = CreateBank();
             Players = new PlayerState[Players.Length];
 
             for (int i = 0; i < Players.Length; i++)

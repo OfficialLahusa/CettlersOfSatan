@@ -17,27 +17,27 @@ namespace Common.Actions
             base.Apply(state);
 
             // Remove cards
-            CardSet playerCards = state.Players[PlayerIndex].CardSet;
-            playerCards.Remove(CardSet.CardType.Wool, 1);
-            playerCards.Remove(CardSet.CardType.Grain, 1);
-            playerCards.Remove(CardSet.CardType.Ore, 1);
+            CardSet<ResourceCardType> playerCards = state.Players[PlayerIndex].ResourceCards;
+            playerCards.Remove(ResourceCardType.Wool, 1);
+            playerCards.Remove(ResourceCardType.Grain, 1);
+            playerCards.Remove(ResourceCardType.Ore, 1);
 
             // Return cards to bank
-            state.Bank.Add(CardSet.CardType.Wool, 1);
-            state.Bank.Add(CardSet.CardType.Grain, 1);
-            state.Bank.Add(CardSet.CardType.Ore, 1);
+            state.ResourceBank.Add(ResourceCardType.Wool, 1);
+            state.ResourceBank.Add(ResourceCardType.Grain, 1);
+            state.ResourceBank.Add(ResourceCardType.Ore, 1);
 
             // Draw card from bank
-            CardSet.CardType drawnType = state.Bank.DrawByType(CardSet.DEVELOPMENT_CARD_TYPES, true)!.Value;
+            DevelopmentCardType drawnType = state.DevelopmentBank.Draw(true);
 
             // Add drawn card to player
-            playerCards.Add(drawnType, 1);
+            state.Players[PlayerIndex].DevelopmentCards.Add(drawnType, 1);
 
             // Add to list of new dev cards that cannot be played yet
-            state.Players[PlayerIndex].NewDevelopmentCards[drawnType - CardSet.CardType.Knight] += 1;
+            state.Players[PlayerIndex].NewDevelopmentCards.Add(drawnType, 1);
 
             // Award VP, if drawn
-            if(drawnType == CardSet.CardType.VictoryPoint)
+            if(drawnType == DevelopmentCardType.VictoryPoint)
             {
                 state.Players[PlayerIndex].VictoryPoints.DevelopmentCardPoints++;
 
@@ -63,7 +63,7 @@ namespace Common.Actions
         public bool IsBoardValid(GameState state)
         {
             bool canAfford = state.Players[PlayerIndex].CanAffordDevelopmentCard();
-            bool bankHasDevCards = state.Bank.GetDevelopmentCardCount() > 0;
+            bool bankHasDevCards = state.DevelopmentBank.Count() > 0;
 
             return canAfford && bankHasDevCards;
         }

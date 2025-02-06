@@ -17,7 +17,7 @@ namespace Common.Actions
             base.Apply(state);
 
             // Remove card
-            state.Players[PlayerIndex].CardSet.Remove(CardSet.CardType.Knight, 1);
+            state.Players[PlayerIndex].DevelopmentCards.Remove(DevelopmentCardType.Knight, 1);
 
             // Update turn state
             state.Turn.MustMoveRobber = true;
@@ -48,10 +48,10 @@ namespace Common.Actions
 
         public bool IsBoardValid(GameState state)
         {
-            bool hasCard = state.Players[PlayerIndex].CardSet.Contains(CardSet.CardType.Knight);
+            bool hasCard = state.Players[PlayerIndex].DevelopmentCards.Contains(DevelopmentCardType.Knight);
 
             // Check for dev card age
-            bool cardAgeSufficient = state.Players[PlayerIndex].CardSet.Get(CardSet.CardType.Knight) > state.Players[PlayerIndex].NewDevelopmentCards[0];
+            bool cardAgeSufficient = state.Players[PlayerIndex].DevelopmentCards.Get(DevelopmentCardType.Knight) > state.Players[PlayerIndex].NewDevelopmentCards.Get(DevelopmentCardType.Knight);
 
             return hasCard && cardAgeSufficient;
         }

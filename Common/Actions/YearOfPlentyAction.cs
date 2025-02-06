@@ -8,10 +8,10 @@ namespace Common.Actions
 {
     public class YearOfPlentyAction : Action, IActionProvider
     {
-        public CardSet.CardType FirstChoice { get; set; }
-        public CardSet.CardType SecondChoice { get; set; }
+        public ResourceCardType FirstChoice { get; set; }
+        public ResourceCardType SecondChoice { get; set; }
 
-        public YearOfPlentyAction(int playerIdx, CardSet.CardType firstChoice, CardSet.CardType secondChoice)
+        public YearOfPlentyAction(int playerIdx, ResourceCardType firstChoice, ResourceCardType secondChoice)
             : base(playerIdx)
         {
             FirstChoice = firstChoice;
@@ -22,14 +22,14 @@ namespace Common.Actions
         {
             base.Apply(state);
 
-            CardSet playerCards = state.Players[PlayerIndex].CardSet;
+            CardSet<ResourceCardType> playerCards = state.Players[PlayerIndex].ResourceCards;
 
             // Remove card
-            playerCards.Remove(CardSet.CardType.YearOfPlenty, 1);
+            state.Players[PlayerIndex].DevelopmentCards.Remove(DevelopmentCardType.YearOfPlenty, 1);
 
             // Move chosen cards from bank to hand
-            state.Bank.Remove(FirstChoice, 1);
-            state.Bank.Remove(SecondChoice, 1);
+            state.ResourceBank.Remove(FirstChoice, 1);
+            state.ResourceBank.Remove(SecondChoice, 1);
             playerCards.Add(FirstChoice, 1);
             playerCards.Add(SecondChoice, 1);
 
@@ -54,16 +54,14 @@ namespace Common.Actions
 
         public bool IsBoardValid(GameState state)
         {
-            bool hasCard = state.Players[PlayerIndex].CardSet.Contains(CardSet.CardType.YearOfPlenty);
+            bool hasCard = state.Players[PlayerIndex].DevelopmentCards.Contains(DevelopmentCardType.YearOfPlenty);
 
             // Check for dev card age
-            bool cardAgeSufficient = state.Players[PlayerIndex].CardSet.Get(CardSet.CardType.YearOfPlenty) > state.Players[PlayerIndex].NewDevelopmentCards[CardSet.CardType.YearOfPlenty - CardSet.CardType.Knight];
+            bool cardAgeSufficient = state.Players[PlayerIndex].DevelopmentCards.Get(DevelopmentCardType.YearOfPlenty) > state.Players[PlayerIndex].NewDevelopmentCards.Get(DevelopmentCardType.YearOfPlenty);
 
-            bool validTypes = CardSet.RESOURCE_CARD_TYPES.Contains(FirstChoice) && CardSet.RESOURCE_CARD_TYPES.Contains(SecondChoice);
+            bool bankHasCards = FirstChoice == SecondChoice ? state.ResourceBank.Contains(FirstChoice, 2) : state.ResourceBank.Contains(FirstChoice, 1) && state.ResourceBank.Contains(SecondChoice, 1);
 
-            bool bankHasCards = FirstChoice == SecondChoice ? state.Bank.Contains(FirstChoice, 2) : state.Bank.Contains(FirstChoice, 1) && state.Bank.Contains(SecondChoice, 1);
-
-            return hasCard && cardAgeSufficient && validTypes && bankHasCards;
+            return hasCard && cardAgeSufficient && bankHasCards;
         }
 
         public static List<Action> GetActionsForState(GameState state, int playerIdx)
@@ -72,9 +70,9 @@ namespace Common.Actions
 
             if(!IsTurnValid(state.Turn, playerIdx)) return actions;
 
-            foreach (var firstChoice in CardSet.RESOURCE_CARD_TYPES)
+            foreach (var firstChoice in CardSet<ResourceCardType>.Values)
             {
-                foreach (var secondChoice in CardSet.RESOURCE_CARD_TYPES)
+                foreach (var secondChoice in CardSet<ResourceCardType>.Values)
                 {
                     // Avoid adding the same pair twice
                     if (firstChoice > secondChoice) continue;

@@ -66,7 +66,7 @@ namespace Client
             _state = new GameState(MapGenerator.GenerateRandomClassic(), PLAYER_COUNT);
 
             _renderer = new BoardRenderer(_state.Board, 120, 20);
-            _cardWidget = new CardWidget(window, _state.Players[_playerIndex].CardSet);
+            _cardWidget = new CardWidget(window, _state.Players[_playerIndex]);
             _diceWidget = new DiceWidget(window);
             _diceWidget.Active = true;
 
@@ -142,7 +142,7 @@ namespace Client
                     _playerIndex = 0;
                 }
 
-                _cardWidget.SetCardSet(_state.Players[_playerIndex].CardSet);
+                _cardWidget.SetPlayerState(_state.Players[_playerIndex]);
 
                 _eventLog.WriteLine(new SeparatorEntry());
                 _eventLog.WriteLine(new StrEntry("Switching to"), new PlayerEntry(_playerIndex));
@@ -165,12 +165,6 @@ namespace Client
             {
                 RegenerateMap();
             }
-
-            ImGui.Separator();
-
-            ImGui.TextUnformatted("Shop:");
-
-            DisplayShop();
 
             ImGui.Separator();
             
@@ -365,7 +359,7 @@ namespace Client
 
                 _eventLog.Clear();
 
-                _cardWidget.SetCardSet(_state.Players[_playerIndex].CardSet);
+                _cardWidget.SetPlayerState(_state.Players[_playerIndex]);
             }
 
             Console.WriteLine($"\nFull playout of {matches:n0} matches ({playedRounds:n0} rounds, {playedActions:n0} actions) took {ms:n} ms");
@@ -450,7 +444,7 @@ namespace Client
             _renderer.Board = _state.Board;
             _renderer.Update();
 
-            _cardWidget.SetCardSet(_state.Players[_playerIndex].CardSet);
+            _cardWidget.SetPlayerState(_state.Players[_playerIndex]);
         }
 
         private void Window_MouseWheelScrolled(object? sender, MouseWheelScrollEventArgs e)
@@ -626,90 +620,6 @@ namespace Client
             }
         }
 
-        public void DisplayShop()
-        {
-            CardSet playerHand = _state.Players[_playerIndex].CardSet;
-
-            bool canBuildRoad = _state.Players[_playerIndex].CanAffordRoad();
-            bool canBuildSettlement = _state.Players[_playerIndex].CanAffordSettlement();
-            bool canBuildCity = _state.Players[_playerIndex].CanAffordCity();
-            bool canBuyDevelopmentCard = _state.Players[_playerIndex].CanAffordDevelopmentCard();
-
-            if (!canBuildRoad)
-            {
-                ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.5f);
-            }
-            if (ImGui.Button("Build Road") && canBuildRoad)
-            {
-                _eventLog.WriteLine(new PlayerEntry(_playerIndex), new StrEntry("built a road"));
-
-                playerHand.Remove(CardSet.CardType.Lumber, 1);
-                playerHand.Remove(CardSet.CardType.Brick, 1);
-            }
-            if (!canBuildRoad)
-            {
-                ImGui.PopStyleVar();
-            }
-
-            if (!canBuildSettlement)
-            {
-                ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.5f);
-            }
-            if (ImGui.Button("Build Settlement") && canBuildSettlement)
-            {
-                _eventLog.WriteLine(new PlayerEntry(_playerIndex), new StrEntry("built a settlement"));
-
-                playerHand.Remove(CardSet.CardType.Lumber, 1);
-                playerHand.Remove(CardSet.CardType.Brick, 1);
-                playerHand.Remove(CardSet.CardType.Wool, 1);
-                playerHand.Remove(CardSet.CardType.Grain, 1);
-            }
-            if (!canBuildSettlement)
-            {
-                ImGui.PopStyleVar();
-            }
-
-
-            if (!canBuildCity)
-            {
-                ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.5f);
-            }
-            if (ImGui.Button("Build City") && canBuildCity)
-            {
-                _eventLog.WriteLine(new PlayerEntry(_playerIndex), new StrEntry("built a city"));
-
-                playerHand.Remove(CardSet.CardType.Grain, 2);
-                playerHand.Remove(CardSet.CardType.Ore, 3);
-            }
-            if (!canBuildCity)
-            {
-                ImGui.PopStyleVar();
-            }
-
-            if (!canBuyDevelopmentCard)
-            {
-                ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.5f);
-            }
-            if (ImGui.Button("Buy Development Card") && canBuyDevelopmentCard)
-            {
-                // Draw random development card from bank (might be empty)
-                CardSet.CardType? drawnType = _state.Bank.DrawByType(CardSet.DEVELOPMENT_CARD_TYPES);
-
-                if (drawnType.HasValue)
-                {
-                    playerHand.Add(drawnType.Value, 1);
-
-                    playerHand.Remove(CardSet.CardType.Wool, 1);
-                    playerHand.Remove(CardSet.CardType.Grain, 1);
-                    playerHand.Remove(CardSet.CardType.Ore, 1);
-                }
-            }
-            if (!canBuyDevelopmentCard)
-            {
-                ImGui.PopStyleVar();
-            }
-        }
-
         // TODO: Remove, since it is now handled by actions
         public void RollDice()
         {
@@ -740,7 +650,7 @@ namespace Client
                             _eventLog.WriteLine(
                                 new PlayerEntry(player),
                                 new StrEntry($"earned {yieldAmount}"),
-                                new CardEntry(CardSet.RESOURCE_CARD_TYPES[resource])
+                                new ResourceCardEntry(CardSet<ResourceCardType>.Values[resource])
                             );
                         }
                     }

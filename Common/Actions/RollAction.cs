@@ -29,7 +29,7 @@ namespace Common.Actions
                 int requiredDiscards = 0;
                 for (int player = 0; player < state.Players.Length; player++)
                 {
-                    if (state.Players[player].CardSet.GetResourceCardCount() > state.Settings.RobberCardLimit) requiredDiscards++;
+                    if (state.Players[player].ResourceCards.Count() > state.Settings.RobberCardLimit) requiredDiscards++;
                 }
                 state.Turn.AwaitedDiscards = requiredDiscards;
 

@@ -46,7 +46,7 @@ namespace Common.Agents
 
             if(DiscardAction.IsTurnValid(state.Turn, PlayerIndex))
             {
-                actions.Add(GetRandomDiscard(state));
+                actions.Add(DiscardAction.GetRandomDiscard(state, PlayerIndex));
             }
 
             if (actions.Count == 0) throw new InvalidOperationException();
@@ -54,31 +54,6 @@ namespace Common.Agents
             int minIdx = actions.Count > 1 && actions[0] is EndTurnAction ? 1 : 0;
             int actionIdx = Utils.Random.Next(minIdx, actions.Count);
             return actions[actionIdx];
-        }
-
-        private DiscardAction GetRandomDiscard(GameState state)
-        {
-            // Get list of types of held resource cards
-            List<CardSet.CardType> heldResources = CardSet.RESOURCE_CARD_TYPES
-                .SelectMany(
-                    resourceType => Enumerable.Repeat(resourceType, (int)state.Players[PlayerIndex].CardSet.Get(resourceType))
-                )
-                .ToList();
-            
-            // Randomize card order
-            Utils.Shuffle(heldResources);
-
-            // Remove the cards that are kept
-            heldResources.RemoveRange(0, heldResources.Count - heldResources.Count / 2);
-
-            // Add to new CardSet
-            CardSet discardedSet = new CardSet();
-            foreach (var card in heldResources)
-            {
-                discardedSet.Add(card, 1);
-            }
-
-            return new DiscardAction(PlayerIndex, discardedSet);
         }
     }
 }

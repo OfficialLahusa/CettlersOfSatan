@@ -1,207 +1,123 @@
-﻿using System.Runtime.CompilerServices;
-using static Common.CardSet;
+﻿using Microsoft.VisualBasic;
+using System.Collections.ObjectModel;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Windows.Markup;
 
 namespace Common
 {
-    public class CardSet
+    public enum ResourceCardType : byte
     {
-        public enum CardType : byte
-        {
-            Unknown = 0,
-            // Resource
-            Lumber = 1,
-            Brick = 2,
-            Wool = 3,
-            Grain = 4,
-            Ore = 5,
-            // Development
-            Knight = 6,
-            RoadBuilding = 7,
-            YearOfPlenty = 8,
-            Monopoly = 9,
-            VictoryPoint = 10
-        };
+        Unknown = 0,
+        Lumber = 1,
+        Brick = 2,
+        Wool = 3,
+        Grain = 4,
+        Ore = 5
+    };
+    public enum DevelopmentCardType : byte
+    {
+        Unknown = 0,
+        Knight = 1,
+        RoadBuilding = 2,
+        YearOfPlenty = 3,
+        Monopoly = 4,
+        VictoryPoint = 5
+    };
 
-        public static readonly CardType[] RESOURCE_CARD_TYPES = new CardType[]
-        {
-            CardType.Lumber,
-            CardType.Brick,
-            CardType.Wool,
-            CardType.Grain,
-            CardType.Ore
-        };
-
-        public static readonly CardType[] DEVELOPMENT_CARD_TYPES = new CardType[]
-        {
-            CardType.Knight,
-            CardType.RoadBuilding,
-            CardType.YearOfPlenty,
-            CardType.Monopoly,
-            CardType.VictoryPoint
-        };
-
+    public class CardSet<T> where T : Enum
+    {
         // Card count indexed by type
         private uint[] _cards;
 
+        public static readonly IReadOnlyList<T> Values;
+
+        static CardSet() {
+            Values = (IReadOnlyList<T>)Enum.GetValues(typeof(T));
+        }
+
         public CardSet()
         {
-            _cards = new uint[11];
+            _cards = new uint[Enum.GetValues(typeof(T)).Length];
         }
 
-        public static CardSet CreateBank()
+        public static int ToInt(T val)
         {
-            CardSet bank = new CardSet();
-
-            bank.Add(CardType.Lumber, 19);
-            bank.Add(CardType.Brick, 19);
-            bank.Add(CardType.Wool, 19);
-            bank.Add(CardType.Grain, 19);
-            bank.Add(CardType.Ore, 19);
-
-            bank.Add(CardType.Knight, 14);
-            bank.Add(CardType.RoadBuilding, 2);
-            bank.Add(CardType.YearOfPlenty, 2);
-            bank.Add(CardType.Monopoly, 2);
-            bank.Add(CardType.VictoryPoint, 5);
-
-            return bank;
+            // Half as fast: return Convert.ToInt32(Convert.ChangeType(val, val.GetTypeCode()));
+            return (byte)(object)val;
         }
 
-        public static CardSet CreateSample()
-        {
-            CardSet bank = new CardSet();
-
-            bank.Add(CardType.Lumber, 3);
-            bank.Add(CardType.Brick, 3);
-            bank.Add(CardType.Wool, 3);
-            bank.Add(CardType.Grain, 3);
-            bank.Add(CardType.Ore, 3);
-
-            bank.Add(CardType.Knight, 2);
-            bank.Add(CardType.RoadBuilding, 2);
-            bank.Add(CardType.YearOfPlenty, 2);
-            bank.Add(CardType.Monopoly, 2);
-            bank.Add(CardType.VictoryPoint, 2);
-
-            return bank;
-        }
-
-        public CardType? DrawByType(CardType[] allowedTypes, bool consume = true)
+        public T Draw(bool consume = true)
         {
             // Weighted random draw
-            uint totalWeight = 0;
+            uint totalWeight = Count();
 
-            foreach(CardType type in allowedTypes)
-            {
-                totalWeight += _cards[(int)type];
-            }
-
-            // No valid cards in set
+            // No cards in set
             if(totalWeight == 0)
             {
-                return null;
+                throw new InvalidOperationException();
             }
 
             uint draw = (uint)Utils.Random.Next((int)totalWeight);
 
-            CardType? result = null;
-
-            foreach(CardType type in allowedTypes)
+            foreach(T type in Values)
             {
-                uint typeWeight = _cards[(int)type];
+                uint typeWeight = _cards[ToInt(type)];
 
                 if (draw < typeWeight)
                 {
-                    result = type;
-
                     // Remove drawn card from stock
                     if(consume)
                     {
-                        _cards[(int)type] = typeWeight - 1;
+                        _cards[ToInt(type)] = typeWeight - 1;
                     }
 
-                    break;
+                    return type;
                 }
 
                 draw -= typeWeight;
             }
 
-            return result;
+            throw new InvalidOperationException();
         }
 
-        public static string GetName(CardType type)
+        public uint Get(T type)
         {
-            return type switch
-            {
-                CardType.Unknown => "Unknown",
-                CardType.Lumber => "Lumber",
-                CardType.Brick => "Brick",
-                CardType.Wool => "Wool",
-                CardType.Grain => "Grain",
-                CardType.Ore => "Ore",
-                CardType.Knight => "Knight",
-                CardType.RoadBuilding => "Road Building",
-                CardType.YearOfPlenty => "Year Of Plenty",
-                CardType.Monopoly => "Monopoly",
-                CardType.VictoryPoint => "Victory Point",
-                _ => throw new InvalidOperationException(),
-            };
+            return _cards[ToInt(type)];
         }
 
-        public uint Get(CardType type)
-        {
-            return _cards[(int)type];
-        }
-
-        public uint GetResourceCardCount()
+        public uint Count()
         {
             uint sum = 0;
 
-            foreach(CardType type in RESOURCE_CARD_TYPES)
+            foreach(uint amount in _cards)
             {
-                sum += _cards[(int)type];
+                sum += amount;
             }
 
             return sum;
         }
 
-        public uint GetDevelopmentCardCount()
+        public void Add(T type, uint amount)
         {
-            uint sum = 0;
-
-            foreach (CardType type in DEVELOPMENT_CARD_TYPES)
-            {
-                sum += _cards[(int)type];
-            }
-
-            return sum;
+            _cards[ToInt(type)] += amount;
         }
 
-        public void Add(CardType type, uint amount)
-        {
-            _cards[(int)type] += amount;
-        }
-
-        public void Remove(CardType type, uint amount)
+        public void Remove(T type, uint amount)
         {
             if (!Contains(type, amount)) throw new InvalidOperationException("Removal amount exceeds available card count");
 
-            _cards[(int)type] -= amount;
+            _cards[ToInt(type)] -= amount;
         }
 
-        public bool Contains(CardType type, uint amount = 1)
+        public bool Contains(T type, uint amount = 1)
         {
-            return _cards[(int)type] >= amount;
+            return _cards[ToInt(type)] >= amount;
         }
 
-        public void Clear()
+        public bool Contains(CardSet<T> subset)
         {
-            _cards = new uint[11];
-        }
-
-        public bool Contains(CardSet subset)
-        {
-            foreach(CardType cardType in Enum.GetValues(typeof(CardType)))
+            foreach(T cardType in Values)
             {
                 if (subset.Get(cardType) > Get(cardType)) return false;
             }
@@ -209,42 +125,79 @@ namespace Common
             return true;
         }
 
-        public void Add(CardSet subset)
+        public void Add(CardSet<T> subset)
         {
-            foreach (CardType cardType in Enum.GetValues(typeof(CardType)))
+            foreach (T cardType in Values)
             {
-                _cards[(int)cardType] += subset.Get(cardType);
+                _cards[ToInt(cardType)] += subset.Get(cardType);
             }
         }
 
-        public void Remove(CardSet subset)
+        public void Remove(CardSet<T> subset)
         {
             if (!Contains(subset)) throw new InvalidOperationException("Removal amount exceeds available card count");
 
-            foreach (CardType cardType in Enum.GetValues(typeof(CardType)))
+            foreach (T cardType in Values)
             {
-                _cards[(int)cardType] -= subset.Get(cardType);
+                _cards[ToInt(cardType)] -= subset.Get(cardType);
             }
         }
     }
 
     public static class CardTypeExtensions
     {
-        public static string GetAbbreviation(this CardType type)
+        public static string GetName(this ResourceCardType type)
         {
             return type switch
             {
-                CardType.Unknown => "U",
-                CardType.Lumber => "L",
-                CardType.Brick => "B",
-                CardType.Wool => "W",
-                CardType.Grain => "G",
-                CardType.Ore => "O",
-                CardType.Knight => "K",
-                CardType.RoadBuilding => "R",
-                CardType.YearOfPlenty => "Y",
-                CardType.Monopoly => "M",
-                CardType.VictoryPoint => "V",
+                ResourceCardType.Unknown => "Unknown",
+                ResourceCardType.Lumber => "Lumber",
+                ResourceCardType.Brick => "Brick",
+                ResourceCardType.Wool => "Wool",
+                ResourceCardType.Grain => "Grain",
+                ResourceCardType.Ore => "Ore",
+                _ => throw new InvalidOperationException(),
+            };
+        }
+
+        public static string GetName(this DevelopmentCardType type)
+        {
+            return type switch
+            {
+                DevelopmentCardType.Unknown => "Unknown",
+                DevelopmentCardType.Knight => "Knight",
+                DevelopmentCardType.RoadBuilding => "Road Building",
+                DevelopmentCardType.YearOfPlenty => "Year Of Plenty",
+                DevelopmentCardType.Monopoly => "Monopoly",
+                DevelopmentCardType.VictoryPoint => "Victory Point",
+                _ => throw new InvalidOperationException(),
+            };
+        }
+
+        public static string GetAbbreviation(this ResourceCardType type)
+        {
+            return type switch
+            {
+                ResourceCardType.Unknown => "?",
+                ResourceCardType.Lumber => "L",
+                ResourceCardType.Brick => "B",
+                ResourceCardType.Wool => "W",
+                ResourceCardType.Grain => "G",
+                ResourceCardType.Ore => "O",
+                _ => throw new InvalidOperationException()
+            };
+        }
+
+        public static string GetAbbreviation(this DevelopmentCardType type)
+        {
+            return type switch
+            {
+                DevelopmentCardType.Unknown => "?",
+                DevelopmentCardType.Knight => "K",
+                DevelopmentCardType.RoadBuilding => "R",
+                DevelopmentCardType.YearOfPlenty => "Y",
+                DevelopmentCardType.Monopoly => "M",
+                DevelopmentCardType.VictoryPoint => "V",
                 _ => throw new InvalidOperationException()
             };
         }

@@ -8,9 +8,9 @@ namespace Common.Actions
 {
     public class MonopolyAction : Action, IActionProvider
     {
-        CardSet.CardType ChosenType { get; set; }
+        ResourceCardType ChosenType { get; set; }
 
-        public MonopolyAction(int playerIdx, CardSet.CardType chosenType)
+        public MonopolyAction(int playerIdx, ResourceCardType chosenType)
             : base(playerIdx)
         {
             ChosenType = chosenType;
@@ -21,16 +21,16 @@ namespace Common.Actions
             base.Apply(state);
 
             // Remove card
-            state.Players[PlayerIndex].CardSet.Remove(CardSet.CardType.Monopoly, 1);
+            state.Players[PlayerIndex].DevelopmentCards.Remove(DevelopmentCardType.Monopoly, 1);
 
             // Move cards of type to player
             for(int player = 0; player < state.Players.Length; player++)
             {
                 if (player == PlayerIndex) continue;
 
-                uint movedCount = state.Players[player].CardSet.Get(ChosenType);
-                state.Players[player].CardSet.Remove(ChosenType, movedCount);
-                state.Players[PlayerIndex].CardSet.Add(ChosenType, movedCount);
+                uint movedCount = state.Players[player].ResourceCards.Get(ChosenType);
+                state.Players[player].ResourceCards.Remove(ChosenType, movedCount);
+                state.Players[PlayerIndex].ResourceCards.Add(ChosenType, movedCount);
             }
 
             // Update turn state
@@ -54,14 +54,12 @@ namespace Common.Actions
 
         public bool IsBoardValid(GameState state)
         {
-            bool hasCard = state.Players[PlayerIndex].CardSet.Contains(CardSet.CardType.Monopoly);
+            bool hasCard = state.Players[PlayerIndex].DevelopmentCards.Contains(DevelopmentCardType.Monopoly);
 
             // Check for dev card age
-            bool cardAgeSufficient = state.Players[PlayerIndex].CardSet.Get(CardSet.CardType.Monopoly) > state.Players[PlayerIndex].NewDevelopmentCards[CardSet.CardType.Monopoly - CardSet.CardType.Knight];
+            bool cardAgeSufficient = state.Players[PlayerIndex].DevelopmentCards.Get(DevelopmentCardType.Monopoly) > state.Players[PlayerIndex].NewDevelopmentCards.Get(DevelopmentCardType.Monopoly);
 
-            bool validChoice = CardSet.RESOURCE_CARD_TYPES.Contains(ChosenType);
-
-            return hasCard && cardAgeSufficient && validChoice;
+            return hasCard && cardAgeSufficient;
         }
 
         public static List<Action> GetActionsForState(GameState state, int playerIdx)
@@ -70,7 +68,7 @@ namespace Common.Actions
 
             if (!IsTurnValid(state.Turn, playerIdx)) return actions;
 
-            foreach (var resourceType in CardSet.RESOURCE_CARD_TYPES)
+            foreach (var resourceType in CardSet<ResourceCardType>.Values)
             {
                 MonopolyAction action = new(playerIdx, resourceType);
 

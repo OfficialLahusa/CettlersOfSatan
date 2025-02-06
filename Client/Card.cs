@@ -3,14 +3,11 @@ using SFML.Audio;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
-using static Common.CardSet;
 
 namespace Client
 {
     public class Card : Transformable, Drawable
     {
-        private CardType _type;
-
         private RectangleShape _cardBorder;
         private RectangleShape _cardFill;
         private RectangleShape _icon;
@@ -19,7 +16,7 @@ namespace Client
 
         private const float BORDER_WIDTH = 6f;
 
-        public Card(CardType type = CardType.Unknown)
+        public Card()
         {
             _cardBorder = new RectangleShape(Size);
 
@@ -31,14 +28,20 @@ namespace Client
             _icon.Origin = _icon.Size / 2;
             _icon.Position = _cardBorder.Size / 2;
             _icon.Texture = TextureAtlas.Texture;
-
-            SetType(type);
         }
 
-        public void SetType(CardType type)
+        public void SetType(ResourceCardType type)
         {
-            _type = type;
+            _cardBorder.FillColor = ColorPalette.GetCardIconColor(type);
 
+            _cardFill.FillColor = ColorPalette.GetCardColor(type);
+
+            _icon.TextureRect = TextureAtlas.GetSprite(type).GetTextureRect();
+            _icon.FillColor = ColorPalette.GetCardIconColor(type);
+        }
+
+        public void SetType(DevelopmentCardType type)
+        {
             _cardBorder.FillColor = ColorPalette.GetCardIconColor(type);
 
             _cardFill.FillColor = ColorPalette.GetCardColor(type);

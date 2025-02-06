@@ -144,11 +144,11 @@ namespace Client
         }
     }
 
-    public class CardEntry : LogEntry
+    public class ResourceCardEntry : LogEntry
     {
-        private CardSet.CardType _cardType;
+        private ResourceCardType _cardType;
 
-        public CardEntry(CardSet.CardType cardType)
+        public ResourceCardEntry(ResourceCardType cardType)
         {
             _cardType = cardType;
         }
@@ -164,7 +164,31 @@ namespace Client
 
         public string GetText()
         {
-            return CardSet.GetName(_cardType);
+            return _cardType.GetName();
+        }
+    }
+
+    public class DevelopmentCardEntry : LogEntry
+    {
+        private DevelopmentCardType _cardType;
+
+        public DevelopmentCardEntry(DevelopmentCardType cardType)
+        {
+            _cardType = cardType;
+        }
+
+        public void Draw()
+        {
+            Color col = ColorPalette.GetCardColor(_cardType);
+            Vector4 col4 = ColorPalette.ColorToVec4(col);
+            ImGui.PushStyleColor(ImGuiCol.Text, col4);
+            ImGui.TextWrapped(GetText());
+            ImGui.PopStyleColor();
+        }
+
+        public string GetText()
+        {
+            return _cardType.GetName();
         }
     }
 

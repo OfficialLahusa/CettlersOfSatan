@@ -1,5 +1,4 @@
 ﻿using System.Runtime.CompilerServices;
-using static Common.CardSet;
 using static Common.Tile;
 
 namespace Common
@@ -66,15 +65,15 @@ namespace Common
 
     public static class TileTypeExtensions
     {
-        public static CardType ToCardType(this TileType tileType)
+        public static ResourceCardType ToCardType(this TileType tileType)
         {
             return tileType switch
             {
-                TileType.Lumber => CardType.Lumber,
-                TileType.Brick => CardType.Brick,
-                TileType.Wool => CardType.Wool,
-                TileType.Grain => CardType.Grain,
-                TileType.Ore => CardType.Ore,
+                TileType.Lumber => ResourceCardType.Lumber,
+                TileType.Brick => ResourceCardType.Brick,
+                TileType.Wool => ResourceCardType.Wool,
+                TileType.Grain => ResourceCardType.Grain,
+                TileType.Ore => ResourceCardType.Ore,
                 _ => throw new InvalidOperationException()
             };
         }

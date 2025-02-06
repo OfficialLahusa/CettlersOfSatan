@@ -1,6 +1,6 @@
 ﻿using Common;
+using Microsoft.VisualBasic;
 using SFML.Graphics;
-using static Common.CardSet;
 using static Common.Direction;
 using static Common.Tile;
 
@@ -87,26 +87,30 @@ namespace Client
             };
         }
 
-        public static Sprite GetSprite(CardType type)
+        public static Sprite GetSprite(ResourceCardType type)
         {
             return type switch
             {
-                CardType.Unknown => Sprite.QuestionMark,
+                ResourceCardType.Unknown => Sprite.QuestionMark,
+                ResourceCardType.Lumber => Sprite.Lumber,
+                ResourceCardType.Brick => Sprite.Brick,
+                ResourceCardType.Wool => Sprite.Wool,
+                ResourceCardType.Grain => Sprite.Grain,
+                ResourceCardType.Ore => Sprite.Ore,
+                _ => throw new InvalidOperationException()
+            };
+        }
 
-                // Resource
-                CardType.Lumber => Sprite.Lumber,
-                CardType.Brick => Sprite.Brick,
-                CardType.Wool => Sprite.Wool,
-                CardType.Grain => Sprite.Grain,
-                CardType.Ore => Sprite.Ore,
-
-                // Development
-                CardType.Knight => Sprite.Knight,
-                CardType.RoadBuilding => Sprite.Road,
-                CardType.YearOfPlenty => Sprite.YearOfPlenty,
-                CardType.Monopoly => Sprite.Monopoly,
-                CardType.VictoryPoint => Sprite.VictoryPoint,
-
+        public static Sprite GetSprite(DevelopmentCardType type)
+        {
+            return type switch
+            {
+                DevelopmentCardType.Unknown => Sprite.QuestionMark,
+                DevelopmentCardType.Knight => Sprite.Knight,
+                DevelopmentCardType.RoadBuilding => Sprite.Road,
+                DevelopmentCardType.YearOfPlenty => Sprite.YearOfPlenty,
+                DevelopmentCardType.Monopoly => Sprite.Monopoly,
+                DevelopmentCardType.VictoryPoint => Sprite.VictoryPoint,
                 _ => throw new InvalidOperationException()
             };
         }

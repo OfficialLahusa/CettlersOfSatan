@@ -27,13 +27,13 @@ namespace Common.Actions
             intersection.Building = Intersection.BuildingType.City;
 
             // Remove cards
-            CardSet playerCards = state.Players[PlayerIndex].CardSet;
-            playerCards.Remove(CardSet.CardType.Grain, 2);
-            playerCards.Remove(CardSet.CardType.Ore, 3);
+            CardSet<ResourceCardType> playerCards = state.Players[PlayerIndex].ResourceCards;
+            playerCards.Remove(ResourceCardType.Grain, 2);
+            playerCards.Remove(ResourceCardType.Ore, 3);
 
             // Return cards to bank
-            state.Bank.Add(CardSet.CardType.Grain, 2);
-            state.Bank.Add(CardSet.CardType.Ore, 3);
+            state.ResourceBank.Add(ResourceCardType.Grain, 2);
+            state.ResourceBank.Add(ResourceCardType.Ore, 3);
 
             // Remove piece from stock
             state.Players[PlayerIndex].BuildingStock.RemainingCities--;

@@ -28,10 +28,10 @@ namespace Common.Actions
             // Draw from adjacent player
             if (TargetPlayerIndex.HasValue)
             {
-                CardSet.CardType? drawnCard = state.Players[TargetPlayerIndex.Value].CardSet.DrawByType(CardSet.RESOURCE_CARD_TYPES, true);
-                if (drawnCard.HasValue)
+                if(state.Players[TargetPlayerIndex.Value].ResourceCards.Count() > 0)
                 {
-                    state.Players[PlayerIndex].CardSet.Add(drawnCard.Value, 1);
+                    ResourceCardType drawnCard = state.Players[TargetPlayerIndex.Value].ResourceCards.Draw(true);
+                    state.Players[PlayerIndex].ResourceCards.Add(drawnCard, 1);
                 }
             }
 

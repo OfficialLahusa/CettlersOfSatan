@@ -8,10 +8,10 @@ namespace Common.Actions
 {
     public class TwoToOneTradeAction : Action, IActionProvider
     {
-        public CardSet.CardType InputType { get; init; }
-        public CardSet.CardType OutputType { get; init; }
+        public ResourceCardType InputType { get; init; }
+        public ResourceCardType OutputType { get; init; }
 
-        public TwoToOneTradeAction(int playerIdx, CardSet.CardType inputType, CardSet.CardType outputType)
+        public TwoToOneTradeAction(int playerIdx, ResourceCardType inputType, ResourceCardType outputType)
             : base(playerIdx)
         {
             InputType = inputType;
@@ -23,16 +23,16 @@ namespace Common.Actions
             base.Apply(state);
 
             // Remove input from hand
-            state.Players[PlayerIndex].CardSet.Remove(InputType, 2);
+            state.Players[PlayerIndex].ResourceCards.Remove(InputType, 2);
 
             // Remove output from bank
-            state.Bank.Remove(OutputType, 1);
+            state.ResourceBank.Remove(OutputType, 1);
 
             // Add input to bank
-            state.Bank.Add(InputType, 2);
+            state.ResourceBank.Add(InputType, 2);
 
             // Add output to hand
-            state.Players[PlayerIndex].CardSet.Add(OutputType, 1);
+            state.Players[PlayerIndex].ResourceCards.Add(OutputType, 1);
         }
 
         public override bool IsValidFor(GameState state)
@@ -52,22 +52,21 @@ namespace Common.Actions
         public bool IsBoardValid(GameState state)
         {
             bool cardTypesDiffer = InputType != OutputType;
-            bool usesResourceCards = CardSet.RESOURCE_CARD_TYPES.Contains(InputType) && CardSet.RESOURCE_CARD_TYPES.Contains(OutputType);
-            bool playerHasInput = state.Players[PlayerIndex].CardSet.Contains(InputType, 3);
-            bool bankHasOutput = state.Bank.Contains(OutputType, 1);
+            bool playerHasInput = state.Players[PlayerIndex].ResourceCards.Contains(InputType, 3);
+            bool bankHasOutput = state.ResourceBank.Contains(OutputType, 1);
 
             // Check port privilege
             bool hasPort = state.Players[PlayerIndex].PortPrivileges.HasFlag(InputType switch
             {
-                CardSet.CardType.Lumber => PortPrivileges.LumberTwoToOne,
-                CardSet.CardType.Brick  => PortPrivileges.BrickTwoToOne,
-                CardSet.CardType.Wool   => PortPrivileges.WoolTwoToOne,
-                CardSet.CardType.Grain  => PortPrivileges.GrainTwoToOne,
-                CardSet.CardType.Ore    => PortPrivileges.OreTwoToOne,
+                ResourceCardType.Lumber => PortPrivileges.LumberTwoToOne,
+                ResourceCardType.Brick  => PortPrivileges.BrickTwoToOne,
+                ResourceCardType.Wool   => PortPrivileges.WoolTwoToOne,
+                ResourceCardType.Grain  => PortPrivileges.GrainTwoToOne,
+                ResourceCardType.Ore    => PortPrivileges.OreTwoToOne,
                 _ => throw new InvalidOperationException(),
             });
 
-            return cardTypesDiffer && usesResourceCards && playerHasInput && bankHasOutput && hasPort;
+            return cardTypesDiffer && playerHasInput && bankHasOutput && hasPort;
         }
 
         public static List<Action> GetActionsForState(GameState state, int playerIdx)
@@ -76,10 +75,14 @@ namespace Common.Actions
 
             if(!IsTurnValid(state.Turn, playerIdx)) return actions;
 
-            foreach (var inputType in CardSet.RESOURCE_CARD_TYPES)
+            foreach (var inputType in CardSet<ResourceCardType>.Values)
             {
-                foreach (var outputType in CardSet.RESOURCE_CARD_TYPES)
+                if(inputType == ResourceCardType.Unknown) continue;
+
+                foreach (var outputType in CardSet<ResourceCardType>.Values)
                 {
+                    if (outputType == ResourceCardType.Unknown) continue;
+
                     TwoToOneTradeAction action = new(playerIdx, inputType, outputType);
 
                     if (action.IsBoardValid(state))

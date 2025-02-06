@@ -38,13 +38,13 @@ namespace Common.Actions
             else
             {
                 // Remove cards
-                CardSet playerCards = state.Players[PlayerIndex].CardSet;
-                playerCards.Remove(CardSet.CardType.Lumber, 1);
-                playerCards.Remove(CardSet.CardType.Brick, 1);
+                CardSet<ResourceCardType> playerCards = state.Players[PlayerIndex].ResourceCards;
+                playerCards.Remove(ResourceCardType.Lumber, 1);
+                playerCards.Remove(ResourceCardType.Brick, 1);
 
                 // Return cards to bank
-                state.Bank.Add(CardSet.CardType.Lumber, 1);
-                state.Bank.Add(CardSet.CardType.Brick, 1);
+                state.ResourceBank.Add(ResourceCardType.Lumber, 1);
+                state.ResourceBank.Add(ResourceCardType.Brick, 1);
 
                 // Remove piece from stock
                 buildingStock.RemainingRoads--;

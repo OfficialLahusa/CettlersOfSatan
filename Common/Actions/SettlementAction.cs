@@ -27,17 +27,17 @@ namespace Common.Actions
             intersection.Building = Intersection.BuildingType.Settlement;
 
             // Remove cards
-            CardSet playerCards = state.Players[PlayerIndex].CardSet;
-            playerCards.Remove(CardSet.CardType.Lumber, 1);
-            playerCards.Remove(CardSet.CardType.Brick, 1);
-            playerCards.Remove(CardSet.CardType.Wool, 1);
-            playerCards.Remove(CardSet.CardType.Grain, 1);
+            CardSet<ResourceCardType> playerCards = state.Players[PlayerIndex].ResourceCards;
+            playerCards.Remove(ResourceCardType.Lumber, 1);
+            playerCards.Remove(ResourceCardType.Brick, 1);
+            playerCards.Remove(ResourceCardType.Wool, 1);
+            playerCards.Remove(ResourceCardType.Grain, 1);
 
             // Return cards to bank
-            state.Bank.Add(CardSet.CardType.Lumber, 1);
-            state.Bank.Add(CardSet.CardType.Brick, 1);
-            state.Bank.Add(CardSet.CardType.Wool, 1);
-            state.Bank.Add(CardSet.CardType.Grain, 1);
+            state.ResourceBank.Add(ResourceCardType.Lumber, 1);
+            state.ResourceBank.Add(ResourceCardType.Brick, 1);
+            state.ResourceBank.Add(ResourceCardType.Wool, 1);
+            state.ResourceBank.Add(ResourceCardType.Grain, 1);
 
             // Remove piece from stock
             state.Players[PlayerIndex].BuildingStock.RemainingSettlements--;
