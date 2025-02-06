@@ -310,22 +310,69 @@ namespace Client
             GuiImpl.Update(_window, deltaTime);
         }
 
+        private void BenchmarkPlayouts()
+        {
+            if (_legalActions.Count == 0) return;
+
+            Clock playoutClock = new Clock();
+            int playedActions = 0;
+            int playedRounds = 0;
+            float ms = 0;
+
+            int num_it = 10000;
+            for (int it = 0; it < num_it; it++)
+            {
+                playoutClock.Restart();
+
+                while (_legalActions.Count > 0)
+                {
+                    int minIdx = _legalActions.Count > 1 && _legalActions[0] is EndTurnAction ? 1 : 0;
+                    int actionIdx = Utils.Random.Next(minIdx, _legalActions.Count);
+                    _legalActions[actionIdx].Apply(_state);
+                    _legalActions = LegalActionProvider.GetActionsForState(_state);
+
+                    playedActions++;
+                }
+
+                playedRounds += _state.Turn.RoundCounter;
+                ms += playoutClock.ElapsedTime.AsSeconds() * 1000f;
+
+                _state.Board = MapGenerator.GenerateRandomClassic(_centerDesert);
+                _state.Reset();
+
+                _eventLog.Clear();
+
+                _cardWidget.SetCardSet(_state.Players[_playerIndex].CardSet);
+
+                _legalActions = LegalActionProvider.GetActionsForState(_state);
+            }
+
+            Console.WriteLine($"Full playout of {num_it} matches ({playedRounds} rounds, {playedActions} actions) took {ms}ms ({ms / playedRounds}ms/round, {ms / playedActions}ms/action)");
+
+            _renderer.Board = _state.Board;
+            _renderer.Update();
+        }
+
         private void PlayFullRandomPlayout()
         {
             if (_legalActions.Count == 0) return;
 
             Clock playoutClock = new Clock();
+            int playedActions = 0;
 
-            while(_legalActions.Count > 0)
+            while (_legalActions.Count > 0)
             {
                 int minIdx = _legalActions.Count > 1 && _legalActions[0] is EndTurnAction ? 1 : 0;
                 int actionIdx = Utils.Random.Next(minIdx, _legalActions.Count);
                 _legalActions[actionIdx].Apply(_state);
                 _legalActions = LegalActionProvider.GetActionsForState(_state);
+
+                playedActions++;
             }
 
             float ms = playoutClock.ElapsedTime.AsSeconds() * 1000f;
-            Console.WriteLine($"Full playout of {_state.Turn.RoundCounter} rounds took {ms}ms ({ms / _state.Turn.RoundCounter}ms/Round)");
+
+            Console.WriteLine($"Full playout of {_state.Turn.RoundCounter} rounds ({playedActions} actions) took {ms}ms ({ms / _state.Turn.RoundCounter}ms/round, {ms / playedActions}ms/action)");
 
             _renderer.Update();
         }
