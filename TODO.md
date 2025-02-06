@@ -1,8 +1,17 @@
+- Gewinnen nur auf eigenem Zug erlauben
 - Logging durch Callbacks in Actions verschieben
 - Sounds auch für Actions spielen, aber nicht in die Actions verlegen
 - Unknown Cards in UnknownResource und UnknownDevelopment unterteilen
 - Separate Card Sets für Resources und Dev Cards
+	- Generic Enum Type?
 - Agents abstrahieren
+- Wasted Monopoly und schlechtes YOP erlauben
+	- YOP wenn Bank nur noch eine Ressource hat möglich
+	- Sonst müssen immer 2 gezogen werden
+- Reversible Actions
+	- Nested Class Result mit fehlenden Informationen über den Ausgang der Action
+- Observation Filter (Agents nur die für sie sichtbaren Informationen geben)
+- Datensatz für einfache ML Starting Position Value Function generieren
 - RandomAgent
 	- Discarden durch Shuffle randomizen, nicht durch Action Space
 	- Illegale Instanzen örtlich begrenzter Actions besser abgrenzen
@@ -20,9 +29,14 @@
 	- Build Potential in Bewertung von Intersections einbeziehen
 	- Schlauere Nutzung von Ports und Dev Cards für gezieltes Decken von Kosten
 	- Straßen und Settlements nutzen, um Build Potential von anderen Spielern zu minimieren
+	- Knights während largest Army nur defensiv nutzen
 - EvolutionaryAgent
 	- Heuristiken anhand von Genom (z.B. Multiplikation von Yield Scores und Action Weights)
 	- Durch Playouts und Mutation trainieren
+- GreedyAgent
+	- State Value Function (basierend auf VPs, Yield, ...) maximieren
+	- Variable Baumtiefe?
+- AlphaBetaAgent
 - MCTSAgent
 	- NN für Bewertung von Intersections und Discards als Zusatz
 - PlayerAgent
@@ -35,9 +49,23 @@
 	- Maps, Lobbies und Replays in/aus Dateien
 	- Packets über Netzwerk
 - Ranking System
+- Tabletalking über LLMs
+	- Zusätzlich zu Value Functions von einem Basisbot
+	- Self-Hosted oder API?
+	- Playouts gegeneinander ohne Supervision
+	- Gängige Metagame-Varianten (German/American) ausprobieren
+- Szenarien und Varianten
+	- Basisspiel hat erstmal höchste Priorität
+	- Mainstream-Erweiterungen
+	- 1v1
+	- Map Layout
 
 Quellen lesen:
 - Catan MCTS => https://www.researchgate.net/publication/220716999_Monte-Carlo_Tree_Search_in_Settlers_of_Catan
+- Catanatron => https://github.com/bcollazo/catanatron
+- JSettlers => https://nand.net/jsettlers/
 - MCTS Variant Review => https://www.researchgate.net/publication/362115589_Monte_Carlo_Tree_Search_a_review_of_recent_modifications_and_applications
 - MCTS Tree State Hashes => https://github.com/uranium62/xxHash
-- Multiplayer Rating => https://light-and-code.com/?p=122, https://github.com/FigBug/Multiplayer-ELO
+- Interfacing => https://github.com/dnmfarrell/Settlers-Game-Notation
+- Interfacing => https://en.wikipedia.org/wiki/Universal_Chess_Interface
+- Multiplayer Rating => https://light-and-code.com/?p=122, https://github.com/FigBug/Multiplayer-
