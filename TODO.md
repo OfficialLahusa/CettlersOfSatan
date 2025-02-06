@@ -1,12 +1,40 @@
 - Logging durch Callbacks in Actions verschieben
 - Sounds auch für Actions spielen, aber nicht in die Actions verlegen
+- Unknown Cards in UnknownResource und UnknownDevelopment unterteilen
+- Separate Card Sets für Resources und Dev Cards
+- Agents abstrahieren
+- RandomAgent
+	- Discarden durch Shuffle randomizen, nicht durch Action Space
+	- Illegale Instanzen örtlich begrenzter Actions besser abgrenzen
+- SimpleAgent
+	- Immer die Spot mit den höchsten Yields bebauen
+	- Räuber immer auf das Feld bewegen, das die Yield Scores am besten verändert
+	- Immer vom besten anliegenden Spieler ziehen
+	- Immer die am wenigsten wertvollen Karten (anhand von eigenen Yields) discarden
+	- Längste Straße präferiert verlängern oder neue Build Spots freischalten
+	- Monopolressource anhand von Bank Stock, eigener Hand und eigenen Yield Scores berechnen
+- AdvancedAgent
+	- Weiterentwicklung vom SimpleAgent
+	- Opponent Modeling
+		- Karten der anderen Spieler tracken
+	- Build Potential in Bewertung von Intersections einbeziehen
+	- Schlauere Nutzung von Ports und Dev Cards für gezieltes Decken von Kosten
+	- Straßen und Settlements nutzen, um Build Potential von anderen Spielern zu minimieren
+- EvolutionaryAgent
+	- Heuristiken anhand von Genom (z.B. Multiplikation von Yield Scores und Action Weights)
+	- Durch Playouts und Mutation trainieren
+- MCTSAgent
+	- NN für Bewertung von Intersections und Discards als Zusatz
+- PlayerAgent
 - GameScreen aufräumen
-- Agents abstrahieren (z.B. RandomAgent, MCTSAgent)
-- Edit Mode im Interface klar abtrennen
-- Würfel-Widget synchronisieren
-- "Sync Player" Checkbox, um immer das richtige Card Widget zu sehen
+	- Edit Mode im Interface klar abtrennen
+	- Würfel-Widget synchronisieren
+	- "Sync Player"/Spectator Checkbox, um immer das richtige Card Widget zu sehen
+	- Besseres Interface für Bank/Port Trades implementieren (Dropdown für Zielressource)
+- Serialization
+	- Maps, Lobbies und Replays in/aus Dateien
+	- Packets über Netzwerk
 - Ranking System
-- Besseres Interface für Bank/Port Trades implementieren (Dropdown für Zielressource)
 
 Quellen lesen:
 - Catan MCTS => https://www.researchgate.net/publication/220716999_Monte-Carlo_Tree_Search_in_Settlers_of_Catan
