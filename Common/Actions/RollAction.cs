@@ -45,24 +45,24 @@ namespace Common.Actions
             state.Turn.MustRoll = false;
         }
 
-        public override bool IsTurnValid(TurnState turn)
+        public override bool IsValidFor(GameState state)
         {
-            return turn.PlayerIndex == PlayerIndex
+            return IsTurnValid(state.Turn, PlayerIndex);
+        }
+
+        public static bool IsTurnValid(TurnState turn, int playerIdx)
+        {
+            return turn.PlayerIndex == playerIdx
                 && turn.TypeOfRound == TurnState.RoundType.Normal
                 && turn.MustRoll;
         }
 
-        public override bool IsBoardValid(GameState state)
-        {
-            // Does not depend on the board state
-            return true;
-        }
 
-        public static List<Action> GetActionsForState(GameState state)
+        public static List<Action> GetActionsForState(GameState state, int playerIdx)
         {
             List<Action> actions = [];
 
-            RollAction randomRollAction = new RollAction(state.Turn.PlayerIndex, null);
+            RollAction randomRollAction = new RollAction(playerIdx, null);
             if(randomRollAction.IsValidFor(state)) actions.Add(randomRollAction);
 
             // TODO: Remove for exploration

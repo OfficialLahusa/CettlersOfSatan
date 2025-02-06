@@ -23,16 +23,7 @@ namespace Common.Actions
 
         //public abstract void Revert(GameState state);
 
-        public bool IsValidFor(GameState state)
-        {
-            return IsTurnValid(state.Turn) && IsBoardValid(state);
-        }
-
-        // Usually cheap to compute, can eliminate obviously illegal moves
-        public abstract bool IsTurnValid(TurnState turn);
-
-        // Often more expensive combinatorial checks, only check if turn state is valid
-        public abstract bool IsBoardValid(GameState state);
+        public abstract bool IsValidFor(GameState state);
 
         public override string ToString()
         {

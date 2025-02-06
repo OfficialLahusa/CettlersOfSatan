@@ -39,16 +39,21 @@ namespace Common.Actions
             state.Turn.MustMoveRobber = false;
         }
 
-        public override bool IsTurnValid(TurnState turn)
+        public override bool IsValidFor(GameState state)
         {
-            return turn.PlayerIndex == PlayerIndex
+            return IsTurnValid(state.Turn, PlayerIndex) && IsBoardValid(state);
+        }
+
+        public static bool IsTurnValid(TurnState turn, int playerIdx)
+        {
+            return turn.PlayerIndex == playerIdx
                 && turn.TypeOfRound == TurnState.RoundType.Normal
                 && !turn.MustRoll
                 && !turn.MustDiscard
                 && turn.MustMoveRobber;
         }
 
-        public override bool IsBoardValid(GameState state)
+        public bool IsBoardValid(GameState state)
         {
             Tile tile = state.Board.Map.ElementAt(TargetTileIndex);
 
@@ -94,19 +99,19 @@ namespace Common.Actions
             return hasValidTarget;
         }
 
-        public static List<Action> GetActionsForState(GameState state)
+        public static List<Action> GetActionsForState(GameState state, int playerIdx)
         {
             List<Action> actions = [];
 
-            //if(!state.Turn.MustMoveRobber) return actions;
+            if(!IsTurnValid(state.Turn, playerIdx)) return actions;
 
             for(int tileIdx = 0; tileIdx < state.Board.Map.Length; tileIdx++)
             {
                 for(int targetPlayerIdx = -1; targetPlayerIdx < state.Players.Length; targetPlayerIdx++)
                 {
-                    RobberAction action = new(state.Turn.PlayerIndex, tileIdx, targetPlayerIdx < 0 ? null : targetPlayerIdx);
+                    RobberAction action = new(playerIdx, tileIdx, targetPlayerIdx < 0 ? null : targetPlayerIdx);
 
-                    if(action.IsValidFor(state))
+                    if(action.IsBoardValid(state))
                     {
                         actions.Add(action);
                     }

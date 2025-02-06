@@ -57,16 +57,21 @@ namespace Common.Actions
             state.CheckForCompletion();
         }
 
-        public override bool IsTurnValid(TurnState turn)
+        public override bool IsValidFor(GameState state)
         {
-            return turn.PlayerIndex == PlayerIndex
+            return IsTurnValid(state.Turn, PlayerIndex) && IsBoardValid(state);
+        }
+
+        public static bool IsTurnValid(TurnState turn, int playerIdx)
+        {
+            return turn.PlayerIndex == playerIdx
                 && turn.TypeOfRound == TurnState.RoundType.Normal
                 && !turn.MustRoll
                 && !turn.MustDiscard
                 && !turn.MustMoveRobber;
         }
 
-        public override bool IsBoardValid(GameState state)
+        public bool IsBoardValid(GameState state)
         {
             Edge road = state.Board.Edges[EdgeIndex];
 
@@ -114,15 +119,17 @@ namespace Common.Actions
             return spaceFree && canAfford && (hasDirectAdjBuilding || hasDirectAdjRoad);
         }
 
-        public static List<Action> GetActionsForState(GameState state)
+        public static List<Action> GetActionsForState(GameState state, int playerIdx)
         {
             List<Action> actions = [];
 
+            if (!IsTurnValid(state.Turn, playerIdx)) return actions;
+
             for(int edgeIdx = 0; edgeIdx < state.Board.Edges.Count; edgeIdx++)
             {
-                RoadAction action = new(state.Turn.PlayerIndex, edgeIdx);
+                RoadAction action = new(playerIdx, edgeIdx);
 
-                if (action.IsValidFor(state))
+                if (action.IsBoardValid(state))
                 {
                     actions.Add(action);
                 }

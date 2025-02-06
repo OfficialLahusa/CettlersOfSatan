@@ -46,16 +46,21 @@ namespace Common.Actions
             }
         }
 
-        public override bool IsTurnValid(TurnState turn)
+        public override bool IsValidFor(GameState state)
         {
-            return turn.PlayerIndex == PlayerIndex
+            return IsTurnValid(state.Turn, PlayerIndex) && IsBoardValid(state);
+        }
+
+        public static bool IsTurnValid(TurnState turn, int playerIdx)
+        {
+            return turn.PlayerIndex == playerIdx
                 && turn.TypeOfRound == TurnState.RoundType.Normal
                 && !turn.MustRoll
                 && !turn.MustDiscard
                 && !turn.MustMoveRobber;
         }
 
-        public override bool IsBoardValid(GameState state)
+        public bool IsBoardValid(GameState state)
         {
             bool canAfford = state.Players[PlayerIndex].CanAffordDevelopmentCard();
             bool bankHasDevCards = state.Bank.GetDevelopmentCardCount() > 0;
@@ -63,9 +68,9 @@ namespace Common.Actions
             return canAfford && bankHasDevCards;
         }
 
-        public static List<Action> GetActionsForState(GameState state)
+        public static List<Action> GetActionsForState(GameState state, int playerIdx)
         {
-            BuyDevelopmentCardAction action = new(state.Turn.PlayerIndex);
+            BuyDevelopmentCardAction action = new(playerIdx);
             return action.IsValidFor(state) ? [action] : [];
         }
     }

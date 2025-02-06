@@ -35,16 +35,21 @@ namespace Common.Actions
             state.Players[PlayerIndex].CardSet.Add(OutputType, 1);
         }
 
-        public override bool IsTurnValid(TurnState turn)
+        public override bool IsValidFor(GameState state)
         {
-            return turn.PlayerIndex == PlayerIndex
+            return IsTurnValid(state.Turn, PlayerIndex) && IsBoardValid(state);
+        }
+
+        public static bool IsTurnValid(TurnState turn, int playerIdx)
+        {
+            return turn.PlayerIndex == playerIdx
                 && turn.TypeOfRound == TurnState.RoundType.Normal
                 && !turn.MustRoll
                 && !turn.MustDiscard
                 && !turn.MustMoveRobber;
         }
 
-        public override bool IsBoardValid(GameState state)
+        public bool IsBoardValid(GameState state)
         {
             bool cardTypesDiffer = InputType != OutputType;
             bool usesResourceCards = CardSet.RESOURCE_CARD_TYPES.Contains(InputType) && CardSet.RESOURCE_CARD_TYPES.Contains(OutputType);
@@ -57,17 +62,19 @@ namespace Common.Actions
             return cardTypesDiffer && usesResourceCards && playerHasInput && bankHasOutput && hasPort;
         }
 
-        public static List<Action> GetActionsForState(GameState state)
+        public static List<Action> GetActionsForState(GameState state, int playerIdx)
         {
             List<Action> actions = [];
+
+            if (!IsTurnValid(state.Turn, playerIdx)) return actions;
 
             foreach (var inputType in CardSet.RESOURCE_CARD_TYPES)
             {
                 foreach (var outputType in CardSet.RESOURCE_CARD_TYPES)
                 {
-                    ThreeToOneTradeAction action = new(state.Turn.PlayerIndex, inputType, outputType);
+                    ThreeToOneTradeAction action = new(playerIdx, inputType, outputType);
 
-                    if (action.IsValidFor(state))
+                    if (action.IsBoardValid(state))
                     {
                         actions.Add(action);
                     }

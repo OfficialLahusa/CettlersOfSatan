@@ -16,6 +16,7 @@ namespace Common
         public Board Board { get; set; }
         public CardSet Bank { get; set; }
         public PlayerState[] Players { get; set; }
+        public bool HasEnded => Turn.TypeOfRound == TurnState.RoundType.MatchEnded;
 
         public GameState(Board board, uint playerCount)
         {
@@ -248,6 +249,12 @@ namespace Common
             {
                 Turn.TypeOfRound = TurnState.RoundType.MatchEnded;
             }
+        }
+
+        public bool CanPlayerAct(int playerIdx)
+        {
+            // TODO: Eventually account for trade offers from other players to target player
+            return !Turn.MustDiscard && Turn.PlayerIndex == playerIdx || Turn.MustDiscard && Players[playerIdx].CardSet.GetResourceCardCount() > Settings.RobberCardLimit;
         }
 
         public void ResetCards()

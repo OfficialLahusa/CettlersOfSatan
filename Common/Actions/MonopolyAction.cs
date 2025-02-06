@@ -37,9 +37,14 @@ namespace Common.Actions
             state.Turn.HasPlayedDevelopmentCard = true;
         }
 
-        public override bool IsTurnValid(TurnState turn)
+        public override bool IsValidFor(GameState state)
         {
-            return turn.PlayerIndex == PlayerIndex
+            return IsTurnValid(state.Turn, PlayerIndex) && IsBoardValid(state);
+        }
+
+        public static bool IsTurnValid(TurnState turn, int playerIdx)
+        {
+            return turn.PlayerIndex == playerIdx
                 && turn.TypeOfRound == TurnState.RoundType.Normal
                 && !turn.MustRoll
                 && !turn.MustDiscard
@@ -47,7 +52,7 @@ namespace Common.Actions
                 && !turn.HasPlayedDevelopmentCard;
         }
 
-        public override bool IsBoardValid(GameState state)
+        public bool IsBoardValid(GameState state)
         {
             bool hasCard = state.Players[PlayerIndex].CardSet.Contains(CardSet.CardType.Monopoly);
 
@@ -59,15 +64,17 @@ namespace Common.Actions
             return hasCard && cardAgeSufficient && validChoice;
         }
 
-        public static List<Action> GetActionsForState(GameState state)
+        public static List<Action> GetActionsForState(GameState state, int playerIdx)
         {
             List<Action> actions = [];
 
+            if (!IsTurnValid(state.Turn, playerIdx)) return actions;
+
             foreach (var resourceType in CardSet.RESOURCE_CARD_TYPES)
             {
-                MonopolyAction action = new(state.Turn.PlayerIndex, resourceType);
+                MonopolyAction action = new(playerIdx, resourceType);
 
-                if(action.IsValidFor(state))
+                if(action.IsBoardValid(state))
                 {
                     actions.Add(action);
                 }

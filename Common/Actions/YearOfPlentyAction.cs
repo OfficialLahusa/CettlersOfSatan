@@ -37,9 +37,14 @@ namespace Common.Actions
             state.Turn.HasPlayedDevelopmentCard = true;
         }
 
-        public override bool IsTurnValid(TurnState turn)
+        public override bool IsValidFor(GameState state)
         {
-            return turn.PlayerIndex == PlayerIndex
+            return IsTurnValid(state.Turn, PlayerIndex) && IsBoardValid(state);
+        }
+
+        public static bool IsTurnValid(TurnState turn, int playerIdx)
+        {
+            return turn.PlayerIndex == playerIdx
                 && turn.TypeOfRound == TurnState.RoundType.Normal
                 && !turn.MustRoll
                 && !turn.MustDiscard
@@ -47,7 +52,7 @@ namespace Common.Actions
                 && !turn.HasPlayedDevelopmentCard;
         }
 
-        public override bool IsBoardValid(GameState state)
+        public bool IsBoardValid(GameState state)
         {
             bool hasCard = state.Players[PlayerIndex].CardSet.Contains(CardSet.CardType.YearOfPlenty);
 
@@ -61,9 +66,11 @@ namespace Common.Actions
             return hasCard && cardAgeSufficient && validTypes && bankHasCards;
         }
 
-        public static List<Action> GetActionsForState(GameState state)
+        public static List<Action> GetActionsForState(GameState state, int playerIdx)
         {
             List<Action> actions = [];
+
+            if(!IsTurnValid(state.Turn, playerIdx)) return actions;
 
             foreach (var firstChoice in CardSet.RESOURCE_CARD_TYPES)
             {
@@ -72,9 +79,9 @@ namespace Common.Actions
                     // Avoid adding the same pair twice
                     if (firstChoice > secondChoice) continue;
 
-                    YearOfPlentyAction action = new(state.Turn.PlayerIndex, firstChoice, secondChoice);
+                    YearOfPlentyAction action = new(playerIdx, firstChoice, secondChoice);
 
-                    if (action.IsValidFor(state))
+                    if (action.IsBoardValid(state))
                     {
                         actions.Add(action);
                     }

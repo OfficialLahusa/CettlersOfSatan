@@ -39,24 +39,23 @@ namespace Common.Actions
             state.CheckForCompletion();
         }
 
-        public override bool IsTurnValid(TurnState turn)
+        public override bool IsValidFor(GameState state)
         {
-            return turn.PlayerIndex == PlayerIndex
+            return IsTurnValid(state.Turn, PlayerIndex);
+        }
+
+        public static bool IsTurnValid(TurnState turn, int playerIdx)
+        {
+            return turn.PlayerIndex == playerIdx
                 && turn.TypeOfRound == TurnState.RoundType.Normal
                 && !turn.MustRoll
                 && !turn.MustDiscard
                 && !turn.MustMoveRobber;
         }
 
-        public override bool IsBoardValid(GameState state)
+        public static List<Action> GetActionsForState(GameState state, int playerIdx)
         {
-            // Does not depend on the board state
-            return true;
-        }
-
-        public static List<Action> GetActionsForState(GameState state)
-        {
-            EndTurnAction action = new EndTurnAction(state.Turn.PlayerIndex);
+            EndTurnAction action = new EndTurnAction(playerIdx);
 
             return action.IsValidFor(state) ? [action] : [];
         }

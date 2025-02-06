@@ -3,7 +3,6 @@
 - Unknown Cards in UnknownResource und UnknownDevelopment unterteilen
 - Separate Card Sets für Resources und Dev Cards
 	- Generic Enum Type?
-- Agents abstrahieren
 - Wasted Monopoly und schlechtes YOP erlauben
 	- YOP wenn Bank nur noch eine Ressource hat möglich
 	- Sonst müssen immer 2 gezogen werden
@@ -14,7 +13,6 @@
 - Action für variable Domestic Trades
 - Datensatz für einfache ML Starting Position Value Function generieren
 - RandomAgent
-	- Discarden durch Shuffle randomizen, nicht durch Action Space
 	- Illegale Instanzen örtlich begrenzter Actions besser abgrenzen
 - SimpleAgent
 	- Immer die Spot mit den höchsten Yields bebauen

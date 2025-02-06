@@ -8,33 +8,33 @@ namespace Common.Actions
 {
     public class LegalActionProvider : IActionProvider
     {
-        public static List<Action> GetActionsForState(GameState state)
+        public static List<Action> GetActionsForState(GameState state, int playerIdx)
         {
             List<Action> actions = [
-                .. EndTurnAction.GetActionsForState(state),
+                .. EndTurnAction.GetActionsForState(state, playerIdx),
 
-                .. RollAction.GetActionsForState(state),
-                .. DiscardAction.GetActionsForState(state),
-                .. RobberAction.GetActionsForState(state),
+                .. RollAction.GetActionsForState(state, playerIdx),
+                .. DiscardAction.GetActionsForState(state, playerIdx),
+                .. RobberAction.GetActionsForState(state, playerIdx),
 
-                .. FirstInitialSettlementAction.GetActionsForState(state),
-                .. FirstInitialRoadAction.GetActionsForState(state),
-                .. SecondInitialSettlementAction.GetActionsForState(state),
-                .. SecondInitialRoadAction.GetActionsForState(state),
+                .. FirstInitialSettlementAction.GetActionsForState(state, playerIdx),
+                .. FirstInitialRoadAction.GetActionsForState(state, playerIdx),
+                .. SecondInitialSettlementAction.GetActionsForState(state, playerIdx),
+                .. SecondInitialRoadAction.GetActionsForState(state, playerIdx),
 
-                .. RoadAction.GetActionsForState(state),
-                .. SettlementAction.GetActionsForState(state),
-                .. CityAction.GetActionsForState(state),
-                .. BuyDevelopmentCardAction.GetActionsForState(state),
+                .. RoadAction.GetActionsForState(state, playerIdx),
+                .. SettlementAction.GetActionsForState(state, playerIdx),
+                .. CityAction.GetActionsForState(state, playerIdx),
+                .. BuyDevelopmentCardAction.GetActionsForState(state, playerIdx),
 
-                .. KnightAction.GetActionsForState(state),
-                .. MonopolyAction.GetActionsForState(state),
-                .. RoadBuildingAction.GetActionsForState(state),
-                .. YearOfPlentyAction.GetActionsForState(state),
+                .. KnightAction.GetActionsForState(state, playerIdx),
+                .. MonopolyAction.GetActionsForState(state, playerIdx),
+                .. RoadBuildingAction.GetActionsForState(state, playerIdx),
+                .. YearOfPlentyAction.GetActionsForState(state, playerIdx),
 
-                .. FourToOneTradeAction.GetActionsForState(state),
-                .. ThreeToOneTradeAction.GetActionsForState(state),
-                .. TwoToOneTradeAction.GetActionsForState(state)
+                .. FourToOneTradeAction.GetActionsForState(state, playerIdx),
+                .. ThreeToOneTradeAction.GetActionsForState(state, playerIdx),
+                .. TwoToOneTradeAction.GetActionsForState(state, playerIdx)
             ];
 
             return actions;

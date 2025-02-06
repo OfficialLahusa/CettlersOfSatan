@@ -33,13 +33,18 @@ namespace Common.Actions
             state.Players[PlayerIndex].VictoryPoints.SettlementPoints++;
         }
 
-        public override bool IsTurnValid(TurnState turn)
+        public override bool IsValidFor(GameState state)
         {
-            return turn.PlayerIndex == PlayerIndex
+            return IsTurnValid(state.Turn, PlayerIndex) && IsBoardValid(state);
+        }
+
+        public static bool IsTurnValid(TurnState turn, int playerIdx)
+        {
+            return turn.PlayerIndex == playerIdx
                 && turn.TypeOfRound == TurnState.RoundType.FirstInitial;
         }
 
-        public override bool IsBoardValid(GameState state)
+        public bool IsBoardValid(GameState state)
         {
             Intersection intersection = state.Board.Intersections[IntersectionIndex];
 
@@ -60,14 +65,16 @@ namespace Common.Actions
             return spaceFree && noSettlementPlaced && !hasAdjacentSettlement;
         }
 
-        public static List<Action> GetActionsForState(GameState state)
+        public static List<Action> GetActionsForState(GameState state, int playerIdx)
         {
             List<Action> actions = new List<Action>();
 
+            if (!IsTurnValid(state.Turn, playerIdx)) return actions;
+
             for (int intersectionIdx = 0; intersectionIdx < state.Board.Intersections.Count; intersectionIdx++)
             {
-                FirstInitialSettlementAction action = new(state.Turn.PlayerIndex, intersectionIdx);
-                if (action.IsValidFor(state))
+                FirstInitialSettlementAction action = new(playerIdx, intersectionIdx);
+                if (action.IsBoardValid(state))
                 {
                     actions.Add(action);
                 }

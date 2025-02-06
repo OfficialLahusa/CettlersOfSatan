@@ -1,5 +1,6 @@
 ﻿using Common;
 using Common.Actions;
+using Common.Agents;
 using ImGuiNET;
 using Microsoft.VisualBasic;
 using SFML.Audio;
@@ -51,8 +52,7 @@ namespace Client
         private CircleShape _centerHitbox;
         private Sound _placeSound;
 
-        // Legal Actions
-        private List<Action> _legalActions = [];
+        private Agent[] _agents;
 
         static GameScreen()
         {
@@ -88,6 +88,13 @@ namespace Client
             _placeSound = new Sound(Sounds.Place);
             _placeSound.Volume = 40f;
 
+            _agents = new Agent[PLAYER_COUNT];
+
+            for(int i = 0; i < PLAYER_COUNT; i++)
+            {
+                _agents[i] = new RandomAgent(i);
+            }
+
             _mapView = new View(ClientUtils.RoundVec2f(_renderer.GetTileCenter(3, 3)), new Vector2f(window.Size.X, window.Size.Y)); ;
             _uiView = new View(new Vector2f(0, 0), _mapView.Size);
 
@@ -97,8 +104,6 @@ namespace Client
             _window.Resized += Window_Resized;
             _window.KeyPressed += Window_KeyPressed;
             _window.MouseButtonPressed += Window_MouseButtonPressed;
-
-            _legalActions = LegalActionProvider.GetActionsForState(_state);
         }
 
         public void Draw(Time deltaTime)
@@ -182,7 +187,7 @@ namespace Client
             ImGui.End();
 
             // Legal action window
-            ImGui.Begin("Actions", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.AlwaysVerticalScrollbar);
+            ImGui.Begin("Scoreboard", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.AlwaysVerticalScrollbar);
 
             ImGui.Text($"Round: {_state.Turn.RoundCounter}");
             using (new ImGuiTextColor(ColorPalette.GetPlayerColor(_state.Turn.PlayerIndex)))
@@ -217,10 +222,10 @@ namespace Client
 
             ImGui.Separator();
 
-            if(ImGui.Button("Recalculate"))
+            /*if(ImGui.Button("Recalculate"))
             {
                 _legalActions = LegalActionProvider.GetActionsForState(_state);
-            }
+            }*/
 
             if (ImGui.Button("Play Random [R]"))
             {
@@ -234,7 +239,7 @@ namespace Client
                 PlayFullRandomPlayout();
             }
 
-            ImGui.Text($"{_legalActions.Count} Legal Actions");
+            /*ImGui.Text($"{_legalActions.Count} Legal Actions");
 
             foreach (Action action in _legalActions)
             {
@@ -244,7 +249,7 @@ namespace Client
                     _legalActions = LegalActionProvider.GetActionsForState(_state);
                     _renderer.Update();
                 }
-            }
+            }*/
 
             ImGui.End();
 
@@ -289,6 +294,11 @@ namespace Client
             {
                 PlayFullRandomPlayout();
             }
+
+            if(Keyboard.IsKeyPressed(Keyboard.Key.B))
+            {
+                BenchmarkPlayouts(10000);
+            }
         }
 
         public void Update(Time deltaTime)
@@ -310,26 +320,39 @@ namespace Client
             GuiImpl.Update(_window, deltaTime);
         }
 
-        private void BenchmarkPlayouts()
+        private void BenchmarkPlayouts(int matches)
         {
-            if (_legalActions.Count == 0) return;
+            if (_state.HasEnded) return;
 
             Clock playoutClock = new Clock();
             int playedActions = 0;
             int playedRounds = 0;
             float ms = 0;
 
-            int num_it = 10000;
-            for (int it = 0; it < num_it; it++)
+            for (int it = 0; it < matches; it++)
             {
                 playoutClock.Restart();
 
-                while (_legalActions.Count > 0)
+                while (!_state.HasEnded)
                 {
-                    int minIdx = _legalActions.Count > 1 && _legalActions[0] is EndTurnAction ? 1 : 0;
-                    int actionIdx = Utils.Random.Next(minIdx, _legalActions.Count);
-                    _legalActions[actionIdx].Apply(_state);
-                    _legalActions = LegalActionProvider.GetActionsForState(_state);
+                    // Find first player that is allowed to act on state
+                    int? actingPlayerIdx = null;
+                    for (int playerIdx = 0; playerIdx < PLAYER_COUNT; playerIdx++)
+                    {
+                        if (_state.CanPlayerAct(playerIdx))
+                        {
+                            actingPlayerIdx = playerIdx;
+                            break;
+                        }
+                    }
+
+                    if (!actingPlayerIdx.HasValue) throw new InvalidOperationException();
+
+                    Action playedAction = _agents[actingPlayerIdx.Value].Act(_state);
+
+                    if (!playedAction.IsValidFor(_state)) throw new InvalidOperationException();
+
+                    playedAction.Apply(_state);
 
                     playedActions++;
                 }
@@ -343,11 +366,11 @@ namespace Client
                 _eventLog.Clear();
 
                 _cardWidget.SetCardSet(_state.Players[_playerIndex].CardSet);
-
-                _legalActions = LegalActionProvider.GetActionsForState(_state);
             }
 
-            Console.WriteLine($"Full playout of {num_it} matches ({playedRounds} rounds, {playedActions} actions) took {ms}ms ({ms / playedRounds}ms/round, {ms / playedActions}ms/action)");
+            Console.WriteLine($"\nFull playout of {matches:n0} matches ({playedRounds:n0} rounds, {playedActions:n0} actions) took {ms:n} ms");
+            Console.WriteLine($"Avg. {ms / matches} ms/match, {ms / playedRounds} ms/round, {ms / playedActions} ms/action");
+            Console.WriteLine($"Avg. {playedRounds / matches} rounds/match, {playedActions / matches} actions/match, {playedActions / playedRounds} actions/round\n");
 
             _renderer.Board = _state.Board;
             _renderer.Update();
@@ -355,36 +378,65 @@ namespace Client
 
         private void PlayFullRandomPlayout()
         {
-            if (_legalActions.Count == 0) return;
+            if (_state.HasEnded) return;
 
             Clock playoutClock = new Clock();
             int playedActions = 0;
 
-            while (_legalActions.Count > 0)
+            while (!_state.HasEnded)
             {
-                int minIdx = _legalActions.Count > 1 && _legalActions[0] is EndTurnAction ? 1 : 0;
-                int actionIdx = Utils.Random.Next(minIdx, _legalActions.Count);
-                _legalActions[actionIdx].Apply(_state);
-                _legalActions = LegalActionProvider.GetActionsForState(_state);
+                // Find first player that is allowed to act on state
+                int? actingPlayerIdx = null;
+                for (int playerIdx = 0; playerIdx < PLAYER_COUNT; playerIdx++)
+                {
+                    if (_state.CanPlayerAct(playerIdx))
+                    {
+                        actingPlayerIdx = playerIdx;
+                        break;
+                    }
+                }
+
+                if (!actingPlayerIdx.HasValue) throw new InvalidOperationException();
+
+                Action playedAction = _agents[actingPlayerIdx.Value].Act(_state);
+
+                if (!playedAction.IsValidFor(_state)) throw new InvalidOperationException();
+
+                playedAction.Apply(_state);
 
                 playedActions++;
             }
 
             float ms = playoutClock.ElapsedTime.AsSeconds() * 1000f;
 
-            Console.WriteLine($"Full playout of {_state.Turn.RoundCounter} rounds ({playedActions} actions) took {ms}ms ({ms / _state.Turn.RoundCounter}ms/round, {ms / playedActions}ms/action)");
+            Console.WriteLine($"Full playout of {_state.Turn.RoundCounter:n0} rounds ({playedActions:n0} actions) took {ms:n} ms ({ms / _state.Turn.RoundCounter} ms/round, {ms / playedActions} ms/action)");
 
             _renderer.Update();
         }
 
         private void PlayRandomAction()
         {
-            if (_legalActions.Count == 0) return;
+            if (_state.HasEnded) return;
 
-            int minIdx = _legalActions.Count > 1 && _legalActions[0] is EndTurnAction ? 1 : 0;
-            int actionIdx = Utils.Random.Next(minIdx, _legalActions.Count);
-            _legalActions[actionIdx].Apply(_state);
-            _legalActions = LegalActionProvider.GetActionsForState(_state);
+            // Find first player that is allowed to act on state
+            int? actingPlayerIdx = null;
+            for (int playerIdx = 0; playerIdx < PLAYER_COUNT; playerIdx++)
+            {
+                if (_state.CanPlayerAct(playerIdx))
+                {
+                    actingPlayerIdx = playerIdx;
+                    break;
+                }
+            }
+
+            if (!actingPlayerIdx.HasValue) throw new InvalidOperationException();
+
+            Action playedAction = _agents[actingPlayerIdx.Value].Act(_state);
+
+            if (!playedAction.IsValidFor(_state)) throw new InvalidOperationException();
+
+            playedAction.Apply(_state);
+
             _renderer.Update();
         }
 
@@ -399,8 +451,6 @@ namespace Client
             _renderer.Update();
 
             _cardWidget.SetCardSet(_state.Players[_playerIndex].CardSet);
-
-            _legalActions = LegalActionProvider.GetActionsForState(_state);
         }
 
         private void Window_MouseWheelScrolled(object? sender, MouseWheelScrollEventArgs e)

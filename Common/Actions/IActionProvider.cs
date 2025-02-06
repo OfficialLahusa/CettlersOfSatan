@@ -8,6 +8,6 @@ namespace Common.Actions
 {
     public interface IActionProvider
     {
-        static abstract List<Action> GetActionsForState(GameState state);
+        static abstract List<Action> GetActionsForState(GameState state, int playerIdx);
     }
 }

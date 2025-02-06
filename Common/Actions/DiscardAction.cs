@@ -33,7 +33,12 @@ namespace Common.Actions
             state.Turn.AwaitedDiscards--;
         }
 
-        public override bool IsTurnValid(TurnState turn)
+        public override bool IsValidFor(GameState state)
+        {
+            return IsTurnValid(state.Turn, PlayerIndex) && IsBoardValid(state);
+        }
+
+        public static bool IsTurnValid(TurnState turn, int playerIdx)
         {
             // Note: Player index does NOT need to match turn player index
             return turn.TypeOfRound == TurnState.RoundType.Normal
@@ -41,7 +46,7 @@ namespace Common.Actions
                 && turn.MustDiscard;
         }
 
-        public override bool IsBoardValid(GameState state)
+        public bool IsBoardValid(GameState state)
         {
             CardSet playerCards = state.Players[PlayerIndex].CardSet;
 
@@ -56,46 +61,42 @@ namespace Common.Actions
             return validAmount && validSubset;
         }
 
-        public static List<Action> GetActionsForState(GameState state)
+        public static List<Action> GetActionsForState(GameState state, int playerIdx)
         {
             List<Action> actions = [];
 
-            if(!state.Turn.MustDiscard) return actions;
+            if(!IsTurnValid(state.Turn, playerIdx)) return actions;
 
-            // Check for all players, regardless of player turn
-            for(int playerIdx = 0; playerIdx < state.Players.Length; playerIdx++)
+            CardSet playerCards = state.Players[playerIdx].CardSet;
+            int excessCards = (int)playerCards.GetResourceCardCount() - state.Settings.RobberCardLimit;
+
+            // Skip player, if no discard is needed
+            if (excessCards <= 0) return actions;
+
+            // Generate all discardable subsets
+            ReadOnlySpan<CardSet.CardType> heldResources = CardSet.RESOURCE_CARD_TYPES
+                .SelectMany(
+                    resourceType => Enumerable.Repeat(resourceType, (int)playerCards.Get(resourceType))
+                )
+                .ToArray();
+
+            List<CardSet.CardType[]> subsets = Utils.GetSubsets(heldResources, heldResources.Length / 2);
+
+            // Create actions for each subset
+            foreach (CardSet.CardType[] subset in subsets)
             {
-                CardSet playerCards = state.Players[playerIdx].CardSet;
-                int excessCards = (int)playerCards.GetResourceCardCount() - state.Settings.RobberCardLimit;
-
-                // Skip player, if no discard is needed
-                if (excessCards <= 0) continue;
-
-                // Generate all discardable subsets
-                ReadOnlySpan<CardSet.CardType> heldResources = CardSet.RESOURCE_CARD_TYPES
-                    .SelectMany(
-                        resourceType => Enumerable.Repeat(resourceType, (int)playerCards.Get(resourceType))
-                    )
-                    .ToArray();
-
-                List<CardSet.CardType[]> subsets = Utils.GetSubsets(heldResources, heldResources.Length / 2);
-
-                // Create actions for each subset
-                foreach (CardSet.CardType[] subset in subsets)
+                // Add to new CardSet
+                CardSet cardSubset = new CardSet();
+                foreach (var card in subset)
                 {
-                    // Add to new CardSet
-                    CardSet cardSubset = new CardSet();
-                    foreach (var card in subset)
-                    {
-                        cardSubset.Add(card, 1);
-                    }
+                    cardSubset.Add(card, 1);
+                }
 
-                    // Validate action
-                    DiscardAction action = new DiscardAction(playerIdx, cardSubset);
-                    if(action.IsValidFor(state))
-                    {
-                        actions.Add(action);
-                    }
+                // Validate action
+                DiscardAction action = new DiscardAction(playerIdx, cardSubset);
+                if (action.IsBoardValid(state))
+                {
+                    actions.Add(action);
                 }
             }
 
