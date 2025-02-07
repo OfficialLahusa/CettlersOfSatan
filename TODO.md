@@ -1,4 +1,3 @@
-- PortPrivileges setzen
 - Logging durch Callbacks in Actions verschieben
 - Sounds auch für Actions spielen, aber nicht in die Actions verlegen
 - Wasted Monopoly und schlechtes YOP erlauben

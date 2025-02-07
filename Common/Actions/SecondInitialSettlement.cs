@@ -41,6 +41,9 @@ namespace Common.Actions
 
             // Award VP
             state.Players[PlayerIndex].VictoryPoints.SettlementPoints++;
+
+            // Update port privileges
+            SettlementAction.UpdatePortPrivileges(state, IntersectionIndex, PlayerIndex);
         }
 
         public override bool IsValidFor(GameState state)

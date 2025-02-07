@@ -44,7 +44,10 @@ namespace Common.Actions
 
             // Award VP
             state.Players[PlayerIndex].VictoryPoints.SettlementPoints++;
-            
+
+            // Update port privileges
+            UpdatePortPrivileges(state, IntersectionIndex, PlayerIndex);
+
             // Check if the settlement might have broken the longest road, which can only happen if there are two adjacent roads from another player
             int? adjPlayer = null;
             foreach (Edge adjRoad in intersection.AdjacentEdges.Values)
@@ -126,6 +129,32 @@ namespace Common.Actions
             }
 
             return actions;
+        }
+
+        public static void UpdatePortPrivileges(GameState state, int intersectionIdx, int playerIdx)
+        {
+            foreach (Port port in state.Board.Ports)
+            {
+                Edge portEdge = port.AnchorTile.Neighbors[port.AnchorDirection].Edges[port.AnchorDirection.Mirror()];
+                Intersection settlementIntersection = state.Board.Intersections[intersectionIdx];
+
+                // On port
+                if (settlementIntersection == portEdge.Top || settlementIntersection == portEdge.Bottom)
+                {
+                    state.Players[playerIdx].PortPrivileges |= port.Type switch
+                    {
+                        Port.TradeType.Generic => PortPrivileges.GenericThreeToOne,
+                        Port.TradeType.Lumber => PortPrivileges.LumberTwoToOne,
+                        Port.TradeType.Brick => PortPrivileges.BrickTwoToOne,
+                        Port.TradeType.Wool => PortPrivileges.WoolTwoToOne,
+                        Port.TradeType.Grain => PortPrivileges.GrainTwoToOne,
+                        Port.TradeType.Ore => PortPrivileges.OreTwoToOne,
+                        _ => throw new NotImplementedException(),
+                    };
+
+                    break;
+                }
+            }
         }
 
         public override string ToString()
