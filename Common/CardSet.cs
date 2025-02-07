@@ -41,10 +41,14 @@ namespace Common
             _cards = new uint[Enum.GetValues(typeof(T)).Length];
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int ToInt(T val)
         {
-            // Half as fast: return Convert.ToInt32(Convert.ChangeType(val, val.GetTypeCode()));
-            return (byte)(object)val;
+            // Performance comparison https://stackoverflow.com/questions/16960555
+            //return Convert.ToInt32(Convert.ChangeType(val, val.GetTypeCode()));
+            //return (byte)(ValueType)val;
+            //return Unsafe.As<T, byte>(ref val);
+            return val.GetHashCode();
         }
 
         public T Draw(bool consume = true)
