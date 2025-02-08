@@ -1,5 +1,6 @@
 - Game-icons.net Attribution
 - Testen, ob alle Actions genutzt werden
+- Testen, ob Bank immer Gesamtsumme behält
 - Logging durch Callbacks in Actions verschieben
 - Sounds auch für Actions spielen, aber nicht in die Actions verlegen
 - Wasted Monopoly und schlechtes YOP erlauben
