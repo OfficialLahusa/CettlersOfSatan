@@ -92,7 +92,7 @@ namespace Client
 
             for(int i = 0; i < PLAYER_COUNT; i++)
             {
-                _agents[i] = new RandomAgent(i);
+                _agents[i] = new SimpleAgent(i);
             }
 
             _mapView = new View(ClientUtils.RoundVec2f(_renderer.GetTileCenter(3, 3)), new Vector2f(window.Size.X, window.Size.Y)); ;
