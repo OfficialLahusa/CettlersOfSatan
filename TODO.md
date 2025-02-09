@@ -1,4 +1,3 @@
-- Ablagestapel für Non-Knight Dev Cards
 - Berechnung von benötigten Discards so anpassen, dass Spieler nicht mehrfach nacheinander discarden können
 - Dev Cards auch vor dem Würfeln erlauben
 - Game-icons.net Attribution
@@ -12,7 +11,9 @@
 - Reversible Actions
 	- Nested Class Result mit fehlenden Informationen über den Ausgang der Action
 - Observation Filter (Agents nur die für sie sichtbaren Informationen geben)
-- Board in Static und Dynamic unterteilen?
+- GameState in Static und Dynamic unterteilen?
+	- Tiles, Edges und Intersections als Struktur statisch speichern und teilen
+	- Playstate (Roads, Settlements, Cities) als Byte-Arrays mit gleichen Indizes abbilden
 - Action für variable Domestic Trades
 - Datensatz für einfache ML Starting Position Value Function generieren
 - RandomAgent
