@@ -2,7 +2,6 @@
 - Dev Cards auch vor dem Würfeln erlauben
 - Testen, ob alle Actions genutzt werden
 - Testen, ob Bank immer Gesamtsumme behält
-- Victory Point Hover Tooltip fixen
 - Logging in Actions abstrahieren (Callback oder Return Value?)
 - Wasted Monopoly und schlechtes YOP erlauben
 	- YOP wenn Bank nur noch eine Ressource hat möglich
