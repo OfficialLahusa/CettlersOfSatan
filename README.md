@@ -1,5 +1,5 @@
 # CettlersOfSatan
- Online Multiplayer Settlers of Catan Clone
+Online multiplayer colonization game and AI playground.
 
 # Credits
 Programming by Lasse Huber-Saffer.
