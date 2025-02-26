@@ -12,7 +12,7 @@
 - RandomAgent
 	- Illegale Instanzen örtlich begrenzter Actions besser abgrenzen
 - SimpleAgent
-	- Immer die Spot mit den höchsten Yields bebauen
+	- Immer die Spots mit den höchsten Yields bebauen
 	- Räuber immer auf das Feld bewegen, das die Yield Scores am besten verändert
 	- Immer vom besten anliegenden Spieler ziehen
 	- Immer die am wenigsten wertvollen Karten (anhand von eigenen Yields) discarden
