@@ -22,9 +22,7 @@ namespace Client
 
         public void Draw()
         {
-            ImGui.TextUnformatted("Event Log:");
-
-            ImGui.BeginChild("ScrollLog", new System.Numerics.Vector2(250, 150), true, ImGuiWindowFlags.NavFlattened);
+            ImGui.BeginChild("ScrollLog", new System.Numerics.Vector2(250, 350), true, ImGuiWindowFlags.NavFlattened);
 
             foreach (LogEntry line in _lines)
             {
@@ -122,6 +120,30 @@ namespace Client
         }
     }
 
+    public class ColoredStrEntry : LogEntry
+    {
+        private string _text;
+        private Color _color;
+
+        public ColoredStrEntry(string text, Color color)
+        {
+            _text = text;
+            _color = color;
+        }
+
+        public void Draw()
+        {
+            ImGui.PushStyleColor(ImGuiCol.Text, ColorPalette.ColorToVec4(_color));
+            ImGui.TextWrapped(_text);
+            ImGui.PopStyleColor();
+        }
+
+        public string GetText()
+        {
+            return _text;
+        }
+    }
+
     public class PlayerEntry : LogEntry
     {
         private int _playerIdx;
@@ -207,6 +229,30 @@ namespace Client
         public string GetText()
         {
             return string.Empty;
+        }
+    }
+
+    public class RoundEntry : LogEntry
+    {
+        private SeparatorEntry _separator;
+        private StrEntry _text;
+
+        public RoundEntry(int roundIdx)
+        {
+            _separator = new SeparatorEntry();
+            _text = new StrEntry($"Round {roundIdx}");
+        }
+
+        public void Draw()
+        {
+            _separator.Draw();
+            _text.Draw();
+            _separator.Draw();
+        }
+
+        public string GetText()
+        {
+            return _text.GetText();
         }
     }
 }

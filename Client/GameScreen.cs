@@ -80,6 +80,7 @@ namespace Client
             _diceWidget.Active = true;
 
             _eventLog = new EventLog();
+            _eventLog.WriteLine(new RoundEntry(0));
 
             // Bucket indices are the roll totals
             // Padded for symmetric plotting with correct indices
@@ -218,15 +219,17 @@ namespace Client
 
             if (ImGui.TreeNode("Analytics"))
             {
-                ImGui.TextUnformatted("Roll Result Distibution:");
+                ImGui.TextUnformatted("Roll Result Distribution:");
                 ImGui.PlotHistogram(string.Empty, ref _rollDistribution[0], _rollDistribution.Length, 0, string.Empty, 0, _rollDistribution.Max(), new System.Numerics.Vector2(225, 100));
 
                 ImGui.TreePop();
             }
 
-            ImGui.Separator();
-
-            _eventLog.Draw();
+            if (ImGui.TreeNode("Event Log"))
+            {
+                ImGui.TreePop();
+                _eventLog.Draw();
+            }
 
             ImGui.End();
 
@@ -403,6 +406,9 @@ namespace Client
 
                     if (!playedAction.IsValidFor(_state)) throw new InvalidOperationException();
 
+                    int prevRound = _state.Turn.RoundCounter;
+                    int prevPlayer = _state.Turn.PlayerIndex;
+
                     // Apply action to state
                     playedAction.Apply(_state);
 
@@ -412,7 +418,25 @@ namespace Client
                         _rollDistribution[rollAction.RollResult.Total]++;
                     }
 
+                    // Write entry to event log
+                    _eventLog.WriteLine(new ColoredStrEntry(playedAction.ToString(), ColorPalette.GetPlayerColor(actingPlayerIdx.Value)));
+                    if (_state.Turn.RoundCounter > prevRound)
+                    {
+                        _eventLog.WriteLine(new SeparatorEntry());
+                    }
+                    else if (_state.Turn.PlayerIndex != prevPlayer)
+                    {
+                        _eventLog.WriteLine(new SeparatorEntry());
+                    }
+
                     playedActions++;
+
+                    // Write game conclusion to event log
+                    if (_state.HasEnded)
+                    {
+                        _eventLog.WriteLine(new SeparatorEntry());
+                        _eventLog.WriteLine(new ColoredStrEntry($"Player {actingPlayerIdx.Value} won", ColorPalette.GetPlayerColor(actingPlayerIdx.Value)));
+                    }
                 }
 
                 // Track played rounds and elapsed time
@@ -424,6 +448,8 @@ namespace Client
                 _state.Reset();
 
                 _eventLog.Clear();
+                _eventLog.WriteLine(new RoundEntry(0));
+
                 _rollDistribution = new float[_rollDistribution.Length];
             }
 
@@ -470,6 +496,9 @@ namespace Client
 
                 if (!playedAction.IsValidFor(_state)) throw new InvalidOperationException();
 
+                int prevRound = _state.Turn.RoundCounter;
+                int prevPlayer = _state.Turn.PlayerIndex;
+
                 // Apply action to state
                 playedAction.Apply(_state);
 
@@ -479,7 +508,25 @@ namespace Client
                     _rollDistribution[rollAction.RollResult.Total]++;
                 }
 
+                // Write entry to event log
+                _eventLog.WriteLine(new ColoredStrEntry(playedAction.ToString(), ColorPalette.GetPlayerColor(actingPlayerIdx.Value)));
+                if (_state.Turn.RoundCounter > prevRound)
+                {
+                    _eventLog.WriteLine(new RoundEntry(_state.Turn.RoundCounter));
+                }
+                else if (_state.Turn.PlayerIndex != prevPlayer)
+                {
+                    _eventLog.WriteLine(new SeparatorEntry());
+                }
+
                 playedActions++;
+
+                // Write game conclusion to event log
+                if (_state.HasEnded)
+                {
+                    _eventLog.WriteLine(new SeparatorEntry());
+                    _eventLog.WriteLine(new ColoredStrEntry($"Player {actingPlayerIdx.Value} won", ColorPalette.GetPlayerColor(actingPlayerIdx.Value)));
+                }
             }
 
             float ms = playoutClock.ElapsedTime.AsSeconds() * 1000f;
@@ -519,6 +566,9 @@ namespace Client
 
             if (!playedAction.IsValidFor(_state)) throw new InvalidOperationException();
 
+            int prevRound = _state.Turn.RoundCounter;
+            int prevPlayer = _state.Turn.PlayerIndex;
+
             // Apply action to state
             playedAction.Apply(_state);
 
@@ -526,6 +576,24 @@ namespace Client
             if (playedAction is RollAction rollAction)
             {
                 _rollDistribution[rollAction.RollResult.Total]++;
+            }
+
+            // Write entry to event log
+            _eventLog.WriteLine(new ColoredStrEntry(playedAction.ToString(), ColorPalette.GetPlayerColor(actingPlayerIdx.Value)));
+            if (_state.Turn.RoundCounter > prevRound)
+            {
+                _eventLog.WriteLine(new RoundEntry(_state.Turn.RoundCounter));
+            }
+            else if (_state.Turn.PlayerIndex != prevPlayer)
+            {
+                _eventLog.WriteLine(new SeparatorEntry());
+            }
+
+            // Write game conclusion to event log
+            if (_state.HasEnded)
+            {
+                _eventLog.WriteLine(new SeparatorEntry());
+                _eventLog.WriteLine(new ColoredStrEntry($"Player {actingPlayerIdx.Value} won", ColorPalette.GetPlayerColor(actingPlayerIdx.Value)));
             }
 
             // Play associated sound
@@ -549,6 +617,8 @@ namespace Client
             _state.Reset();
 
             _eventLog.Clear();
+            _eventLog.WriteLine(new RoundEntry(0));
+
             _rollDistribution = new float[_rollDistribution.Length];
 
             _renderer.Board = _state.Board;
@@ -568,6 +638,8 @@ namespace Client
             _state.Reset();
 
             _eventLog.Clear();
+            _eventLog.WriteLine(new RoundEntry(0));
+
             _rollDistribution = new float[_rollDistribution.Length];
 
             _renderer.Board = _state.Board;
