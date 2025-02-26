@@ -9,9 +9,9 @@ namespace Common.Actions
     public class YearOfPlentyAction : Action, IActionProvider
     {
         public ResourceCardType FirstChoice { get; set; }
-        public ResourceCardType SecondChoice { get; set; }
+        public ResourceCardType? SecondChoice { get; set; }
 
-        public YearOfPlentyAction(int playerIdx, ResourceCardType firstChoice, ResourceCardType secondChoice)
+        public YearOfPlentyAction(int playerIdx, ResourceCardType firstChoice, ResourceCardType? secondChoice)
             : base(playerIdx)
         {
             FirstChoice = firstChoice;
@@ -29,9 +29,13 @@ namespace Common.Actions
 
             // Move chosen cards from bank to hand
             state.ResourceBank.Remove(FirstChoice, 1);
-            state.ResourceBank.Remove(SecondChoice, 1);
             playerCards.Add(FirstChoice, 1);
-            playerCards.Add(SecondChoice, 1);
+
+            if (SecondChoice.HasValue)
+            {
+                state.ResourceBank.Remove(SecondChoice.Value, 1);
+                playerCards.Add(SecondChoice.Value, 1);
+            }
 
             // Update turn state
             state.Turn.HasPlayedDevelopmentCard = true;
@@ -58,9 +62,12 @@ namespace Common.Actions
             // Check for dev card age
             bool cardAgeSufficient = state.Players[PlayerIndex].DevelopmentCards.Get(DevelopmentCardType.YearOfPlenty) > state.Players[PlayerIndex].NewDevelopmentCards.Get(DevelopmentCardType.YearOfPlenty);
 
-            bool bankHasCards = FirstChoice == SecondChoice ? state.ResourceBank.Contains(FirstChoice, 2) : state.ResourceBank.Contains(FirstChoice, 1) && state.ResourceBank.Contains(SecondChoice, 1);
+            bool bankHasCards = FirstChoice == SecondChoice ? state.ResourceBank.Contains(FirstChoice, 2) : state.ResourceBank.Contains(FirstChoice, 1) && (!SecondChoice.HasValue || state.ResourceBank.Contains(SecondChoice.Value, 1));
 
-            return hasCard && cardAgeSufficient && bankHasCards;
+            // Edge case: If bank only has a single resource left, second choice can be null
+            bool secondChoiceValid = SecondChoice.HasValue || (!SecondChoice.HasValue && state.ResourceBank.Count() == 1);
+
+            return hasCard && cardAgeSufficient && bankHasCards && secondChoiceValid;
         }
 
         public static List<Action> GetActionsForState(GameState state, int playerIdx)
@@ -85,12 +92,32 @@ namespace Common.Actions
                 }
             }
 
+            // Edge case: If bank only has a single resource left, second choice can be null
+            if (state.ResourceBank.Count() == 1)
+            {
+                foreach (var firstChoice in CardSet<ResourceCardType>.Values)
+                {
+                    if (state.ResourceBank.Get(firstChoice) == 1)
+                    {
+                        YearOfPlentyAction action = new(playerIdx, firstChoice, null);
+
+                        if (action.IsBoardValid(state))
+                        {
+                            actions.Add(action);
+                        }
+
+                        break;
+                    }
+                }
+            }
+
             return actions;
         }
 
         public override string ToString()
         {
-            return base.ToString() + $", {FirstChoice.GetAbbreviation()}{SecondChoice.GetAbbreviation()}";
+            string secondChoiceAbbreviation = SecondChoice.HasValue ? SecondChoice.Value.GetAbbreviation() : "/";
+            return base.ToString() + $", {FirstChoice.GetAbbreviation()}{secondChoiceAbbreviation}";
         }
     }
 }

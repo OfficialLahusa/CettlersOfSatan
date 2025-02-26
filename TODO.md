@@ -1,9 +1,6 @@
 - Testen, ob alle Actions genutzt werden
 - Testen, ob Bank immer Gesamtsumme behält
 - Logging in Actions abstrahieren (Callback oder Return Value?)
-- Wasted Monopoly und schlechtes YOP erlauben
-	- YOP wenn Bank nur noch eine Ressource hat möglich
-	- Sonst müssen immer 2 gezogen werden
 - Reversible Actions
 	- Nested Class Result mit fehlenden Informationen über den Ausgang der Action
 - Observation Filter (Agents nur die für sie sichtbaren Informationen geben)
