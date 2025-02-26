@@ -26,6 +26,7 @@ namespace Client
         private DiceWidget _diceWidget;
 
         private EventLog _eventLog;
+        private ActionLogger _actionLogger;
         private float[] _rollDistribution;
 
         public static Font Font;
@@ -81,7 +82,8 @@ namespace Client
             _diceWidget.Active = true;
 
             _eventLog = new EventLog();
-            _eventLog.WriteLine(new RoundEntry(0));
+            _actionLogger = new ActionLogger(_eventLog);
+            _actionLogger.Init();
 
             // Bucket indices are the roll totals
             // Padded for symmetric plotting with correct indices
@@ -420,24 +422,9 @@ namespace Client
                     }
 
                     // Write entry to event log
-                    _eventLog.WriteLine(new ColoredStrEntry(playedAction.ToString(), ColorPalette.GetPlayerColor(actingPlayerIdx.Value)));
-                    if (_state.Turn.RoundCounter > prevRound)
-                    {
-                        _eventLog.WriteLine(new SeparatorEntry());
-                    }
-                    else if (_state.Turn.PlayerIndex != prevPlayer)
-                    {
-                        _eventLog.WriteLine(new SeparatorEntry());
-                    }
+                    _actionLogger.Log(playedAction, _state);
 
                     playedActions++;
-
-                    // Write game conclusion to event log
-                    if (_state.HasEnded)
-                    {
-                        _eventLog.WriteLine(new SeparatorEntry());
-                        _eventLog.WriteLine(new ColoredStrEntry($"Player {actingPlayerIdx.Value} won", ColorPalette.GetPlayerColor(actingPlayerIdx.Value)));
-                    }
                 }
 
                 // Track played rounds and elapsed time
@@ -449,7 +436,7 @@ namespace Client
                 _state.Reset();
 
                 _eventLog.Clear();
-                _eventLog.WriteLine(new RoundEntry(0));
+                _actionLogger.Init();
 
                 _rollDistribution = new float[_rollDistribution.Length];
             }
@@ -510,24 +497,9 @@ namespace Client
                 }
 
                 // Write entry to event log
-                _eventLog.WriteLine(new ColoredStrEntry(playedAction.ToString(), ColorPalette.GetPlayerColor(actingPlayerIdx.Value)));
-                if (_state.Turn.RoundCounter > prevRound)
-                {
-                    _eventLog.WriteLine(new RoundEntry(_state.Turn.RoundCounter));
-                }
-                else if (_state.Turn.PlayerIndex != prevPlayer)
-                {
-                    _eventLog.WriteLine(new SeparatorEntry());
-                }
+                _actionLogger.Log(playedAction, _state);
 
                 playedActions++;
-
-                // Write game conclusion to event log
-                if (_state.HasEnded)
-                {
-                    _eventLog.WriteLine(new SeparatorEntry());
-                    _eventLog.WriteLine(new ColoredStrEntry($"Player {actingPlayerIdx.Value} won", ColorPalette.GetPlayerColor(actingPlayerIdx.Value)));
-                }
             }
 
             float ms = playoutClock.ElapsedTime.AsSeconds() * 1000f;
@@ -580,22 +552,7 @@ namespace Client
             }
 
             // Write entry to event log
-            _eventLog.WriteLine(new ColoredStrEntry(playedAction.ToString(), ColorPalette.GetPlayerColor(actingPlayerIdx.Value)));
-            if (_state.Turn.RoundCounter > prevRound)
-            {
-                _eventLog.WriteLine(new RoundEntry(_state.Turn.RoundCounter));
-            }
-            else if (_state.Turn.PlayerIndex != prevPlayer)
-            {
-                _eventLog.WriteLine(new SeparatorEntry());
-            }
-
-            // Write game conclusion to event log
-            if (_state.HasEnded)
-            {
-                _eventLog.WriteLine(new SeparatorEntry());
-                _eventLog.WriteLine(new ColoredStrEntry($"Player {actingPlayerIdx.Value} won", ColorPalette.GetPlayerColor(actingPlayerIdx.Value)));
-            }
+            _actionLogger.Log(playedAction, _state);
 
             // Play associated sound
             if (playSound)
