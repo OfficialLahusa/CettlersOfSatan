@@ -1,8 +1,8 @@
 - Testen, ob alle Actions genutzt werden
 - Testen, ob Bank immer Gesamtsumme behält
-- Logging in Actions abstrahieren (Callback oder Return Value?)
-- Reversible Actions
-	- Nested Class Result mit fehlenden Informationen über den Ausgang der Action
+- Nested Class Result mit fehlenden Informationen über den Ausgang der Action
+	- Reversible Actions
+	- Information für ActionLogger nutzen
 - Observation Filter (Agents nur die für sie sichtbaren Informationen geben)
 - GameState in Static und Dynamic unterteilen?
 	- Tiles, Edges und Intersections als Struktur statisch speichern und teilen
