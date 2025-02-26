@@ -62,6 +62,7 @@ namespace Client.Logging
                     break;
 
                 // TODO: Remaining Actions in order used by LegalActionProvider
+                // TODO: Changes in Longest Road/Largest Army Leader
 
                 // Fallback: Basic string conversion of action in player color
                 default:
