@@ -1,4 +1,5 @@
-﻿using Common;
+﻿using Client.Logging;
+using Common;
 using Common.Actions;
 using Common.Agents;
 using ImGuiNET;
