@@ -162,6 +162,7 @@ namespace Client
 
             ImGui.Separator();
 
+            ImGui.Text("Map Generation:");
             ImGui.Checkbox("Center Desert", ref _centerDesert);
 
             if (ImGui.Button("Generate [Space]"))
