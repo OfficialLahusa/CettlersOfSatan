@@ -38,7 +38,6 @@ namespace Common.Actions
         {
             return turn.PlayerIndex == playerIdx
                 && turn.TypeOfRound == TurnState.RoundType.Normal
-                && !turn.MustRoll
                 && !turn.MustDiscard
                 && !turn.MustMoveRobber
                 && !turn.HasPlayedDevelopmentCard;
