@@ -143,7 +143,6 @@ namespace Client
 
             ImGui.Separator();
 
-
             using (new ImGuiTextColor(ColorPalette.GetPlayerColor(_playerIndex)))
                 if (ImGui.InputInt("Player", ref _playerIndex))
                 {
