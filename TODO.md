@@ -1,4 +1,3 @@
-- Dev Cards auch vor dem Würfeln erlauben
 - Testen, ob alle Actions genutzt werden
 - Testen, ob Bank immer Gesamtsumme behält
 - Logging in Actions abstrahieren (Callback oder Return Value?)
