@@ -6,6 +6,7 @@ using SFML.Audio;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
+using System.Security.Cryptography;
 using Action = Common.Actions.Action;
 using Edge = Common.Edge;
 
@@ -57,7 +58,10 @@ namespace Client
         private Sound _placeSound;
         private Sound _diceRollSound;
 
+        // Player Agents
         private Agent[] _agents;
+        private readonly string[] _agentTypes = ["RandomAgent", "SimpleAgent"];
+        private int[] _selectedAgentTypes;
 
         static GameScreen()
         {
@@ -96,10 +100,12 @@ namespace Client
             _diceRollSound = new Sound(Sounds.DiceRolling);
             _diceRollSound.Volume = 50f;
 
+            _selectedAgentTypes = new int[PLAYER_COUNT];
             _agents = new Agent[PLAYER_COUNT];
 
             for(int i = 0; i < PLAYER_COUNT; i++)
             {
+                _selectedAgentTypes[i] = 1;
                 _agents[i] = new SimpleAgent(i);
             }
 
@@ -137,25 +143,24 @@ namespace Client
 
             ImGui.Separator();
 
-            Color playerColor = ColorPalette.GetPlayerColor(_playerIndex);
-            ImGui.PushStyleColor(ImGuiCol.Text, ColorPalette.ColorToVec4(playerColor));
-            if (ImGui.InputInt("Player", ref _playerIndex))
-            {
-                if (_playerIndex < 0)
-                {
-                    _playerIndex = PLAYER_COUNT - 1;
-                }
-                else if (_playerIndex > PLAYER_COUNT - 1)
-                {
-                    _playerIndex = 0;
-                }
 
-                _cardWidget.SetPlayerState(_state.Players[_playerIndex]);
+            using (new ImGuiTextColor(ColorPalette.GetPlayerColor(_playerIndex)))
+                if (ImGui.InputInt("Player", ref _playerIndex))
+                {
+                    if (_playerIndex < 0)
+                    {
+                        _playerIndex = PLAYER_COUNT - 1;
+                    }
+                    else if (_playerIndex > PLAYER_COUNT - 1)
+                    {
+                        _playerIndex = 0;
+                    }
 
-                _eventLog.WriteLine(new SeparatorEntry());
-                _eventLog.WriteLine(new StrEntry("Switching to"), new PlayerEntry(_playerIndex));
-            }
-            ImGui.PopStyleColor();
+                    _cardWidget.SetPlayerState(_state.Players[_playerIndex]);
+
+                    _eventLog.WriteLine(new SeparatorEntry());
+                    _eventLog.WriteLine(new StrEntry("Switching to"), new PlayerEntry(_playerIndex));
+                }
 
             ImGui.Checkbox("Spectator Mode", ref _spectatorMode);
             ImGui.Checkbox("Edit Mode", ref _editMode);
@@ -179,7 +184,7 @@ namespace Client
 
             ImGui.Separator();
 
-            if(ImGui.TreeNode("Debug"))
+            if (ImGui.TreeNode("Debug"))
             {
                 ImGui.Checkbox("Silent Quick Playouts", ref _muteQuickPlayouts);
                 ImGui.Checkbox("Show Yield Points", ref _renderer.DrawYieldPoints);
@@ -191,7 +196,28 @@ namespace Client
                 ImGui.TreePop();
             }
 
-            if(ImGui.TreeNode("Analytics"))
+            if (ImGui.TreeNode("Agents"))
+            {
+                for (int agentIdx = 0; agentIdx < _agents.Length; agentIdx++)
+                {
+                    using (new ImGuiTextColor(ColorPalette.GetPlayerColor(agentIdx)))
+                        ImGui.Text($"Player {agentIdx}:");
+
+                    if (ImGui.Combo($"##Agent {agentIdx}", ref _selectedAgentTypes[agentIdx], _agentTypes, _agentTypes.Length))
+                    {
+                        _agents[agentIdx] = _selectedAgentTypes[agentIdx] switch
+                        {
+                            0 => new RandomAgent(agentIdx),
+                            1 => new SimpleAgent(agentIdx),
+                            _ => throw new InvalidOperationException()
+                        };
+                    }
+                }
+
+                ImGui.TreePop();
+            }
+
+            if (ImGui.TreeNode("Analytics"))
             {
                 ImGui.TextUnformatted("Roll Result Distibution:");
                 ImGui.PlotHistogram(string.Empty, ref _rollDistribution[0], _rollDistribution.Length, 0, string.Empty, 0, _rollDistribution.Max(), new System.Numerics.Vector2(225, 100));
