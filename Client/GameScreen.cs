@@ -54,6 +54,7 @@ namespace Client
         private CircleShape _centerHitbox;
 
         // Sounds
+        private bool _muteQuickPlayouts = false;
         private Sound _placeSound;
         private Sound _diceRollSound;
 
@@ -162,14 +163,6 @@ namespace Client
 
             ImGui.Separator();
 
-            ImGui.Checkbox("Show Yield Points", ref _renderer.DrawYieldPoints);
-            ImGui.Checkbox("Show Shadows", ref _renderer.DrawTokenShadows);
-            ImGui.Checkbox("Show Intersections", ref _renderer.DrawIntersectionMarkers);
-            ImGui.Checkbox("Show Edges", ref _renderer.DrawEdgeMarkers);
-            ImGui.Checkbox("Show Centers", ref _renderer.DrawCenterMarkers);
-
-            ImGui.Separator();
-
             ImGui.Checkbox("Center Desert", ref _centerDesert);
 
             if (ImGui.Button("Generate [Space]"))
@@ -183,13 +176,28 @@ namespace Client
 
             ImGui.Separator();
 
+            if(ImGui.TreeNode("Debug"))
+            {
+                ImGui.Checkbox("Silent Quick Playouts", ref _muteQuickPlayouts);
+                ImGui.Checkbox("Show Yield Points", ref _renderer.DrawYieldPoints);
+                ImGui.Checkbox("Show Shadows", ref _renderer.DrawTokenShadows);
+                ImGui.Checkbox("Show Intersections", ref _renderer.DrawIntersectionMarkers);
+                ImGui.Checkbox("Show Edges", ref _renderer.DrawEdgeMarkers);
+                ImGui.Checkbox("Show Centers", ref _renderer.DrawCenterMarkers);
+
+                ImGui.TreePop();
+            }
+
             if(ImGui.TreeNode("Analytics"))
             {
                 ImGui.TextUnformatted("Roll Result Distibution:");
                 ImGui.PlotHistogram(string.Empty, ref _rollDistribution[0], _rollDistribution.Length, 0, string.Empty, 0, _rollDistribution.Max(), new System.Numerics.Vector2(225, 100));
+
+                ImGui.TreePop();
             }
 
             ImGui.End();
+
 
             // Legal action window
             ImGui.Begin("Scoreboard", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.AlwaysVerticalScrollbar);
@@ -292,7 +300,7 @@ namespace Client
 
             if(Keyboard.IsKeyPressed(Keyboard.Key.R))
             {
-                PlayRandomAction();
+                PlayRandomAction(!_muteQuickPlayouts);
             }
 
             if(Keyboard.IsKeyPressed(Keyboard.Key.E))
@@ -431,7 +439,7 @@ namespace Client
             _diceWidget.UpdateSprites();
         }
 
-        private void PlayRandomAction()
+        private void PlayRandomAction(bool playSound = true)
         {
             if (_state.HasEnded) return;
 
@@ -453,7 +461,8 @@ namespace Client
             if (!playedAction.IsValidFor(_state)) throw new InvalidOperationException();
 
             playedAction.Apply(_state);
-            PlaySoundForAction(playedAction);
+            if (playSound)
+                PlaySoundForAction(playedAction);
 
             _renderer.Update();
 
@@ -721,11 +730,11 @@ namespace Client
 
         public void PlaySoundForAction(Action action)
         {
-            if(action is RollAction)
+            if(action is RollAction && _diceRollSound.Status != SoundStatus.Playing)
             {
                 _diceRollSound.Play();
             }
-            else if(action is SettlementAction 
+            else if((action is SettlementAction 
                 || action is CityAction
                 || action is RoadAction
                 || action is FirstInitialRoadAction
@@ -733,6 +742,7 @@ namespace Client
                 || action is SecondInitialRoadAction
                 || action is SecondInitialSettlementAction
                 || action is RobberAction)
+                && _placeSound.Status != SoundStatus.Playing)
             {
                 _placeSound.Play();
             }
