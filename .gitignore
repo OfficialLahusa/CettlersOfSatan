@@ -397,3 +397,4 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 /Client/res/CasinoSFX
+/Client/res/Swoshes
