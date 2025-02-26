@@ -52,6 +52,8 @@
 	- Maps, Lobbies und Replays in/aus Dateien
 	- Packets über Netzwerk
 - Ranking System
+	- https://github.com/moserware/Skills/blob/master/Skills/Team.cs
+	- https://trueskill.org/
 - Tabletalking über LLMs
 	- Zusätzlich zu Value Functions von einem Basisbot
 	- Self-Hosted oder API?
