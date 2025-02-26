@@ -242,7 +242,7 @@ namespace Client
                 ImGui.Text($"Player: {_state.Turn.PlayerIndex}'s Turn");
             ImGui.Text($"RoundType: {_state.Turn.TypeOfRound}");
             ImGui.Text($"MustRoll: {_state.Turn.MustRoll}");
-            ImGui.Text($"MustDiscard: {_state.Turn.MustDiscard} ({_state.Turn.AwaitedDiscards} players)");
+            ImGui.Text($"MustDiscard: {_state.Turn.MustDiscard} ({_state.Turn.AwaitedPlayerDiscards.Count(x => x)} players)");
             ImGui.Text($"MustMoveRobber: {_state.Turn.MustMoveRobber}");
 
             ImGui.Separator();

@@ -23,17 +23,17 @@ namespace Common
         public RollResult LastRoll;
 
         public bool MustRoll { get; set; }
-        public int AwaitedDiscards { get; set; }
+        public bool[] AwaitedPlayerDiscards { get; set; }
         public bool MustDiscard
         {
-            get { return AwaitedDiscards > 0; }
+            get { return AwaitedPlayerDiscards.Any(x => x); }
         }
         public bool MustMoveRobber { get; set; }
 
         public bool HasPlayedDevelopmentCard { get; set; }
 
 
-        public TurnState()
+        public TurnState(uint playerCount)
         {
             PlayerIndex = 0;
 
@@ -43,7 +43,7 @@ namespace Common
 
             MustRoll = false;
             MustMoveRobber = false;
-            AwaitedDiscards = 0;
+            AwaitedPlayerDiscards = new bool[playerCount];
 
             HasPlayedDevelopmentCard = false;
         }

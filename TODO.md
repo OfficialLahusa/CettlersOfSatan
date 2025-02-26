@@ -1,4 +1,3 @@
-- Berechnung von benötigten Discards so anpassen, dass Spieler nicht mehrfach nacheinander discarden können
 - Dev Cards auch vor dem Würfeln erlauben
 - Testen, ob alle Actions genutzt werden
 - Testen, ob Bank immer Gesamtsumme behält

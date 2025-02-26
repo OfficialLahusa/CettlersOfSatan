@@ -30,8 +30,8 @@ namespace Common.Actions
             // Return discarded cards to bank
             state.ResourceBank.Add(SelectedCards);
 
-            // Decrement discard counter
-            state.Turn.AwaitedDiscards--;
+            // Mark discard as completed
+            state.Turn.AwaitedPlayerDiscards[PlayerIndex] = false;
         }
 
         public override bool IsValidFor(GameState state)
@@ -44,7 +44,8 @@ namespace Common.Actions
             // Note: Player index does NOT need to match turn player index
             return turn.TypeOfRound == TurnState.RoundType.Normal
                 && !turn.MustRoll
-                && turn.MustDiscard;
+                && turn.MustDiscard
+                && turn.AwaitedPlayerDiscards[playerIdx];
         }
 
         public bool IsBoardValid(GameState state)

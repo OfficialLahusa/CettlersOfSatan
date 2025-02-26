@@ -22,7 +22,7 @@ namespace Common
         public GameState(Board board, uint playerCount)
         {
             Settings = new GameSettings();
-            Turn = new TurnState();
+            Turn = new TurnState(playerCount);
             Board = board;
             (ResourceBank, DevelopmentBank) = CreateBank();
             Players = new PlayerState[playerCount];
@@ -255,7 +255,7 @@ namespace Common
         public bool CanPlayerAct(int playerIdx)
         {
             // TODO: Eventually account for trade offers from other players to target player
-            return !Turn.MustDiscard && Turn.PlayerIndex == playerIdx || Turn.MustDiscard && Players[playerIdx].ResourceCards.Count() > Settings.RobberCardLimit;
+            return !Turn.MustDiscard && Turn.PlayerIndex == playerIdx || Turn.MustDiscard && Turn.AwaitedPlayerDiscards[playerIdx];
         }
 
         public static (CardSet<ResourceCardType> resources, CardSet<DevelopmentCardType> development) CreateBank()
@@ -291,7 +291,7 @@ namespace Common
 
         public void Reset()
         {
-            Turn = new TurnState();
+            Turn = new TurnState((uint)Players.Length);
             (ResourceBank, DevelopmentBank) = CreateBank();
             Players = new PlayerState[Players.Length];
 

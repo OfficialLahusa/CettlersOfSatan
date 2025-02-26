@@ -26,12 +26,11 @@ namespace Common.Actions
             if (RollResult.Total == 7)
             {
                 // Require discard if card limit is exceeded
-                int requiredDiscards = 0;
                 for (int player = 0; player < state.Players.Length; player++)
                 {
-                    if (state.Players[player].ResourceCards.Count() > state.Settings.RobberCardLimit) requiredDiscards++;
+                    bool mustDiscard = state.Players[player].ResourceCards.Count() > state.Settings.RobberCardLimit;
+                    state.Turn.AwaitedPlayerDiscards[player] = mustDiscard;
                 }
-                state.Turn.AwaitedDiscards = requiredDiscards;
 
                 // Require robber move
                 state.Turn.MustMoveRobber = true;

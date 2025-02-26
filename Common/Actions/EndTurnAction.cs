@@ -32,7 +32,7 @@ namespace Common.Actions
             if(state.Turn.PlayerIndex == 0) state.Turn.RoundCounter++;
             state.Turn.MustRoll = true;
             state.Turn.MustMoveRobber = false;
-            state.Turn.AwaitedDiscards = 0;
+            Array.Fill(state.Turn.AwaitedPlayerDiscards, false);
             state.Turn.HasPlayedDevelopmentCard = false;
 
             // Players might have had enough VPs to win before their own turn

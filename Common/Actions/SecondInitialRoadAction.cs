@@ -41,7 +41,7 @@ namespace Common.Actions
                 state.Turn.MustRoll = false;
             }
             state.Turn.MustMoveRobber = false;
-            state.Turn.AwaitedDiscards = 0;
+            Array.Fill(state.Turn.AwaitedPlayerDiscards, false);
             state.Turn.HasPlayedDevelopmentCard = false;
 
             state.CalculateLongestRoad(PlayerIndex);
