@@ -2,7 +2,6 @@
 using Common.Actions;
 using Common.Agents;
 using ImGuiNET;
-using Microsoft.VisualBasic;
 using SFML.Audio;
 using SFML.Graphics;
 using SFML.System;
@@ -171,10 +170,6 @@ namespace Client
             }
 
             ImGui.Separator();
-            
-            _eventLog.Draw();
-
-            ImGui.Separator();
 
             if(ImGui.TreeNode("Debug"))
             {
@@ -195,6 +190,10 @@ namespace Client
 
                 ImGui.TreePop();
             }
+
+            ImGui.Separator();
+
+            _eventLog.Draw();
 
             ImGui.End();
 
@@ -240,16 +239,16 @@ namespace Client
                 _legalActions = LegalActionProvider.GetActionsForState(_state);
             }*/
 
-            if (ImGui.Button("Play Random [R]"))
+            if (ImGui.Button("Play Action [R]"))
             {
-                PlayRandomAction();
+                PlayAgentAction();
             }
 
             ImGui.SameLine();
 
             if (ImGui.Button("Full Playout [E]"))
             {
-                PlayFullRandomPlayout();
+                PlayFullAgentPlayout();
             }
 
             /*ImGui.Text($"{_legalActions.Count} Legal Actions");
@@ -300,12 +299,12 @@ namespace Client
 
             if(Keyboard.IsKeyPressed(Keyboard.Key.R))
             {
-                PlayRandomAction(!_muteQuickPlayouts);
+                PlayAgentAction(!_muteQuickPlayouts);
             }
 
             if(Keyboard.IsKeyPressed(Keyboard.Key.E))
             {
-                PlayFullRandomPlayout();
+                PlayFullAgentPlayout();
             }
 
             if(Keyboard.IsKeyPressed(Keyboard.Key.B))
@@ -361,28 +360,40 @@ namespace Client
 
                     if (!actingPlayerIdx.HasValue) throw new InvalidOperationException();
 
+                    // Query agent for current state
                     Action playedAction = _agents[actingPlayerIdx.Value].Act(_state);
 
                     if (!playedAction.IsValidFor(_state)) throw new InvalidOperationException();
 
+                    // Apply action to state
                     playedAction.Apply(_state);
+
+                    // Track distribution of rolls
+                    if (playedAction is RollAction rollAction)
+                    {
+                        _rollDistribution[rollAction.RollResult.Total]++;
+                    }
 
                     playedActions++;
                 }
 
+                // Track played rounds and elapsed time
                 playedRounds += _state.Turn.RoundCounter;
                 ms += playoutClock.ElapsedTime.AsSeconds() * 1000f;
 
+                // Generate new map
                 _state.Board = MapGenerator.GenerateRandomClassic(_centerDesert);
                 _state.Reset();
 
                 _eventLog.Clear();
+                _rollDistribution = new float[_rollDistribution.Length];
             }
 
             Console.WriteLine($"\nFull playout of {matches:n0} matches ({playedRounds:n0} rounds, {playedActions:n0} actions) took {ms:n} ms");
             Console.WriteLine($"Avg. {ms / matches} ms/match, {ms / playedRounds} ms/round, {ms / playedActions} ms/action");
             Console.WriteLine($"Avg. {playedRounds / matches} rounds/match, {playedActions / matches} actions/match, {playedActions / playedRounds} actions/round\n");
 
+            // Update visuals
             _renderer.Board = _state.Board;
             _renderer.Update();
 
@@ -394,7 +405,7 @@ namespace Client
             _diceWidget.UpdateSprites();
         }
 
-        private void PlayFullRandomPlayout()
+        private void PlayFullAgentPlayout()
         {
             if (_state.HasEnded) return;
 
@@ -416,11 +427,19 @@ namespace Client
 
                 if (!actingPlayerIdx.HasValue) throw new InvalidOperationException();
 
+                // Query agent for current state
                 Action playedAction = _agents[actingPlayerIdx.Value].Act(_state);
 
                 if (!playedAction.IsValidFor(_state)) throw new InvalidOperationException();
 
+                // Apply action to state
                 playedAction.Apply(_state);
+
+                // Track distribution of rolls
+                if (playedAction is RollAction rollAction)
+                {
+                    _rollDistribution[rollAction.RollResult.Total]++;
+                }
 
                 playedActions++;
             }
@@ -429,6 +448,7 @@ namespace Client
 
             Console.WriteLine($"Full playout of {_state.Turn.RoundCounter:n0} rounds ({playedActions:n0} actions) took {ms:n} ms ({ms / _state.Turn.RoundCounter} ms/round, {ms / playedActions} ms/action)");
 
+            // Update visuals
             _renderer.Update();
 
             _playerIndex = _state.Turn.PlayerIndex;
@@ -439,7 +459,7 @@ namespace Client
             _diceWidget.UpdateSprites();
         }
 
-        private void PlayRandomAction(bool playSound = true)
+        private void PlayAgentAction(bool playSound = true)
         {
             if (_state.HasEnded) return;
 
@@ -456,14 +476,25 @@ namespace Client
 
             if (!actingPlayerIdx.HasValue) throw new InvalidOperationException();
 
+            // Query agent for current state
             Action playedAction = _agents[actingPlayerIdx.Value].Act(_state);
 
             if (!playedAction.IsValidFor(_state)) throw new InvalidOperationException();
 
+            // Apply action to state
             playedAction.Apply(_state);
+
+            // Track distribution of rolls
+            if (playedAction is RollAction rollAction)
+            {
+                _rollDistribution[rollAction.RollResult.Total]++;
+            }
+
+            // Play associated sound
             if (playSound)
                 PlaySoundForAction(playedAction);
 
+            // Update visuals
             _renderer.Update();
 
             _playerIndex = _state.Turn.PlayerIndex;
@@ -480,6 +511,7 @@ namespace Client
             _state.Reset();
 
             _eventLog.Clear();
+            _rollDistribution = new float[_rollDistribution.Length];
 
             _renderer.Board = _state.Board;
             _renderer.Update();
