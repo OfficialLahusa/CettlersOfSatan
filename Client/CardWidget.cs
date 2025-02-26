@@ -81,7 +81,7 @@ namespace Client
 
                     // Smoothly hover/unhover
                     _cardStackHover[(int)cardType + CardSet<ResourceCardType>.Values.Count] += (hovering ? 5f : -5f) * deltaTime;
-                    _cardStackHover[(int)cardType + CardSet<ResourceCardType>.Values.Count] = MathF.Max(MathF.Min(_cardStackHover[(int)cardType], 1f), 0f);
+                    _cardStackHover[(int)cardType + CardSet<ResourceCardType>.Values.Count] = MathF.Max(MathF.Min(_cardStackHover[(int)cardType + CardSet<ResourceCardType>.Values.Count], 1f), 0f);
 
                     offsetX += Card.Size.X + countOfType * CARD_SHIFT;
                 }
