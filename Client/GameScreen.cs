@@ -50,7 +50,10 @@ namespace Client
         private CircleShape _intersectionHitbox;
         private RectangleShape _edgeHitbox;
         private CircleShape _centerHitbox;
+
+        // Sounds
         private Sound _placeSound;
+        private Sound _diceRollSound;
 
         private Agent[] _agents;
 
@@ -87,6 +90,9 @@ namespace Client
 
             _placeSound = new Sound(Sounds.Place);
             _placeSound.Volume = 40f;
+
+            _diceRollSound = new Sound(Sounds.DiceRolling);
+            _diceRollSound.Volume = 50f;
 
             _agents = new Agent[PLAYER_COUNT];
 
@@ -430,6 +436,7 @@ namespace Client
             if (!playedAction.IsValidFor(_state)) throw new InvalidOperationException();
 
             playedAction.Apply(_state);
+            PlaySoundForAction(playedAction);
 
             _renderer.Update();
         }
@@ -624,6 +631,7 @@ namespace Client
         public void RollDice()
         {
             int total = _diceWidget.Roll();
+            _diceRollSound.Play();
 
             _rollDistribution[total] += 1;
 
@@ -673,6 +681,25 @@ namespace Client
 
                     _eventLog.WriteLine(new StrEntry(msg));
                 }
+            }
+        }
+
+        public void PlaySoundForAction(Action action)
+        {
+            if(action is RollAction)
+            {
+                _diceRollSound.Play();
+            }
+            else if(action is SettlementAction 
+                || action is CityAction
+                || action is RoadAction
+                || action is FirstInitialRoadAction
+                || action is FirstInitialSettlementAction
+                || action is SecondInitialRoadAction
+                || action is SecondInitialSettlementAction
+                || action is RobberAction)
+            {
+                _placeSound.Play();
             }
         }
     }

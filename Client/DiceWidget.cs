@@ -9,7 +9,6 @@ namespace Client
     {
         private RectangleShape _firstDie;
         private RectangleShape _secondDie;
-        private Sound _diceRollSound;
         private static readonly int _size = 180;
         private static readonly Color _inactiveColor = new Color(255, 255, 255, 85);
         private bool _active;
@@ -38,9 +37,6 @@ namespace Client
             _secondDie = new RectangleShape(new SFML.System.Vector2f(_size, _size));
             _secondDie.Texture = TextureAtlas.Texture;
 
-            _diceRollSound = new Sound(Sounds.DiceRolling);
-            _diceRollSound.Volume = 50f;
-
             Active = false;
 
             RollResult = RollResult.GetRandom();
@@ -62,7 +58,6 @@ namespace Client
         {
             RollResult = RollResult.GetRandom();
             UpdateSprites();
-            _diceRollSound.Play();
 
             return RollResult.Total;
         }

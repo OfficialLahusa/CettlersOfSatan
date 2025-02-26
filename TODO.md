@@ -4,7 +4,6 @@
 - Testen, ob alle Actions genutzt werden
 - Testen, ob Bank immer Gesamtsumme behält
 - Logging durch Callbacks in Actions verschieben
-- Sounds auch für Actions spielen, aber nicht in die Actions verlegen
 - Wasted Monopoly und schlechtes YOP erlauben
 	- YOP wenn Bank nur noch eine Ressource hat möglich
 	- Sonst müssen immer 2 gezogen werden
