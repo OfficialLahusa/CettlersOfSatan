@@ -169,6 +169,13 @@ namespace Client
                 RegenerateMap();
             }
 
+            ImGui.SameLine();
+
+            if (ImGui.Button("Clear [C]"))
+            {
+                ClearMap();
+            }
+
             ImGui.Separator();
 
             if(ImGui.TreeNode("Debug"))
@@ -295,6 +302,11 @@ namespace Client
             if(Keyboard.IsKeyPressed(Keyboard.Key.Space))
             {
                 RegenerateMap();
+            }
+            
+            if(Keyboard.IsKeyPressed(Keyboard.Key.C))
+            {
+                ClearMap();
             }
 
             if(Keyboard.IsKeyPressed(Keyboard.Key.R))
@@ -508,6 +520,25 @@ namespace Client
         private void RegenerateMap()
         {
             _state.Board = MapGenerator.GenerateRandomClassic(_centerDesert);
+            _state.Reset();
+
+            _eventLog.Clear();
+            _rollDistribution = new float[_rollDistribution.Length];
+
+            _renderer.Board = _state.Board;
+            _renderer.Update();
+
+            _playerIndex = 0;
+            _cardWidget.SetPlayerState(_state.Players[_playerIndex]);
+
+            _diceWidget.Active = _state.Turn.MustRoll;
+            _diceWidget.RollResult = _state.Turn.LastRoll;
+            _diceWidget.UpdateSprites();
+        }
+
+        private void ClearMap()
+        {
+            _state.Board.Clear();
             _state.Reset();
 
             _eventLog.Clear();

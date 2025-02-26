@@ -16,5 +16,31 @@
             Ports = ports;
             Robber = robber;
         }
+
+        public void Clear()
+        {
+            // Reset buildings
+            foreach(Intersection intersection in Intersections)
+            {
+                intersection.Owner = -1;
+                intersection.Building = Intersection.BuildingType.None;
+            }
+
+            foreach(Edge edge in Edges)
+            {
+                edge.Owner = -1;
+                edge.Building = Edge.BuildingType.None;
+            }
+
+            // Reset robber
+            foreach(Tile tile in Map)
+            {
+                if (tile.Type == Tile.TileType.Desert)
+                {
+                    Robber = tile;
+                    break;
+                }
+            }
+        }
     }
 }
