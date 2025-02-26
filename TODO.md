@@ -73,4 +73,4 @@ Quellen lesen:
 - MCTS Tree State Hashes => https://github.com/uranium62/xxHash
 - Interfacing => https://github.com/dnmfarrell/Settlers-Game-Notation
 - Interfacing => https://en.wikipedia.org/wiki/Universal_Chess_Interface
-- Multiplayer Rating => https://light-and-code.com/?p=122, https://github.com/FigBug/Multiplayer-
+- Multiplayer Rating => https://light-and-code.com/?p=122, https://github.com/FigBug/Multiplayer-ELO
