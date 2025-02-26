@@ -13,11 +13,7 @@ namespace Client
         private static readonly Color _inactiveColor = new Color(255, 255, 255, 85);
         private bool _active;
 
-        public RollResult RollResult
-        {
-            get;
-            private set;
-        }
+        public RollResult RollResult { get; set; }
 
         public bool Active { 
             get { return _active; }
@@ -69,7 +65,7 @@ namespace Client
             _secondDie.Position = new Vector2f(window.Size.X / 2 - _size - 25, window.Size.Y / 2 - _size - 25);
         }
 
-        private void UpdateSprites()
+        public void UpdateSprites()
         {
             _firstDie.TextureRect = TextureAtlas.GetTextureRect(TextureAtlas.Sprite.DiceOne + RollResult.First - 1);
             _secondDie.TextureRect = TextureAtlas.GetTextureRect(TextureAtlas.Sprite.DiceOne + RollResult.Second - 1);

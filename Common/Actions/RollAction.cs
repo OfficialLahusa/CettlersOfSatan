@@ -42,6 +42,7 @@ namespace Common.Actions
                 state.AwardYields(RollResult.Total);
             }
 
+            state.Turn.LastRoll = RollResult;
             state.Turn.MustRoll = false;
         }
 

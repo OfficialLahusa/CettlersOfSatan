@@ -43,6 +43,8 @@ namespace Client
         private bool _centerDesert = false;
 
         // Gameplay options
+        private bool _spectatorMode = true;
+        private bool _editMode = false;
         private int _playerIndex = 0;
         public const int PLAYER_COUNT = 4;
 
@@ -154,6 +156,9 @@ namespace Client
                 _eventLog.WriteLine(new StrEntry("Switching to"), new PlayerEntry(_playerIndex));
             }
             ImGui.PopStyleColor();
+
+            ImGui.Checkbox("Spectator Mode", ref _spectatorMode);
+            ImGui.Checkbox("Edit Mode", ref _editMode);
 
             ImGui.Separator();
 
@@ -364,8 +369,6 @@ namespace Client
                 _state.Reset();
 
                 _eventLog.Clear();
-
-                _cardWidget.SetPlayerState(_state.Players[_playerIndex]);
             }
 
             Console.WriteLine($"\nFull playout of {matches:n0} matches ({playedRounds:n0} rounds, {playedActions:n0} actions) took {ms:n} ms");
@@ -374,6 +377,13 @@ namespace Client
 
             _renderer.Board = _state.Board;
             _renderer.Update();
+
+            _playerIndex = _state.Turn.PlayerIndex;
+            _cardWidget.SetPlayerState(_state.Players[_playerIndex]);
+
+            _diceWidget.Active = _state.Turn.MustRoll;
+            _diceWidget.RollResult = _state.Turn.LastRoll;
+            _diceWidget.UpdateSprites();
         }
 
         private void PlayFullRandomPlayout()
@@ -412,6 +422,13 @@ namespace Client
             Console.WriteLine($"Full playout of {_state.Turn.RoundCounter:n0} rounds ({playedActions:n0} actions) took {ms:n} ms ({ms / _state.Turn.RoundCounter} ms/round, {ms / playedActions} ms/action)");
 
             _renderer.Update();
+
+            _playerIndex = _state.Turn.PlayerIndex;
+            _cardWidget.SetPlayerState(_state.Players[_playerIndex]);
+
+            _diceWidget.Active = _state.Turn.MustRoll;
+            _diceWidget.RollResult = _state.Turn.LastRoll;
+            _diceWidget.UpdateSprites();
         }
 
         private void PlayRandomAction()
@@ -439,6 +456,13 @@ namespace Client
             PlaySoundForAction(playedAction);
 
             _renderer.Update();
+
+            _playerIndex = _state.Turn.PlayerIndex;
+            _cardWidget.SetPlayerState(_state.Players[_playerIndex]);
+
+            _diceWidget.Active = _state.Turn.MustRoll;
+            _diceWidget.RollResult = _state.Turn.LastRoll;
+            _diceWidget.UpdateSprites();
         }
 
         private void RegenerateMap()
@@ -451,7 +475,12 @@ namespace Client
             _renderer.Board = _state.Board;
             _renderer.Update();
 
+            _playerIndex = 0;
             _cardWidget.SetPlayerState(_state.Players[_playerIndex]);
+
+            _diceWidget.Active = _state.Turn.MustRoll;
+            _diceWidget.RollResult = _state.Turn.LastRoll;
+            _diceWidget.UpdateSprites();
         }
 
         private void Window_MouseWheelScrolled(object? sender, MouseWheelScrollEventArgs e)
@@ -474,6 +503,8 @@ namespace Client
         {
             if (e.Code == Keyboard.Key.Enter)
             {
+                if (_spectatorMode) return;
+
                 RollDice();
             }
         }
@@ -483,12 +514,16 @@ namespace Client
             // Mouse pos in UI view
             Vector2f uiMousePos = _window.MapPixelToCoords(new Vector2i(e.X, e.Y), _uiView);
 
-            // Dice widget clicking
-            if (e.Button == Mouse.Button.Left && _diceWidget.Contains(uiMousePos.X, uiMousePos.Y))
+            // Dice widget click to roll interaction
+            if (!_spectatorMode && e.Button == Mouse.Button.Left && _diceWidget.Contains(uiMousePos.X, uiMousePos.Y))
             {
                 RollDice();
                 return;
             }
+
+
+            // >> Edit mode click interactions <<
+            if (!_editMode) return;
 
             // Mouse pos in map view
             Vector2f mapMousePos = _window.MapPixelToCoords(new Vector2i(e.X, e.Y), _mapView);

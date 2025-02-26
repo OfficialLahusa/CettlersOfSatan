@@ -20,6 +20,7 @@ namespace Common
 
         public RoundType TypeOfRound { get; set; }
         public int RoundCounter;
+        public RollResult LastRoll;
 
         public bool MustRoll { get; set; }
         public int AwaitedDiscards { get; set; }
@@ -38,6 +39,7 @@ namespace Common
 
             TypeOfRound = RoundType.FirstInitial;
             RoundCounter = 0;
+            LastRoll = RollResult.GetRandom();
 
             MustRoll = false;
             MustMoveRobber = false;
