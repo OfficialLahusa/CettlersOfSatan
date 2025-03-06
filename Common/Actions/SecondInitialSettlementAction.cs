@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime;
 using System.Text;
@@ -9,6 +10,10 @@ namespace Common.Actions
 {
     public class SecondInitialSettlementAction : Action, IActionProvider
     {
+        public record SecondInitialSettlementActionOutcome(ReadOnlyCollection<ResourceCardType> InitialYields);
+
+        public SecondInitialSettlementActionOutcome? Outcome { get; private set; }
+
         public int IntersectionIndex { get; init; }
 
         public SecondInitialSettlementAction(int playerIdx, int intersectionIndex)
@@ -21,6 +26,9 @@ namespace Common.Actions
         {
             base.Apply(state);
 
+            // Ensure action was not applied before
+            if (Outcome != null) throw new InvalidOperationException();
+
             // Place settlement
             Intersection intersection = state.Board.Intersections[IntersectionIndex];
             intersection.Owner = PlayerIndex;
@@ -30,14 +38,21 @@ namespace Common.Actions
             state.Players[PlayerIndex].BuildingStock.RemainingSettlements--;
 
             // Award adjacent resources
+            List<ResourceCardType> awardedResources = [];
             foreach (Tile adjTile in intersection.AdjacentTiles.Values)
             {
                 if(adjTile != null && adjTile.HasYield())
                 {
-                    state.Players[PlayerIndex].ResourceCards.Add(adjTile.Type.ToCardType(), 1);
-                    state.ResourceBank.Remove(adjTile.Type.ToCardType(), 1);
+                    ResourceCardType adjResource = adjTile.Type.ToCardType();
+
+                    state.Players[PlayerIndex].ResourceCards.Add(adjResource, 1);
+                    state.ResourceBank.Remove(adjResource, 1);
+
+                    awardedResources.Add(adjResource);
                 }
             }
+
+            Outcome = new SecondInitialSettlementActionOutcome(awardedResources.AsReadOnly());
 
             // Award VP
             state.Players[PlayerIndex].VictoryPoints.SettlementPoints++;

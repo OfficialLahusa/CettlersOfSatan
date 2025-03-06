@@ -126,9 +126,34 @@ namespace Client.Logging
                     break;
 
                 case SecondInitialSettlementAction secondInitialSettlementAction:
-                    _log.WriteLine(new ColoredStrEntry("Placed 2nd initial settlement", playerColor));
-                    // TODO: Initial cards
-                    break;
+                    {
+                        _log.WriteLine(new ColoredStrEntry("Placed 2nd initial settlement", playerColor));
+
+                        SecondInitialSettlementAction.SecondInitialSettlementActionOutcome outcome = secondInitialSettlementAction.Outcome!;
+
+                        // Initial yields
+                        if(outcome.InitialYields.Count() > 0)
+                        {
+                            List<KeyValuePair<ResourceCardType, int>> initialYields = outcome.InitialYields.CountBy(x => x).OrderByDescending(x => (x.Value, -CardSet<ResourceCardType>.ToInt(x.Key))).ToList();
+                            List<string> initialYieldEntries = [];
+
+                            foreach ((ResourceCardType cardType, int count) in initialYields)
+                            {
+                                if (count > 1)
+                                {
+                                    initialYieldEntries.Add($"{count} {cardType.GetName().ToLower()}");
+                                }
+                                else
+                                {
+                                    initialYieldEntries.Add(cardType.GetName().ToLower());
+                                }
+                            }
+
+                            _log.WriteLine(new ColoredStrEntry("Received " + string.Join(", ", initialYieldEntries), playerColor));
+                        }
+
+                        break;
+                    }
 
                 case SecondInitialRoadAction secondInitialRoadAction:
                     _log.WriteLine(new ColoredStrEntry("Placed 2nd initial road", playerColor));
