@@ -8,6 +8,10 @@ namespace Common.Actions
 {
     public class BuyDevelopmentCardAction : Action, IActionProvider
     {
+        public record BuyDevelopmentCardActionOutcome(DevelopmentCardType DrawnType);
+
+        public BuyDevelopmentCardActionOutcome? Outcome { get; private set; }
+
         public BuyDevelopmentCardAction(int playerIdx)
             : base(playerIdx)
         { }
@@ -15,6 +19,9 @@ namespace Common.Actions
         public override void Apply(GameState state)
         {
             base.Apply(state);
+
+            // Ensure action was not applied before
+            if (Outcome != null) throw new InvalidOperationException();
 
             // Remove cards
             CardSet<ResourceCardType> playerCards = state.Players[PlayerIndex].ResourceCards;
@@ -29,6 +36,8 @@ namespace Common.Actions
 
             // Draw card from bank
             DevelopmentCardType drawnType = state.DevelopmentBank.Draw(true);
+
+            Outcome = new BuyDevelopmentCardActionOutcome(drawnType);
 
             // Add drawn card to player
             state.Players[PlayerIndex].DevelopmentCards.Add(drawnType, 1);

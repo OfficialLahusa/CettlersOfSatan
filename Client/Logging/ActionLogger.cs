@@ -111,6 +111,7 @@ namespace Client.Logging
                         
                         if (outcome.stolenCard.HasValue)
                         {
+                            // TODO: Filter out unknown information
                             _log.WriteLine(new ColoredStrEntry($"Stole {outcome.stolenCard.Value.GetName().ToLower()} from Player {robberAction.TargetPlayerIndex!}", playerColor));
                         }
 
@@ -172,8 +173,14 @@ namespace Client.Logging
                     break;
 
                 case BuyDevelopmentCardAction buyDevelopmentCardAction:
-                    _log.WriteLine(new ColoredStrEntry("Bought development card", playerColor));
-                    // TODO: Tell acting player which card it is?
+                    {
+                        _log.WriteLine(new ColoredStrEntry("Bought development card", playerColor));
+
+                        BuyDevelopmentCardAction.BuyDevelopmentCardActionOutcome outcome = buyDevelopmentCardAction.Outcome!;
+
+                        // TODO: Filter out unknown information
+                        _log.WriteLine(new ColoredStrEntry($"Received {outcome.DrawnType.GetName().ToLower()}", playerColor));
+                    }
                     break;
 
                 case KnightAction knightAction:
