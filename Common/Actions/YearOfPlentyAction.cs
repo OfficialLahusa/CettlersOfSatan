@@ -41,6 +41,27 @@ namespace Common.Actions
             state.Turn.HasPlayedDevelopmentCard = true;
         }
 
+        public override void Revert(GameState state)
+        {
+            CardSet<ResourceCardType> playerCards = state.Players[PlayerIndex].ResourceCards;
+
+            // Return card
+            state.Players[PlayerIndex].DevelopmentCards.Add(DevelopmentCardType.YearOfPlenty, 1);
+
+            // Return chosen cards from hand to bank
+            state.ResourceBank.Add(FirstChoice, 1);
+            playerCards.Remove(FirstChoice, 1);
+
+            if (SecondChoice.HasValue)
+            {
+                state.ResourceBank.Add(SecondChoice.Value, 1);
+                playerCards.Remove(SecondChoice.Value, 1);
+            }
+
+            // Update turn state
+            state.Turn.HasPlayedDevelopmentCard = false;
+        }
+
         public override bool IsValidFor(GameState state)
         {
             return IsTurnValid(state.Turn, PlayerIndex) && IsBoardValid(state);

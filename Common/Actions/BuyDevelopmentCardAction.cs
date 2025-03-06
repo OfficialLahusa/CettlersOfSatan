@@ -55,6 +55,43 @@ namespace Common.Actions
             }
         }
 
+        public override void Revert(GameState state)
+        {
+            // Ensure action was applied before
+            if (Outcome == null) throw new InvalidOperationException();
+
+            // Return cards
+            CardSet<ResourceCardType> playerCards = state.Players[PlayerIndex].ResourceCards;
+            playerCards.Add(ResourceCardType.Wool, 1);
+            playerCards.Add(ResourceCardType.Grain, 1);
+            playerCards.Add(ResourceCardType.Ore, 1);
+
+            // Remove cards from bank
+            state.ResourceBank.Remove(ResourceCardType.Wool, 1);
+            state.ResourceBank.Remove(ResourceCardType.Grain, 1);
+            state.ResourceBank.Remove(ResourceCardType.Ore, 1);
+
+            DevelopmentCardType drawnType = Outcome.DrawnType;
+
+            // Remove drawn card from player
+            state.Players[PlayerIndex].DevelopmentCards.Remove(drawnType, 1);
+
+            // Return drawn card to bank
+            state.DevelopmentBank.Add(drawnType, 1);
+
+            // Remove from list of new dev cards that cannot be played yet
+            state.Players[PlayerIndex].NewDevelopmentCards.Remove(drawnType, 1);
+
+            // Remove VP, if drawn
+            if (drawnType == DevelopmentCardType.VictoryPoint)
+            {
+                state.Players[PlayerIndex].VictoryPoints.DevelopmentCardPoints--;
+
+                // Reset to normal round
+                state.Turn.TypeOfRound = TurnState.RoundType.Normal;
+            }
+        }
+
         public override bool IsValidFor(GameState state)
         {
             return IsTurnValid(state.Turn, PlayerIndex) && IsBoardValid(state);

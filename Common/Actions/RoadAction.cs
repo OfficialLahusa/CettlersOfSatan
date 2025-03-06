@@ -9,6 +9,10 @@ namespace Common.Actions
 {
     public class RoadAction : Action, IActionProvider
     {
+        public record RoadActionOutcome(int PrevLongestRoadHolder, bool WasFree);
+
+        public RoadActionOutcome? Outcome { get; private set; }
+
         public int EdgeIndex { get; init; }
 
         public RoadAction(int playerIdx, int edgeIndex)
@@ -21,6 +25,21 @@ namespace Common.Actions
         {
             base.Apply(state);
 
+            // Ensure action was not applied before
+            if (Outcome != null) throw new InvalidOperationException();
+
+            // Determine previous longest road holder
+            int currentLongestRoadHolder = -1;
+
+            for (int playerIdx = 0; playerIdx < state.Players.Length; playerIdx++)
+            {
+                if (state.Players[playerIdx].VictoryPoints.LongestRoadPoints > 0)
+                {
+                    currentLongestRoadHolder = playerIdx;
+                    break;
+                }
+            }
+
             // Place road
             Edge road = state.Board.Edges[EdgeIndex];
             road.Owner = PlayerIndex;
@@ -28,9 +47,12 @@ namespace Common.Actions
 
             // Remove cards and/or building stock
             BuildingStock buildingStock = state.Players[PlayerIndex].BuildingStock;
+            bool hasFreeStock = buildingStock.FreeRoads > 0;
+
+            Outcome = new RoadActionOutcome(currentLongestRoadHolder, hasFreeStock);
 
             // Use free road building dev card stock first
-            if (buildingStock.FreeRoads > 0)
+            if (hasFreeStock)
             {
                 buildingStock.FreeRoads--;
             }
@@ -55,6 +77,53 @@ namespace Common.Actions
 
             // Check for match completion
             state.CheckForCompletion();
+        }
+
+        public override void Revert(GameState state)
+        {
+            // Ensure action was applied before
+            if (Outcome == null) throw new InvalidOperationException();
+
+            // Remove road
+            Edge road = state.Board.Edges[EdgeIndex];
+            road.Owner = -1;
+            road.Building = Edge.BuildingType.None;
+
+            // Return cards and/or building stock
+            BuildingStock buildingStock = state.Players[PlayerIndex].BuildingStock;
+
+            // Return free building stock
+            if (Outcome.WasFree)
+            {
+                buildingStock.FreeRoads++;
+            }
+            // Otherwise, return normal cost
+            else
+            {
+                // Return cards
+                CardSet<ResourceCardType> playerCards = state.Players[PlayerIndex].ResourceCards;
+                playerCards.Add(ResourceCardType.Lumber, 1);
+                playerCards.Add(ResourceCardType.Brick, 1);
+
+                // Remove cards from bank
+                state.ResourceBank.Remove(ResourceCardType.Lumber, 1);
+                state.ResourceBank.Remove(ResourceCardType.Brick, 1);
+
+                // Return piece to stock
+                buildingStock.RemainingRoads++;
+            }
+
+            // Recalculate longest road
+            state.CalculateLongestRoad(PlayerIndex);
+
+            // Move VPs to previous longest road holder in case of draws (or nobody if -1)
+            for (int playerIdx = 0; playerIdx < state.Players.Length; playerIdx++)
+            {
+                state.Players[playerIdx].VictoryPoints.LongestRoadPoints = (byte)(playerIdx == Outcome.PrevLongestRoadHolder ? 2 : 0);
+            }
+
+            // Un-complete match
+            state.Turn.TypeOfRound = TurnState.RoundType.Normal;
         }
 
         public override bool IsValidFor(GameState state)

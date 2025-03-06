@@ -19,6 +19,7 @@ namespace Client
         private View _uiView;
 
         private GameState _state;
+        private Stack<Action> _playedActions;
 
         private BoardRenderer _renderer;
         private CardWidget _cardWidget;
@@ -75,6 +76,7 @@ namespace Client
             _window = window;
 
             _state = new GameState(MapGenerator.GenerateRandomClassic(), PLAYER_COUNT);
+            _playedActions = [];
 
             _renderer = new BoardRenderer(_state.Board, 120, 20);
             _cardWidget = new CardWidget(window, _state.Players[_playerIndex]);
@@ -315,6 +317,11 @@ namespace Client
 
             ImGui.SameLine();
 
+            if (ImGui.Button("Undo Action [U]"))
+            {
+                UndoAction();
+            }
+
             if (ImGui.Button("Full Playout [E]"))
             {
                 PlayFullAgentPlayout();
@@ -374,6 +381,11 @@ namespace Client
             if(Keyboard.IsKeyPressed(Keyboard.Key.R))
             {
                 PlayAgentAction(!_muteQuickPlayouts);
+            }
+
+            if(Keyboard.IsKeyPressed(Keyboard.Key.U))
+            {
+                UndoAction();
             }
 
             if(Keyboard.IsKeyPressed(Keyboard.Key.E))
@@ -445,6 +457,9 @@ namespace Client
                     // Apply action to state
                     playedAction.Apply(_state);
 
+                    // Push to action stack
+                    _playedActions.Push(playedAction);
+
                     // Track distribution of rolls
                     if (playedAction is RollAction rollAction)
                     {
@@ -464,6 +479,8 @@ namespace Client
                 // Generate new map
                 _state.Board = MapGenerator.GenerateRandomClassic(_centerDesert);
                 _state.Reset();
+
+                _playedActions.Clear();
 
                 _eventLog.Clear();
                 _actionLogger.Init();
@@ -492,7 +509,6 @@ namespace Client
             if (_state.HasEnded) return;
 
             Clock playoutClock = new Clock();
-            int playedActions = 0;
 
             while (!_state.HasEnded)
             {
@@ -520,6 +536,9 @@ namespace Client
                 // Apply action to state
                 playedAction.Apply(_state);
 
+                // Push to action stack
+                _playedActions.Push(playedAction);
+
                 // Track distribution of rolls
                 if (playedAction is RollAction rollAction)
                 {
@@ -528,13 +547,11 @@ namespace Client
 
                 // Write entry to event log
                 _actionLogger.Log(playedAction, _state);
-
-                playedActions++;
             }
 
             float ms = playoutClock.ElapsedTime.AsSeconds() * 1000f;
 
-            Console.WriteLine($"Full playout of {_state.Turn.RoundCounter:n0} rounds ({playedActions:n0} actions) took {ms:n} ms ({ms / _state.Turn.RoundCounter} ms/round, {ms / playedActions} ms/action)");
+            Console.WriteLine($"Full playout of {_state.Turn.RoundCounter:n0} rounds ({_playedActions.Count():n0} actions) took {ms:n} ms ({ms / _state.Turn.RoundCounter} ms/round, {ms / _playedActions.Count()} ms/action)");
 
             // Update visuals
             _renderer.Update();
@@ -569,11 +586,15 @@ namespace Client
 
             if (!playedAction.IsValidFor(_state)) throw new InvalidOperationException();
 
+            // TODO: Remove?
             int prevRound = _state.Turn.RoundCounter;
             int prevPlayer = _state.Turn.PlayerIndex;
 
             // Apply action to state
             playedAction.Apply(_state);
+
+            // Push to action stack
+            _playedActions.Push(playedAction);
 
             // Track distribution of rolls
             if (playedAction is RollAction rollAction)
@@ -599,10 +620,41 @@ namespace Client
             _diceWidget.UpdateSprites();
         }
 
+        private void UndoAction()
+        {
+            if (_playedActions.Count() == 0) return;
+
+            // Get most recent action
+            Action playedAction = _playedActions.Pop();
+
+            // Revert action
+            playedAction.Revert(_state);
+
+            // Remove from roll distribution tracking
+            if (playedAction is RollAction rollAction)
+            {
+                _rollDistribution[rollAction.RollResult.Total]--;
+            }
+
+            // TODO: Remove entries from action log
+
+            // Update visuals
+            _renderer.Update();
+
+            _playerIndex = _state.Turn.PlayerIndex;
+            _cardWidget.SetPlayerState(_state.Players[_playerIndex]);
+
+            _diceWidget.Active = _state.Turn.MustRoll;
+            _diceWidget.RollResult = _state.Turn.LastRoll;
+            _diceWidget.UpdateSprites();
+        }
+
         private void RegenerateMap()
         {
             _state.Board = MapGenerator.GenerateRandomClassic(_centerDesert);
             _state.Reset();
+
+            _playedActions.Clear();
 
             _eventLog.Clear();
             _actionLogger.Init();
@@ -624,6 +676,8 @@ namespace Client
         {
             _state.Board.Clear();
             _state.Reset();
+
+            _playedActions.Clear();
 
             _eventLog.Clear();
             _actionLogger.Init();

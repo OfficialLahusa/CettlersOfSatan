@@ -35,6 +35,21 @@ namespace Common.Actions
             state.Players[PlayerIndex].ResourceCards.Add(OutputType, 1);
         }
 
+        public override void Revert(GameState state)
+        {
+            // Return input to hand
+            state.Players[PlayerIndex].ResourceCards.Add(InputType, 2);
+
+            // Return output to bank
+            state.ResourceBank.Add(OutputType, 1);
+
+            // Remove input from bank
+            state.ResourceBank.Remove(InputType, 2);
+
+            // Remove output from hand
+            state.Players[PlayerIndex].ResourceCards.Remove(OutputType, 1);
+        }
+
         public override bool IsValidFor(GameState state)
         {
             return IsTurnValid(state.Turn, PlayerIndex) && IsBoardValid(state);

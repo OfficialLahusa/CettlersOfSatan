@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
+using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -8,7 +10,7 @@ namespace Common.Actions
 {
     public class RollAction : Action, IActionProvider
     {
-        public record RollActionOutcome(bool TriggeredRobber, uint[,]? AwardedYields = null, uint RobbedYields = 0, uint CappedYields = 0);
+        public record RollActionOutcome(RollResult PrevRollResult, bool TriggeredRobber, uint[,]? AwardedYields = null, uint RobbedYields = 0, uint CappedYields = 0);
 
         public RollActionOutcome? Outcome { get; private set; }
 
@@ -43,17 +45,53 @@ namespace Common.Actions
                 // Require robber move
                 state.Turn.MustMoveRobber = true;
 
-                Outcome = new RollActionOutcome(robberTriggered);
+                Outcome = new RollActionOutcome(state.Turn.LastRoll, robberTriggered);
             }
             else
             {
                 (uint[,] yieldSummary, uint robbedYields, uint cappedYields) = AwardYields(state, RollResult.Total);
 
-                Outcome = new RollActionOutcome(robberTriggered, yieldSummary, robbedYields, cappedYields);
+                Outcome = new RollActionOutcome(state.Turn.LastRoll, robberTriggered, yieldSummary, robbedYields, cappedYields);
             }
 
+            // Update turn state
             state.Turn.LastRoll = RollResult;
             state.Turn.MustRoll = false;
+        }
+
+        public override void Revert(GameState state)
+        {
+            // Ensure action was applied before
+            if (Outcome == null) throw new InvalidOperationException();
+
+            // Cancel required discards and robber movement
+            if (Outcome.TriggeredRobber)
+            {
+                Array.Fill(state.Turn.AwaitedPlayerDiscards, false);
+
+                state.Turn.MustMoveRobber = false;
+            }
+            // Return yields
+            else
+            {
+                for (int playerIdx = 0; playerIdx < state.Players.Length; playerIdx++)
+                {
+                    for (int resourceTypeIdx = 0; resourceTypeIdx < CardSet<ResourceCardType>.Values.Count; resourceTypeIdx++)
+                    {
+                        uint awardedAmount = Outcome.AwardedYields![playerIdx, resourceTypeIdx];
+                        if (awardedAmount == 0) continue;
+
+                        ResourceCardType resourceType = CardSet<ResourceCardType>.Values[resourceTypeIdx];
+
+                        state.ResourceBank.Add(resourceType, awardedAmount);
+                        state.Players[playerIdx].ResourceCards.Remove(resourceType, awardedAmount);
+                    }
+                }
+            }
+
+            // Update turn state
+            state.Turn.LastRoll = Outcome.PrevRollResult;
+            state.Turn.MustRoll = true;
         }
 
         private (uint[,] yieldSummary, uint robbedYields, uint cappedYields) AwardYields(GameState state, int number)
@@ -109,6 +147,13 @@ namespace Common.Actions
                 if (insufficientStock && affectedPlayers > 1)
                 {
                     cappedYields += totalAwardedAmount;
+
+                    // Remove capped yields from summary
+                    for (int playerIdx = 0; playerIdx < state.Players.Length; playerIdx++)
+                    {
+                        yieldSummary[playerIdx, resourceTypeIdx] = 0;
+                    }
+
                     continue;
                 }
 
@@ -117,6 +162,9 @@ namespace Common.Actions
                 {
                     uint awardedAmount = yieldSummary[playerIdx, resourceTypeIdx];
                     if (awardedAmount > bankStock) awardedAmount = bankStock;
+
+                    // Remove capped yields from summary
+                    yieldSummary[playerIdx, resourceTypeIdx] = awardedAmount;
 
                     state.ResourceBank.Remove(resourceType, awardedAmount);
                     state.Players[playerIdx].ResourceCards.Add(resourceType, awardedAmount);

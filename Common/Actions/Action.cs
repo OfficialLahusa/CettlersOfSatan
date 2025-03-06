@@ -21,7 +21,7 @@ namespace Common.Actions
             if (!IsValidFor(state)) throw new InvalidOperationException();
         }
 
-        //public abstract void Revert(GameState state);
+        public abstract void Revert(GameState state);
 
         public abstract bool IsValidFor(GameState state);
 

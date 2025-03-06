@@ -61,6 +61,33 @@ namespace Common.Actions
             SettlementAction.UpdatePortPrivileges(state, IntersectionIndex, PlayerIndex);
         }
 
+        public override void Revert(GameState state)
+        {
+            // Ensure action was applied before
+            if (Outcome == null) throw new InvalidOperationException();
+
+            // Remove settlement
+            Intersection intersection = state.Board.Intersections[IntersectionIndex];
+            intersection.Owner = -1;
+            intersection.Building = Intersection.BuildingType.None;
+
+            // Return piece to stock
+            state.Players[PlayerIndex].BuildingStock.RemainingSettlements++;
+
+            // Remove initial resources
+            foreach (ResourceCardType resourceType in Outcome.InitialYields)
+            {
+                state.Players[PlayerIndex].ResourceCards.Remove(resourceType, 1);
+                state.ResourceBank.Add(resourceType, 1);
+            }
+
+            // Remove VP
+            state.Players[PlayerIndex].VictoryPoints.SettlementPoints--;
+
+            // Recalculate port privileges
+            SettlementAction.FullyRecalculatePortPrivileges(state);
+        }
+
         public override bool IsValidFor(GameState state)
         {
             return IsTurnValid(state.Turn, PlayerIndex) && IsBoardValid(state);

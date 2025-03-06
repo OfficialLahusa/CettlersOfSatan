@@ -38,10 +38,36 @@ namespace Common.Actions
             {
                 state.Turn.PlayerIndex++;
             }
+
+            // TODO: Remove?
             state.Turn.MustRoll = false;
             state.Turn.MustMoveRobber = false;
             Array.Fill(state.Turn.AwaitedPlayerDiscards, false);
             state.Turn.HasPlayedDevelopmentCard = false;
+
+            state.CalculateLongestRoad(PlayerIndex);
+        }
+
+        public override void Revert(GameState state)
+        {
+            // Remove road
+            Edge road = state.Board.Edges[EdgeIndex];
+            road.Owner = -1;
+            road.Building = Edge.BuildingType.None;
+
+            // Return piece to stock
+            state.Players[PlayerIndex].BuildingStock.RemainingRoads++;
+
+            // Update turn state
+            if (state.Turn.TypeOfRound == TurnState.RoundType.SecondInitial)
+            {
+                state.Turn.RoundCounter--;
+                state.Turn.TypeOfRound = TurnState.RoundType.FirstInitial;
+            }
+            else
+            {
+                state.Turn.PlayerIndex--;
+            }
 
             state.CalculateLongestRoad(PlayerIndex);
         }

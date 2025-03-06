@@ -9,7 +9,7 @@ namespace Common.Actions
 {
     public class RobberAction : Action, IActionProvider
     {
-        public record RobberActionOutcome(ResourceCardType? stolenCard = null);
+        public record RobberActionOutcome(Tile? PrevRobber, ResourceCardType? StolenCard = null);
 
         public RobberActionOutcome? Outcome { get; private set; }
 
@@ -31,6 +31,7 @@ namespace Common.Actions
             if (Outcome != null) throw new InvalidOperationException();
 
             Tile tile = state.Board.Map.ElementAt(TargetTileIndex);
+            Tile? prevRobber = state.Board.Robber;
             state.Board.Robber = tile;
 
             // Draw from adjacent player
@@ -41,17 +42,36 @@ namespace Common.Actions
                     ResourceCardType drawnCard = state.Players[TargetPlayerIndex.Value].ResourceCards.Draw(true);
                     state.Players[PlayerIndex].ResourceCards.Add(drawnCard, 1);
 
-                    Outcome = new RobberActionOutcome(drawnCard);
+                    Outcome = new RobberActionOutcome(prevRobber, drawnCard);
                 }
             }
 
             if (Outcome == null)
             {
-                Outcome = new RobberActionOutcome();
+                Outcome = new RobberActionOutcome(prevRobber);
             }
 
             // Update turn state
             state.Turn.MustMoveRobber = false;
+        }
+
+        public override void Revert(GameState state)
+        {
+            // Ensure action was applied before
+            if (Outcome == null) throw new InvalidOperationException();
+
+            // Return robber to previous tile
+            state.Board.Robber = Outcome.PrevRobber;
+
+            // Return card to adjacent player
+            if (TargetPlayerIndex.HasValue && Outcome.StolenCard.HasValue)
+            {
+                state.Players[TargetPlayerIndex.Value].ResourceCards.Add(Outcome.StolenCard.Value, 1);
+                state.Players[PlayerIndex].ResourceCards.Remove(Outcome.StolenCard.Value, 1);
+            }
+
+            // Update turn state
+            state.Turn.MustMoveRobber = true;
         }
 
         public override bool IsValidFor(GameState state)

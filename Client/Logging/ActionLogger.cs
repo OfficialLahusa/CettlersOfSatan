@@ -109,10 +109,10 @@ namespace Client.Logging
 
                         RobberAction.RobberActionOutcome outcome = robberAction.Outcome!;
                         
-                        if (outcome.stolenCard.HasValue)
+                        if (outcome.StolenCard.HasValue)
                         {
                             // TODO: Filter out unknown information
-                            _log.WriteLine(new ColoredStrEntry($"Stole {outcome.stolenCard.Value.GetName().ToLower()} from Player {robberAction.TargetPlayerIndex!}", playerColor));
+                            _log.WriteLine(new ColoredStrEntry($"Stole {outcome.StolenCard.Value.GetName().ToLower()} from Player {robberAction.TargetPlayerIndex!}", playerColor));
                         }
 
                         break;

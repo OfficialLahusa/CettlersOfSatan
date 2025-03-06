@@ -53,6 +53,25 @@ namespace Common.Actions
             state.Turn.HasPlayedDevelopmentCard = true;
         }
 
+        public override void Revert(GameState state)
+        {
+            // Ensure action was applied before
+            if (Outcome == null) throw new InvalidOperationException();
+
+            // Return card
+            state.Players[PlayerIndex].DevelopmentCards.Add(DevelopmentCardType.Monopoly, 1);
+
+            // Return cards of type to other players
+            foreach ((int otherPlayerIdx, uint movedCount) in Outcome.TransferredCards)
+            {
+                state.Players[otherPlayerIdx].ResourceCards.Add(ChosenType, movedCount);
+                state.Players[PlayerIndex].ResourceCards.Remove(ChosenType, movedCount);
+            }
+
+            // Update turn state
+            state.Turn.HasPlayedDevelopmentCard = false;
+        }
+
         public override bool IsValidFor(GameState state)
         {
             return IsTurnValid(state.Turn, PlayerIndex) && IsBoardValid(state);

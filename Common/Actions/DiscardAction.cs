@@ -34,6 +34,19 @@ namespace Common.Actions
             state.Turn.AwaitedPlayerDiscards[PlayerIndex] = false;
         }
 
+        public override void Revert(GameState state)
+        {
+            // Return selected cards to hand
+            CardSet<ResourceCardType> cardSet = state.Players[PlayerIndex].ResourceCards;
+            cardSet.Add(SelectedCards);
+
+            // Remove discarded cards from bank
+            state.ResourceBank.Remove(SelectedCards);
+
+            // Mark discard as awaited
+            state.Turn.AwaitedPlayerDiscards[PlayerIndex] = true;
+        }
+
         public override bool IsValidFor(GameState state)
         {
             return IsTurnValid(state.Turn, PlayerIndex) && IsBoardValid(state);

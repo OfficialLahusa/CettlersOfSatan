@@ -8,6 +8,10 @@ namespace Common.Actions
 {
     public class KnightAction : Action, IActionProvider
     {
+        public record KnightActionOutcome(int PrevLargestArmyHolder);
+
+        public KnightActionOutcome? Outcome { get; private set; }
+
         public KnightAction(int playerIdx)
             : base(playerIdx)
         { }
@@ -15,6 +19,22 @@ namespace Common.Actions
         public override void Apply(GameState state)
         {
             base.Apply(state);
+
+            // Ensure action was not applied before
+            if (Outcome != null) throw new InvalidOperationException();
+
+            int currentLargestArmyHolder = -1;
+
+            for (int playerIdx = 0; playerIdx < state.Players.Length; playerIdx++)
+            {
+                if (state.Players[playerIdx].VictoryPoints.LargestArmyPoints > 0)
+                {
+                    currentLargestArmyHolder = playerIdx;
+                    break;
+                }
+            }
+
+            Outcome = new KnightActionOutcome(currentLargestArmyHolder);
 
             // Remove card
             state.Players[PlayerIndex].DevelopmentCards.Remove(DevelopmentCardType.Knight, 1);
@@ -29,6 +49,28 @@ namespace Common.Actions
 
             // Check for match completion
             state.CheckForCompletion();
+        }
+
+        public override void Revert(GameState state)
+        {
+            // Ensure action was applied before
+            if (Outcome == null) throw new InvalidOperationException();
+
+            // Return card
+            state.Players[PlayerIndex].DevelopmentCards.Add(DevelopmentCardType.Knight, 1);
+
+            // Update turn state
+            state.Turn.MustMoveRobber = false;
+            state.Turn.HasPlayedDevelopmentCard = false;
+
+            // Decrement largest army
+            --state.Players[PlayerIndex].PlayedKnights;
+
+            // Reassign VPs to previous owner (or nobody if previously -1)
+            for (int playerIdx = 0; playerIdx < state.Players.Length; playerIdx++)
+            {
+                state.Players[playerIdx].VictoryPoints.LargestArmyPoints = (byte)(playerIdx == Outcome.PrevLargestArmyHolder ? 2 : 0);
+            }
         }
 
         public override bool IsValidFor(GameState state)

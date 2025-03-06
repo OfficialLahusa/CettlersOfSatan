@@ -21,9 +21,8 @@ namespace Common.Actions
         {
             base.Apply(state);
 
-            // Place road
+            // Place city
             Intersection intersection = state.Board.Intersections[IntersectionIndex];
-            intersection.Owner = PlayerIndex;
             intersection.Building = Intersection.BuildingType.City;
 
             // Remove cards
@@ -47,6 +46,35 @@ namespace Common.Actions
 
             // Check for match completion
             state.CheckForCompletion();
+        }
+
+        public override void Revert(GameState state)
+        {
+            // Remove city
+            Intersection intersection = state.Board.Intersections[IntersectionIndex];
+            intersection.Building = Intersection.BuildingType.Settlement;
+
+            // Return cards
+            CardSet<ResourceCardType> playerCards = state.Players[PlayerIndex].ResourceCards;
+            playerCards.Add(ResourceCardType.Grain, 2);
+            playerCards.Add(ResourceCardType.Ore, 3);
+
+            // Remove cards from bank
+            state.ResourceBank.Remove(ResourceCardType.Grain, 2);
+            state.ResourceBank.Remove(ResourceCardType.Ore, 3);
+
+            // Add piece to stock
+            state.Players[PlayerIndex].BuildingStock.RemainingCities++;
+
+            // Remove previous piece from stock
+            state.Players[PlayerIndex].BuildingStock.RemainingSettlements--;
+
+            // Remove VP
+            state.Players[PlayerIndex].VictoryPoints.SettlementPoints++;
+            state.Players[PlayerIndex].VictoryPoints.CityPoints -= 2;
+
+            // Un-complete match
+            state.Turn.TypeOfRound = TurnState.RoundType.Normal;
         }
 
         public override bool IsValidFor(GameState state)

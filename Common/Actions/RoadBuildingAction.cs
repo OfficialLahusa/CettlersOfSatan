@@ -29,6 +29,20 @@ namespace Common.Actions
             state.Turn.HasPlayedDevelopmentCard = true;
         }
 
+        public override void Revert(GameState state)
+        {
+            // Return card
+            state.Players[PlayerIndex].DevelopmentCards.Add(DevelopmentCardType.RoadBuilding, 1);
+
+            // Remove free road stock
+            BuildingStock buildingStock = state.Players[PlayerIndex].BuildingStock;
+            buildingStock.RemainingRoads += buildingStock.FreeRoads;
+            buildingStock.FreeRoads = 0;
+
+            // Update turn state
+            state.Turn.HasPlayedDevelopmentCard = false;
+        }
+
         public override bool IsValidFor(GameState state)
         {
             return IsTurnValid(state.Turn, PlayerIndex) && IsBoardValid(state);
