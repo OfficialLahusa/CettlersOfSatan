@@ -605,7 +605,7 @@ namespace Client
             _state.Reset();
 
             _eventLog.Clear();
-            _eventLog.WriteLine(new RoundEntry(0));
+            _actionLogger.Init();
 
             _rollDistribution = new float[_rollDistribution.Length];
 
@@ -626,7 +626,7 @@ namespace Client
             _state.Reset();
 
             _eventLog.Clear();
-            _eventLog.WriteLine(new RoundEntry(0));
+            _actionLogger.Init();
 
             _rollDistribution = new float[_rollDistribution.Length];
 
@@ -659,12 +659,12 @@ namespace Client
 
         private void Window_KeyPressed(object? sender, KeyEventArgs e)
         {
-            if (e.Code == Keyboard.Key.Enter)
+            /*if (e.Code == Keyboard.Key.Enter)
             {
                 if (_spectatorMode) return;
 
                 RollDice();
-            }
+            }*/
         }
 
         private void Window_MouseButtonPressed(object? sender, MouseButtonEventArgs e)
@@ -673,11 +673,11 @@ namespace Client
             Vector2f uiMousePos = _window.MapPixelToCoords(new Vector2i(e.X, e.Y), _uiView);
 
             // Dice widget click to roll interaction
-            if (!_spectatorMode && e.Button == Mouse.Button.Left && _diceWidget.Contains(uiMousePos.X, uiMousePos.Y))
+            /*if (!_spectatorMode && e.Button == Mouse.Button.Left && _diceWidget.Contains(uiMousePos.X, uiMousePos.Y))
             {
                 RollDice();
                 return;
-            }
+            }*/
 
 
             // >> Edit mode click interactions <<
@@ -816,63 +816,6 @@ namespace Client
                     _eventLog.WriteLine(new PlayerEntry(_playerIndex), new StrEntry("moved the robber"));
 
                     return;
-                }
-            }
-        }
-
-        // TODO: Remove, since it is now handled by actions
-        public void RollDice()
-        {
-            int total = _diceWidget.Roll();
-            _diceRollSound.Play();
-
-            _rollDistribution[total] += 1;
-
-            _eventLog.WriteLine(new SeparatorEntry());
-            _eventLog.WriteLine(new PlayerEntry(_playerIndex), new StrEntry($"rolled {_diceWidget.RollResult.Total} ({_diceWidget.RollResult.First}+{_diceWidget.RollResult.Second})"));
-
-            if (total == 7)
-            {
-                _eventLog.WriteLine(new StrEntry("The robber was triggered"));
-            }
-            else
-            {
-                // Award yields
-                (uint[,] yieldSummary, uint robbedYields, uint cappedYields) = _state.AwardYields(total);
-
-                for (int player = 0; player < yieldSummary.GetLength(0); player++)
-                {
-                    for (int resource = 0; resource < yieldSummary.GetLength(1); resource++)
-                    {
-                        uint yieldAmount = yieldSummary[player, resource];
-
-                        if (yieldAmount > 0)
-                        {
-                            _eventLog.WriteLine(
-                                new PlayerEntry(player),
-                                new StrEntry($"earned {yieldAmount}"),
-                                new ResourceCardEntry(CardSet<ResourceCardType>.Values[resource])
-                            );
-                        }
-                    }
-                }
-
-                if(robbedYields > 0)
-                {
-                    string msg = $"The robber stole {robbedYields} yield";
-
-                    if (robbedYields > 1) msg += "s";
-
-                    _eventLog.WriteLine(new StrEntry(msg));
-                }
-
-                if (cappedYields > 0)
-                {
-                    string msg = $"Limited bank stock prevented {cappedYields} yield";
-
-                    if (cappedYields > 1) msg += "s";
-
-                    _eventLog.WriteLine(new StrEntry(msg));
                 }
             }
         }

@@ -41,7 +41,51 @@ namespace Client.Logging
 
                 case RollAction rollAction:
                     _log.WriteLine(new ColoredStrEntry($"Rolled {rollAction.RollResult.Total} ({rollAction.RollResult.First}+{rollAction.RollResult.Second})", playerColor));
-                    // TODO: Yield summary
+
+                    RollAction.RollActionOutcome outcome = rollAction.Outcome!;
+
+                    // Summarize yields
+                    if(!outcome.TriggeredRobber)
+                    {
+                        uint[,] yieldSummary = outcome.AwardedYields!;
+
+                        for (int playerIdx = 0; playerIdx < yieldSummary.GetLength(0); playerIdx++)
+                        {
+                            List<(uint, string)> yieldEntries = new List<(uint, string)>();
+
+                            for (int resourceIdx = 0; resourceIdx < yieldSummary.GetLength(1); resourceIdx++)
+                            {
+                                uint amount = yieldSummary[playerIdx, resourceIdx];
+
+                                if(amount == 1)
+                                {
+                                    yieldEntries.Add((amount, CardSet<ResourceCardType>.Values[resourceIdx].GetName().ToLower()));
+                                }
+                                else if(amount > 1)
+                                {
+                                    yieldEntries.Add((amount, $"{amount} {CardSet<ResourceCardType>.Values[resourceIdx].GetName().ToLower()}"));
+                                }
+                            }
+
+                            if (yieldEntries.Count() > 0)
+                            {
+                                List<string> yieldStrings = yieldEntries.OrderByDescending(x => x.Item1).Select(x => x.Item2).ToList();
+
+                                _log.WriteLine(new ColoredStrEntry("Received " + string.Join(", ", yieldStrings), ColorPalette.GetPlayerColor(playerIdx)));
+                            }
+                        }
+                        
+                        if (outcome.RobbedYields > 0)
+                        {
+                            _log.WriteLine(new ColoredStrEntry($"The robber blocked {outcome.RobbedYields} yield" + (outcome.RobbedYields > 1 ? "s" : ""), playerColor));
+                        }
+
+                        if (outcome.CappedYields > 0)
+                        {
+                            _log.WriteLine(new ColoredStrEntry($"Bank stock limited {outcome.CappedYields} yield" + (outcome.CappedYields > 1 ? "s" : ""), playerColor));
+                        }
+                    }
+
                     break;
 
                 case DiscardAction discardAction:
@@ -112,7 +156,7 @@ namespace Client.Logging
                     _log.WriteLine(new ColoredStrEntry("Activated year of plenty", playerColor));
                     if (yearOfPlentyAction.SecondChoice.HasValue)
                     {
-                        _log.WriteLine(new ColoredStrEntry($"Received {yearOfPlentyAction.FirstChoice.GetName().ToLower()} and {yearOfPlentyAction.SecondChoice.Value.GetName().ToLower()}", playerColor));
+                        _log.WriteLine(new ColoredStrEntry($"Received {yearOfPlentyAction.FirstChoice.GetName().ToLower()}, {yearOfPlentyAction.SecondChoice.Value.GetName().ToLower()}", playerColor));
                     }
                     else
                     {
