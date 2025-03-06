@@ -96,10 +96,14 @@ namespace Common.Agents
                 return valuation;
             }
 
-            // Weight victory points highest
+            const float victoryPointWeight = 5f;
+            const float yieldPointWeight = 1f;
+            const float roadKnightWeight = 1f;
+
+            // Add victory points
             for (int playerIdx = 0; playerIdx < state.Players.Length; playerIdx++)
             {
-                valuation[playerIdx] = 5 * state.Players[playerIdx].VictoryPoints.Total;
+                valuation[playerIdx] = victoryPointWeight * state.Players[playerIdx].VictoryPoints.Total;
             }
 
             // Add yield score
@@ -107,10 +111,16 @@ namespace Common.Agents
             {
                 if (intersection.Building != Intersection.BuildingType.None)
                 {
-                    float fac = intersection.Building == Intersection.BuildingType.Settlement ? 1 : 2;
+                    float exploitation = intersection.Building == Intersection.BuildingType.Settlement ? 1 : 2;
 
-                    valuation[intersection.Owner] += fac * IntersectionValueFunc(intersection, state, true);
+                    valuation[intersection.Owner] += yieldPointWeight * exploitation * IntersectionValueFunc(intersection, state, true);
                 }
+            }
+
+            // Add longest road length and largest army size to incentivize higher lead
+            for (int playerIdx = 0; playerIdx < state.Players.Length; playerIdx++)
+            {
+                valuation[playerIdx] = roadKnightWeight * (state.Players[playerIdx].LongestRoadLength + state.Players[playerIdx].PlayedKnights);
             }
 
             // Normalize
