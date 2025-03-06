@@ -7,7 +7,6 @@ using SFML.Audio;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
-using System.Security.Cryptography;
 using Action = Common.Actions.Action;
 using Edge = Common.Edge;
 
@@ -28,6 +27,7 @@ namespace Client
         private EventLog _eventLog;
         private ActionLogger _actionLogger;
         private float[] _rollDistribution;
+        private bool _showEvaluationBar = true;
 
         public static Font Font;
 
@@ -140,6 +140,35 @@ namespace Client
             _window.Draw(_cardWidget);
             _window.Draw(_diceWidget);
 
+            // Evaluation bar
+            if(_showEvaluationBar)
+            {
+                float[] valuation = SimpleAgent.StateValueFunc(_state);
+                var sortedValuation = valuation.Select((val, idx) => (val, idx)).OrderByDescending(x => (x.val, x.idx));
+
+                // Draw outline
+                RectangleShape valuationBar = new RectangleShape();
+                valuationBar.Position = new Vector2f(_window.Size.X / 2 - 220, -_window.Size.Y / 2 + 20);
+                valuationBar.OutlineColor = new Color(10, 10, 10);
+                valuationBar.OutlineThickness = 6;
+                valuationBar.Size = new Vector2f(200, 25);
+
+                _window.Draw(valuationBar);
+
+                valuationBar.OutlineThickness = 0;
+
+                // Player bars
+                foreach ((float val, int playerIdx) in sortedValuation)
+                {
+                    valuationBar.Size = new Vector2f(200 * val, 25);
+                    valuationBar.FillColor = ColorPalette.GetPlayerColor(playerIdx);
+
+                    _window.Draw(valuationBar);
+                    valuationBar.Position += new Vector2f(200 * val, 0);
+                }
+            }
+
+            // ImGui Windows
             ImGui.Begin("Menu", ImGuiWindowFlags.AlwaysAutoResize);
 
             ImGui.Text($"FPS: {Math.Floor(1 / _latestAvgFrameTime)}");
@@ -222,6 +251,7 @@ namespace Client
 
             if (ImGui.TreeNode("Analytics"))
             {
+                ImGui.Checkbox("Show Evaluation Bar", ref _showEvaluationBar);
                 ImGui.TextUnformatted("Roll Result Distribution:");
                 ImGui.PlotHistogram(string.Empty, ref _rollDistribution[0], _rollDistribution.Length, 0, string.Empty, 0, _rollDistribution.Max(), new System.Numerics.Vector2(225, 100));
 

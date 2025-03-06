@@ -22,7 +22,7 @@ namespace Common.Agents
             if (firstInitialSettlementActions.Count > 0)
             {
                 return firstInitialSettlementActions
-                    .OrderByDescending(a => IntersectionValueFunc(state.Board.Intersections[((FirstInitialSettlementAction)a).IntersectionIndex]))
+                    .OrderByDescending(a => IntersectionValueFunc(state.Board.Intersections[((FirstInitialSettlementAction)a).IntersectionIndex], state))
                     .First();
             }
 
@@ -30,7 +30,7 @@ namespace Common.Agents
             if (secondInitialSettlementActions.Count > 0)
             {
                 return secondInitialSettlementActions
-                    .OrderByDescending(a => IntersectionValueFunc(state.Board.Intersections[((SecondInitialSettlementAction)a).IntersectionIndex]))
+                    .OrderByDescending(a => IntersectionValueFunc(state.Board.Intersections[((SecondInitialSettlementAction)a).IntersectionIndex], state))
                     .First();
             }
 
@@ -70,16 +70,65 @@ namespace Common.Agents
             return actions[actionIdx];
         }
 
-        public float IntersectionValueFunc(Intersection intersection)
+        public static float IntersectionValueFunc(Intersection intersection, GameState state, bool considerRobber = true)
         {
             float value = 0f;
 
             foreach (Tile adjTile in intersection.AdjacentTiles.Values)
             {
+                if (considerRobber && adjTile == state.Board.Robber)
+                    continue;
+
                 value += adjTile.YieldPoints;
             }
 
             return value;
+        }
+
+        public static float[] StateValueFunc(GameState state)
+        {
+            float[] valuation = new float[state.Players.Length];
+
+            // Return full valuation if match is already decided
+            if (state.HasEnded)
+            {
+                valuation[state.Turn.PlayerIndex] = 1f;
+                return valuation;
+            }
+
+            // Weight victory points highest
+            for (int playerIdx = 0; playerIdx < state.Players.Length; playerIdx++)
+            {
+                valuation[playerIdx] = 5 * state.Players[playerIdx].VictoryPoints.Total;
+            }
+
+            // Add yield score
+            foreach (Intersection intersection in state.Board.Intersections)
+            {
+                if (intersection.Building != Intersection.BuildingType.None)
+                {
+                    float fac = intersection.Building == Intersection.BuildingType.Settlement ? 1 : 2;
+
+                    valuation[intersection.Owner] += fac * IntersectionValueFunc(intersection, state, true);
+                }
+            }
+
+            // Normalize
+            float sum = valuation.Sum();
+
+            // Edge case: All players have a valuation of 0 => equalize valuation to 1
+            if (sum < 0.0001f)
+            {
+                Array.Fill(valuation, 1f);
+                sum = valuation.Sum();
+            }
+
+            for (int playerIdx = 0;playerIdx < state.Players.Length; playerIdx++)
+            {
+                valuation[playerIdx] /= sum;
+            }
+
+            return valuation;
         }
     }
 }
