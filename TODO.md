@@ -13,6 +13,8 @@
 	- Illegale Instanzen örtlich begrenzter Actions besser abgrenzen
 - SimpleAgent
 	- Immer die Spots mit den höchsten Yields bebauen
+	- Trades ausschließen, die günstiger mit Port möglich wären (z.B. kein 4:1 wenn 2:1 mit gleichem IO möglich ist)
+	- Trades nur nehmen, wenn sie tatsächlich die Ressourcenbewertung verbessern
 	- Räuber immer auf das Feld bewegen, das die Yield Scores am besten verändert
 	- Immer vom besten anliegenden Spieler ziehen
 	- Immer die am wenigsten wertvollen Karten (anhand von eigenen Yields) discarden
