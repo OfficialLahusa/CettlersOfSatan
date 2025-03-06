@@ -57,8 +57,25 @@ namespace Client.Logging
                     break;
 
                 case RobberAction robberAction:
-                    _log.WriteLine(new ColoredStrEntry("Moved the robber", playerColor));
+                    _log.WriteLine(new ColoredStrEntry("Moved robber", playerColor));
                     // TODO: Stolen card and victim
+                    break;
+
+                case FirstInitialSettlementAction firstInitialSettlementAction:
+                    _log.WriteLine(new ColoredStrEntry("Placed 1st initial settlement", playerColor));
+                    break;
+
+                case FirstInitialRoadAction firstInitialRoadAction:
+                    _log.WriteLine(new ColoredStrEntry("Placed 1st initial road", playerColor));
+                    break;
+
+                case SecondInitialSettlementAction secondInitialSettlementAction:
+                    _log.WriteLine(new ColoredStrEntry("Placed 2nd initial settlement", playerColor));
+                    // TODO: Initial cards
+                    break;
+
+                case SecondInitialRoadAction secondInitialRoadAction:
+                    _log.WriteLine(new ColoredStrEntry("Placed 2nd initial road", playerColor));
                     break;
 
                 // TODO: Remaining Actions in order used by LegalActionProvider
