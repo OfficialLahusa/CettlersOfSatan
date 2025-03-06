@@ -26,11 +26,11 @@ namespace Client
             // Maximize window
             ShowWindow(window.SystemHandle, 3);
 
-            // Init Screen
-            screen = new GameScreen(window);
-
             // Init ImGui
             GuiImpl.Init(window);
+
+            // Init Screen
+            screen = new GameScreen(window);
 
             window.KeyPressed += Window_KeyPressed;
             window.Closed += Window_Closed;
