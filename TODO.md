@@ -41,8 +41,9 @@
 - PlayerAgent
 	- Besseres Interface für Bank/Port Trades implementieren (Dropdown für Zielressource)
 - Serialization
-	- Maps, Lobbies und Replays in/aus Dateien
+	- Maps, Lobby/Agent-Configs und Replays in/aus Dateien
 	- Packets über Netzwerk
+	- YAML?
 - Ranking System
 	- https://github.com/moserware/Skills/blob/master/Skills/Team.cs
 	- https://trueskill.org/
