@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,6 +9,10 @@ namespace Common.Actions
 {
     public class MonopolyAction : Action, IActionProvider
     {
+        public record MonopolyActionOutcome(ReadOnlyCollection<(int, uint)> TransferredCards);
+
+        public MonopolyActionOutcome? Outcome { get; private set; }
+
         public ResourceCardType ChosenType { get; set; }
 
         public MonopolyAction(int playerIdx, ResourceCardType chosenType)
@@ -20,18 +25,29 @@ namespace Common.Actions
         {
             base.Apply(state);
 
+            // Ensure action was not applied before
+            if (Outcome != null) throw new InvalidOperationException();
+
             // Remove card
             state.Players[PlayerIndex].DevelopmentCards.Remove(DevelopmentCardType.Monopoly, 1);
 
             // Move cards of type to player
-            for(int player = 0; player < state.Players.Length; player++)
+            List<(int, uint)> transferredCards = [];
+            for(int otherPlayerIdx = 0; otherPlayerIdx < state.Players.Length; otherPlayerIdx++)
             {
-                if (player == PlayerIndex) continue;
+                if (otherPlayerIdx == PlayerIndex) continue;
 
-                uint movedCount = state.Players[player].ResourceCards.Get(ChosenType);
-                state.Players[player].ResourceCards.Remove(ChosenType, movedCount);
+                uint movedCount = state.Players[otherPlayerIdx].ResourceCards.Get(ChosenType);
+
+                if (movedCount == 0) continue;
+
+                state.Players[otherPlayerIdx].ResourceCards.Remove(ChosenType, movedCount);
                 state.Players[PlayerIndex].ResourceCards.Add(ChosenType, movedCount);
+
+                transferredCards.Add((otherPlayerIdx, movedCount));
             }
+
+            Outcome = new MonopolyActionOutcome(transferredCards.OrderByDescending(x => (x.Item2, -x.Item1)).ToList().AsReadOnly());
 
             // Update turn state
             state.Turn.HasPlayedDevelopmentCard = true;

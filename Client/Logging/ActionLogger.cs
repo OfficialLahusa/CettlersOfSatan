@@ -188,9 +188,19 @@ namespace Client.Logging
                     break;
 
                 case MonopolyAction monopolyAction:
-                    _log.WriteLine(new ColoredStrEntry($"Activated monopoly on {monopolyAction.ChosenType.GetName().ToLower()}", playerColor));
-                    // TODO: How many cards were moved?
-                    break;
+                    {
+                        _log.WriteLine(new ColoredStrEntry($"Activated monopoly on {monopolyAction.ChosenType.GetName().ToLower()}", playerColor));
+
+                        MonopolyAction.MonopolyActionOutcome outcome = monopolyAction.Outcome!;
+
+                        // Transferred cards
+                        foreach ((int playerIdx, uint amount) in outcome.TransferredCards)
+                        {
+                            _log.WriteLine(new ColoredStrEntry($"Received {amount} {monopolyAction.ChosenType.GetName().ToLower()} from Player {playerIdx}", playerColor));
+                        }
+
+                        break;
+                    }
 
                 case RoadBuildingAction roadBuildingAction:
                     _log.WriteLine(new ColoredStrEntry("Activated road building", playerColor));
