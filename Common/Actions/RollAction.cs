@@ -26,7 +26,7 @@ namespace Common.Actions
         {
             base.Apply(state);
 
-            // Ensure action wasn't applied before
+            // Ensure action was not applied before
             if (Outcome != null) throw new InvalidOperationException();
 
             bool robberTriggered = RollResult.Total == 7;

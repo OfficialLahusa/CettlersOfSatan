@@ -3,11 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Common.Actions.RollAction;
 
 namespace Common.Actions
 {
     public class RobberAction : Action, IActionProvider
     {
+        public record RobberActionOutcome(ResourceCardType? stolenCard = null);
+
+        public RobberActionOutcome? Outcome { get; private set; }
+
         public int TargetTileIndex { get; init; }
         public int? TargetPlayerIndex { get; init; }
 
@@ -22,17 +27,27 @@ namespace Common.Actions
         {
             base.Apply(state);
 
+            // Ensure action was not applied before
+            if (Outcome != null) throw new InvalidOperationException();
+
             Tile tile = state.Board.Map.ElementAt(TargetTileIndex);
             state.Board.Robber = tile;
 
             // Draw from adjacent player
             if (TargetPlayerIndex.HasValue)
             {
-                if(state.Players[TargetPlayerIndex.Value].ResourceCards.Count() > 0)
+                if (state.Players[TargetPlayerIndex.Value].ResourceCards.Count() > 0)
                 {
                     ResourceCardType drawnCard = state.Players[TargetPlayerIndex.Value].ResourceCards.Draw(true);
                     state.Players[PlayerIndex].ResourceCards.Add(drawnCard, 1);
+
+                    Outcome = new RobberActionOutcome(drawnCard);
                 }
+            }
+
+            if (Outcome == null)
+            {
+                Outcome = new RobberActionOutcome();
             }
 
             // Update turn state
