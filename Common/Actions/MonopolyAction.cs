@@ -8,7 +8,7 @@ namespace Common.Actions
 {
     public class MonopolyAction : Action, IActionProvider
     {
-        ResourceCardType ChosenType { get; set; }
+        public ResourceCardType ChosenType { get; set; }
 
         public MonopolyAction(int playerIdx, ResourceCardType chosenType)
             : base(playerIdx)

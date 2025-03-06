@@ -53,7 +53,7 @@ namespace Client.Logging
                             sb.Append(resourceType.GetAbbreviation());
                         }
                     }
-                    _log.WriteLine(new ColoredStrEntry($"Discarded {discardAction.SelectedCards.Count()} ({sb})", playerColor));
+                    _log.WriteLine(new ColoredStrEntry($"Discarded {discardAction.SelectedCards.Count()} cards ({sb})", playerColor));
                     break;
 
                 case RobberAction robberAction:
@@ -78,13 +78,64 @@ namespace Client.Logging
                     _log.WriteLine(new ColoredStrEntry("Placed 2nd initial road", playerColor));
                     break;
 
-                // TODO: Remaining Actions in order used by LegalActionProvider
+                case RoadAction roadAction:
+                    _log.WriteLine(new ColoredStrEntry("Placed road", playerColor));
+                    break;
+
+                case SettlementAction settlementAction:
+                    _log.WriteLine(new ColoredStrEntry("Placed settlement", playerColor));
+                    break;
+
+                case CityAction cityAction:
+                    _log.WriteLine(new ColoredStrEntry("Upgraded settlement to city", playerColor));
+                    break;
+
+                case BuyDevelopmentCardAction buyDevelopmentCardAction:
+                    _log.WriteLine(new ColoredStrEntry("Bought development card", playerColor));
+                    // TODO: Tell acting player which card it is?
+                    break;
+
+                case KnightAction knightAction:
+                    _log.WriteLine(new ColoredStrEntry("Activated knight", playerColor));
+                    break;
+
+                case MonopolyAction monopolyAction:
+                    _log.WriteLine(new ColoredStrEntry($"Activated monopoly on {monopolyAction.ChosenType.GetName().ToLower()}", playerColor));
+                    // TODO: How many cards were moved?
+                    break;
+
+                case RoadBuildingAction roadBuildingAction:
+                    _log.WriteLine(new ColoredStrEntry("Activated road building", playerColor));
+                    break;
+
+                case YearOfPlentyAction yearOfPlentyAction:
+                    _log.WriteLine(new ColoredStrEntry("Activated year of plenty", playerColor));
+                    if (yearOfPlentyAction.SecondChoice.HasValue)
+                    {
+                        _log.WriteLine(new ColoredStrEntry($"Received {yearOfPlentyAction.FirstChoice.GetName().ToLower()} and {yearOfPlentyAction.SecondChoice.Value.GetName().ToLower()}", playerColor));
+                    }
+                    else
+                    {
+                        _log.WriteLine(new ColoredStrEntry($"Received {yearOfPlentyAction.FirstChoice.GetName().ToLower()}", playerColor));
+                    }
+                    break;
+
+                case FourToOneTradeAction fourToOneTradeAction:
+                    _log.WriteLine(new ColoredStrEntry($"Traded 4 {fourToOneTradeAction.InputType.GetName().ToLower()} for 1 {fourToOneTradeAction.OutputType.GetName().ToLower()}", playerColor));
+                    break;
+
+                case ThreeToOneTradeAction threeToOneTradeAction:
+                    _log.WriteLine(new ColoredStrEntry($"Traded 3 {threeToOneTradeAction.InputType.GetName().ToLower()} for 1 {threeToOneTradeAction.OutputType.GetName().ToLower()}", playerColor));
+                    break;
+
+                case TwoToOneTradeAction twoToOneTradeAction:
+                    _log.WriteLine(new ColoredStrEntry($"Traded 2 {twoToOneTradeAction.InputType.GetName().ToLower()} for 1 {twoToOneTradeAction.OutputType.GetName().ToLower()}", playerColor));
+                    break;
+
                 // TODO: Changes in Longest Road/Largest Army Leader
 
-                // Fallback: Basic string conversion of action in player color
                 default:
-                    _log.WriteLine(new ColoredStrEntry(action.ToString(), playerColor));
-                    break;
+                    throw new InvalidOperationException();
             }
 
             // Round divider & header
