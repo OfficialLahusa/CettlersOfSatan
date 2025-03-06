@@ -3,6 +3,8 @@
 - Testen, ob Bank immer Gesamtsumme behält
 - Equality, HashCode und Copy für GameState implementieren
 - Observation Filter (Agents nur die für sie sichtbaren Informationen geben)
+	- Von Robber gestohlene Karten
+	- Gezogene Development Cards
 - GameState in Static und Dynamic unterteilen?
 	- Tiles, Edges und Intersections als Struktur statisch speichern und teilen
 	- Playstate (Roads, Settlements, Cities) als Byte-Arrays mit gleichen Indizes abbilden
