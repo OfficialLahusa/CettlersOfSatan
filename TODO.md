@@ -7,7 +7,7 @@
 	- Tiles, Edges und Intersections als Struktur statisch speichern und teilen
 	- Playstate (Roads, Settlements, Cities) als Byte-Arrays mit gleichen Indizes abbilden
 - Action für variable Domestic Trades
-- Datensatz für einfache ML Starting Position Value Function generieren
+- Datensatz für einfaches State Value Network generieren
 - RandomAgent
 	- Illegale Instanzen örtlich begrenzter Actions besser abgrenzen
 - SimpleAgent
