@@ -24,6 +24,7 @@ namespace Client.Logging
         public void Init()
         {
             _log.WriteLine(new RoundEntry(0));
+            _log.PushSection();
             _prevRound = 0;
             _prevPlayer = 0;
         }
@@ -254,8 +255,15 @@ namespace Client.Logging
                 _log.WriteLine(new ColoredStrEntry($"Player {state.Turn.PlayerIndex} won", ColorPalette.GetPlayerColor(state.Turn.PlayerIndex)));
             }
 
+            _log.PushSection();
+
+            UpdateTracking(state);
+        }
+
+        public void UpdateTracking(GameState state)
+        {
             _prevRound = state.Turn.RoundCounter;
             _prevPlayer = state.Turn.PlayerIndex;
-        } 
+        }
     }
 }

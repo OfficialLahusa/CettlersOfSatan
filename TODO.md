@@ -1,4 +1,3 @@
-- Action Logging reversible machen
 - Replay von Actions mit gesetzem Outcome
 - Testen, ob alle Actions genutzt werden
 - Testen, ob Bank immer Gesamtsumme behält

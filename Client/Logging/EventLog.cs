@@ -12,11 +12,17 @@ namespace Client.Logging
 {
     public class EventLog
     {
+        // Closed sections
+        private List<List<ILogEntry>> _sections;
+
+        // Open section
         private List<ILogEntry> _lines;
+
         private bool _scrollToBottom = false;
 
         public EventLog()
         {
+            _sections = new List<List<ILogEntry>>();
             _lines = new List<ILogEntry>();
         }
 
@@ -24,6 +30,16 @@ namespace Client.Logging
         {
             ImGui.BeginChild("ScrollLog", new Vector2(250, 350), true, ImGuiWindowFlags.NavFlattened);
 
+            // Draw closed sections
+            foreach(List<ILogEntry> section in _sections)
+            {
+                foreach (ILogEntry line in section)
+                {
+                    line.Draw();
+                }
+            }
+
+            // Draw open section
             foreach (ILogEntry line in _lines)
             {
                 line.Draw();
@@ -53,8 +69,30 @@ namespace Client.Logging
             _scrollToBottom = true;
         }
 
+        public void PushSection()
+        {
+            _sections.Add(_lines);
+            _lines = new();
+        }
+
+        public void PopSection()
+        {
+            if (_lines.Count > 0)
+            {
+                _lines.Clear();
+            }
+            else
+            {
+                if (_sections.Count > 0)
+                {
+                    _sections.RemoveAt(_sections.Count - 1);
+                }
+            }
+        }
+
         public void Clear()
         {
+            _sections.Clear();
             _lines.Clear();
         }
     }

@@ -636,7 +636,9 @@ namespace Client
                 _rollDistribution[rollAction.RollResult.Total]--;
             }
 
-            // TODO: Remove entries from action log
+            // Remove latest section from log
+            _eventLog.PopSection();
+            _actionLogger.UpdateTracking(_state);
 
             // Update visuals
             _renderer.Update();
