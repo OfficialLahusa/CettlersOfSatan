@@ -1,5 +1,6 @@
 - Testen, ob alle Actions genutzt werden
 - Testen, ob Bank immer Gesamtsumme behält
+- Equality, HashCode und Copy für GameState implementieren
 - Nested Class Result mit fehlenden Informationen über den Ausgang der Action
 	- Reversible Actions
 - Observation Filter (Agents nur die für sie sichtbaren Informationen geben)
