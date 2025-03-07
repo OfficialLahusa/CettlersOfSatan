@@ -446,7 +446,7 @@ namespace Client
             GuiImpl.Update(_window, deltaTime);
         }
 
-        private void BenchmarkPlayouts(int matches)
+        private void BenchmarkPlayouts(int matches, bool verbose = true)
         {
             if (_state.HasEnded) return;
 
@@ -515,9 +515,12 @@ namespace Client
                 _rollDistribution = new float[_rollDistribution.Length];
             }
 
-            Console.WriteLine($"\nFull playout of {matches:n0} matches ({playedRounds:n0} rounds, {playedActions:n0} actions) took {ms:n} ms");
-            Console.WriteLine($"Avg. {ms / matches} ms/match, {ms / playedRounds} ms/round, {ms / playedActions} ms/action");
-            Console.WriteLine($"Avg. {playedRounds / matches} rounds/match, {playedActions / matches} actions/match, {playedActions / playedRounds} actions/round\n");
+            if (verbose)
+            {
+                Console.WriteLine($"\nFull playout of {matches:n0} matches ({playedRounds:n0} rounds, {playedActions:n0} actions) took {ms:n} ms");
+                Console.WriteLine($"Avg. {ms / matches} ms/match, {ms / playedRounds} ms/round, {ms / playedActions} ms/action");
+                Console.WriteLine($"Avg. {playedRounds / matches} rounds/match, {playedActions / matches} actions/match, {playedActions / playedRounds} actions/round\n");
+            }
 
             // Update visuals
             _renderer.Board = _state.Board;
@@ -531,7 +534,7 @@ namespace Client
             _diceWidget.UpdateSprites();
         }
 
-        private void PlayFullAgentPlayout()
+        private void PlayFullAgentPlayout(bool verbose = true)
         {
             if (_state.HasEnded) return;
 
@@ -577,7 +580,8 @@ namespace Client
 
             float ms = playoutClock.ElapsedTime.AsSeconds() * 1000f;
 
-            Console.WriteLine($"Full playout of {_state.Turn.RoundCounter:n0} rounds ({_playedActions.Count:n0} actions) took {ms:n} ms ({ms / _state.Turn.RoundCounter} ms/round, {ms / _playedActions.Count} ms/action)");
+            if (verbose)
+                Console.WriteLine($"Full playout of {_state.Turn.RoundCounter:n0} rounds ({_playedActions.Count:n0} actions) took {ms:n} ms ({ms / _state.Turn.RoundCounter} ms/round, {ms / _playedActions.Count} ms/action)");
 
             // Update visuals
             _renderer.Update();
@@ -719,7 +723,7 @@ namespace Client
 
         private void FindInconsistentHashes()
         {
-            PlayFullAgentPlayout();
+            PlayFullAgentPlayout(false);
 
             while (_playedActions.Count > 0)
             {
