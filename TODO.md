@@ -1,5 +1,3 @@
-- Testen, ob alle Actions genutzt werden
-- Testen, ob Bank immer Gesamtsumme behält
 - Equality, HashCode und Copy für GameState implementieren
 - Observation Filter (Agents nur die für sie sichtbaren Informationen geben)
 	- Von Robber gestohlene Karten
@@ -9,6 +7,8 @@
 	- Playstate (Roads, Settlements, Cities) als Byte-Arrays mit gleichen Indizes abbilden
 - Action für variable Domestic Trades
 - Datensatz für einfaches State Value Network generieren
+- Testen, ob alle Actions genutzt werden
+- Testen, ob Bank immer Gesamtsumme behält
 - RandomAgent
 	- Illegale Instanzen örtlich begrenzter Actions besser abgrenzen
 - SimpleAgent
