@@ -7,11 +7,11 @@ using static Common.Actions.RollAction;
 
 namespace Common.Actions
 {
-    public class RobberAction : Action, IActionProvider
+    public class RobberAction : Action, IReplayAction, IActionProvider
     {
-        public record RobberActionOutcome(Tile? PrevRobber, ResourceCardType? StolenCard = null);
+        public record RobberActionHistory(Tile? PrevRobber, ResourceCardType? StolenCard = null);
 
-        public RobberActionOutcome? Outcome { get; private set; }
+        public RobberActionHistory? History { get; private set; }
 
         public int TargetTileIndex { get; init; }
         public int? TargetPlayerIndex { get; init; }
@@ -28,7 +28,7 @@ namespace Common.Actions
             base.Apply(state);
 
             // Ensure action was not applied before
-            if (Outcome != null) throw new InvalidOperationException();
+            if (HasHistory()) throw new InvalidOperationException();
 
             Tile tile = state.Board.Map.ElementAt(TargetTileIndex);
             Tile? prevRobber = state.Board.Robber;
@@ -42,13 +42,13 @@ namespace Common.Actions
                     ResourceCardType drawnCard = state.Players[TargetPlayerIndex.Value].ResourceCards.Draw(true);
                     state.Players[PlayerIndex].ResourceCards.Add(drawnCard, 1);
 
-                    Outcome = new RobberActionOutcome(prevRobber, drawnCard);
+                    History = new RobberActionHistory(prevRobber, drawnCard);
                 }
             }
 
-            if (Outcome == null)
+            if (History == null)
             {
-                Outcome = new RobberActionOutcome(prevRobber);
+                History = new RobberActionHistory(prevRobber);
             }
 
             // Update turn state
@@ -58,16 +58,16 @@ namespace Common.Actions
         public override void Revert(GameState state)
         {
             // Ensure action was applied before
-            if (Outcome == null) throw new InvalidOperationException();
+            if (!HasHistory()) throw new InvalidOperationException();
 
             // Return robber to previous tile
-            state.Board.Robber = Outcome.PrevRobber;
+            state.Board.Robber = History!.PrevRobber;
 
             // Return card to adjacent player
-            if (TargetPlayerIndex.HasValue && Outcome.StolenCard.HasValue)
+            if (TargetPlayerIndex.HasValue && History.StolenCard.HasValue)
             {
-                state.Players[TargetPlayerIndex.Value].ResourceCards.Add(Outcome.StolenCard.Value, 1);
-                state.Players[PlayerIndex].ResourceCards.Remove(Outcome.StolenCard.Value, 1);
+                state.Players[TargetPlayerIndex.Value].ResourceCards.Add(History.StolenCard.Value, 1);
+                state.Players[PlayerIndex].ResourceCards.Remove(History.StolenCard.Value, 1);
             }
 
             // Update turn state
@@ -132,6 +132,16 @@ namespace Common.Actions
             }
 
             return hasValidTarget;
+        }
+
+        public bool HasHistory()
+        {
+            return History != null;
+        }
+
+        public void ClearHistory()
+        {
+            History = null;
         }
 
         public static List<Action> GetActionsForState(GameState state, int playerIdx)

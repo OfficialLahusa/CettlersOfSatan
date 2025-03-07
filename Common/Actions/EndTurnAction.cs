@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace Common.Actions
 {
-    public class EndTurnAction : Action, IActionProvider
+    public class EndTurnAction : Action, IReplayAction, IActionProvider
     {
-        public record EndTurnActionOutcome(uint PrevFreeRoads, CardSet<DevelopmentCardType> PrevNewDevelopmentCards, bool PrevHasPlayedDevelopmentCard);
+        public record EndTurnActionHistory(uint PrevFreeRoads, CardSet<DevelopmentCardType> PrevNewDevelopmentCards, bool PrevHasPlayedDevelopmentCard);
 
-        public EndTurnActionOutcome? Outcome { get; private set; }
+        public EndTurnActionHistory? History { get; private set; }
 
         public EndTurnAction(int playerIdx)
             : base(playerIdx)
@@ -21,9 +21,9 @@ namespace Common.Actions
             base.Apply(state);
 
             // Ensure action was not applied before
-            if (Outcome != null) throw new InvalidOperationException();
+            if (HasHistory()) throw new InvalidOperationException();
 
-            Outcome = new EndTurnActionOutcome(
+            History = new EndTurnActionHistory(
                 state.Players[PlayerIndex].BuildingStock.FreeRoads,
                 state.Players[PlayerIndex].NewDevelopmentCards,
                 state.Turn.HasPlayedDevelopmentCard
@@ -56,25 +56,25 @@ namespace Common.Actions
         public override void Revert(GameState state)
         {
             // Ensure action was applied before
-            if (Outcome == null) throw new InvalidOperationException();
+            if (!HasHistory()) throw new InvalidOperationException();
 
             // Return previous free roadbuilding stock
             BuildingStock stock = state.Players[PlayerIndex].BuildingStock;
-            if (Outcome.PrevFreeRoads > 0)
+            if (History!.PrevFreeRoads > 0)
             {
-                stock.RemainingRoads -= Outcome.PrevFreeRoads;
-                stock.FreeRoads = Outcome.PrevFreeRoads;
+                stock.RemainingRoads -= History.PrevFreeRoads;
+                stock.FreeRoads = History.PrevFreeRoads;
             }
 
             // Block previous new dev cards
-            state.Players[PlayerIndex].NewDevelopmentCards = Outcome.PrevNewDevelopmentCards;
+            state.Players[PlayerIndex].NewDevelopmentCards = History.PrevNewDevelopmentCards;
 
             // Update turn state
             if (state.Turn.PlayerIndex == 0) state.Turn.RoundCounter--;
             state.Turn.PlayerIndex--;
             if (state.Turn.PlayerIndex < 0) state.Turn.PlayerIndex = state.Players.Length - 1;
             state.Turn.MustRoll = false;
-            state.Turn.HasPlayedDevelopmentCard = Outcome.PrevHasPlayedDevelopmentCard;
+            state.Turn.HasPlayedDevelopmentCard = History.PrevHasPlayedDevelopmentCard;
 
             // Un-complete match
             state.Turn.TypeOfRound = TurnState.RoundType.Normal;
@@ -92,6 +92,16 @@ namespace Common.Actions
                 && !turn.MustRoll
                 && !turn.MustDiscard
                 && !turn.MustMoveRobber;
+        }
+
+        public bool HasHistory()
+        {
+            return History != null;
+        }
+
+        public void ClearHistory()
+        {
+            History = null;
         }
 
         public static List<Action> GetActionsForState(GameState state, int playerIdx)

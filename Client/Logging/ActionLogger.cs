@@ -44,7 +44,7 @@ namespace Client.Logging
                     {
                         _log.WriteLine(new ColoredStrEntry($"Rolled {rollAction.RollResult.Total} ({rollAction.RollResult.First}+{rollAction.RollResult.Second})", playerColor));
 
-                        RollAction.RollActionOutcome outcome = rollAction.Outcome!;
+                        RollAction.RollActionHistory outcome = rollAction.History!;
 
                         // Summarize yields
                         if (!outcome.TriggeredRobber)
@@ -108,7 +108,7 @@ namespace Client.Logging
                     {
                         _log.WriteLine(new ColoredStrEntry("Moved robber", playerColor));
 
-                        RobberAction.RobberActionOutcome outcome = robberAction.Outcome!;
+                        RobberAction.RobberActionHistory outcome = robberAction.History!;
                         
                         if (outcome.StolenCard.HasValue)
                         {
@@ -131,7 +131,7 @@ namespace Client.Logging
                     {
                         _log.WriteLine(new ColoredStrEntry("Placed 2nd initial settlement", playerColor));
 
-                        SecondInitialSettlementAction.SecondInitialSettlementActionOutcome outcome = secondInitialSettlementAction.Outcome!;
+                        SecondInitialSettlementAction.SecondInitialSettlementActionHistory outcome = secondInitialSettlementAction.History!;
 
                         // Initial yields
                         if(outcome.InitialYields.Count() > 0)
@@ -177,7 +177,7 @@ namespace Client.Logging
                     {
                         _log.WriteLine(new ColoredStrEntry("Bought development card", playerColor));
 
-                        BuyDevelopmentCardAction.BuyDevelopmentCardActionOutcome outcome = buyDevelopmentCardAction.Outcome!;
+                        BuyDevelopmentCardAction.BuyDevelopmentCardActionHistory outcome = buyDevelopmentCardAction.History!;
 
                         // TODO: Filter out unknown information
                         _log.WriteLine(new ColoredStrEntry($"Received {outcome.DrawnType.GetName().ToLower()}", playerColor));
@@ -192,7 +192,7 @@ namespace Client.Logging
                     {
                         _log.WriteLine(new ColoredStrEntry($"Activated monopoly on {monopolyAction.ChosenType.GetName().ToLower()}", playerColor));
 
-                        MonopolyAction.MonopolyActionOutcome outcome = monopolyAction.Outcome!;
+                        MonopolyAction.MonopolyActionHistory outcome = monopolyAction.History!;
 
                         // Transferred cards
                         foreach ((int playerIdx, uint amount) in outcome.TransferredCards)

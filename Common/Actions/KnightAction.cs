@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace Common.Actions
 {
-    public class KnightAction : Action, IActionProvider
+    public class KnightAction : Action, IReplayAction, IActionProvider
     {
-        public record KnightActionOutcome(int PrevLargestArmyHolder);
+        public record KnightActionHistory(int PrevLargestArmyHolder);
 
-        public KnightActionOutcome? Outcome { get; private set; }
+        public KnightActionHistory? History { get; private set; }
 
         public KnightAction(int playerIdx)
             : base(playerIdx)
@@ -21,7 +21,7 @@ namespace Common.Actions
             base.Apply(state);
 
             // Ensure action was not applied before
-            if (Outcome != null) throw new InvalidOperationException();
+            if (HasHistory()) throw new InvalidOperationException();
 
             int currentLargestArmyHolder = -1;
 
@@ -34,7 +34,7 @@ namespace Common.Actions
                 }
             }
 
-            Outcome = new KnightActionOutcome(currentLargestArmyHolder);
+            History = new KnightActionHistory(currentLargestArmyHolder);
 
             // Remove card
             state.Players[PlayerIndex].DevelopmentCards.Remove(DevelopmentCardType.Knight, 1);
@@ -54,7 +54,7 @@ namespace Common.Actions
         public override void Revert(GameState state)
         {
             // Ensure action was applied before
-            if (Outcome == null) throw new InvalidOperationException();
+            if (!HasHistory()) throw new InvalidOperationException();
 
             // Return card
             state.Players[PlayerIndex].DevelopmentCards.Add(DevelopmentCardType.Knight, 1);
@@ -69,7 +69,7 @@ namespace Common.Actions
             // Reassign VPs to previous owner (or nobody if previously -1)
             for (int playerIdx = 0; playerIdx < state.Players.Length; playerIdx++)
             {
-                state.Players[playerIdx].VictoryPoints.LargestArmyPoints = (byte)(playerIdx == Outcome.PrevLargestArmyHolder ? 2 : 0);
+                state.Players[playerIdx].VictoryPoints.LargestArmyPoints = (byte)(playerIdx == History!.PrevLargestArmyHolder ? 2 : 0);
             }
         }
 
@@ -95,6 +95,16 @@ namespace Common.Actions
             bool cardAgeSufficient = state.Players[PlayerIndex].DevelopmentCards.Get(DevelopmentCardType.Knight) > state.Players[PlayerIndex].NewDevelopmentCards.Get(DevelopmentCardType.Knight);
 
             return hasCard && cardAgeSufficient;
+        }
+
+        public bool HasHistory()
+        {
+            return History != null;
+        }
+
+        public void ClearHistory()
+        {
+            History = null;
         }
 
         public static List<Action> GetActionsForState(GameState state, int playerIdx)

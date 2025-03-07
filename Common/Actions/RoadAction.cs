@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace Common.Actions
 {
-    public class RoadAction : Action, IActionProvider
+    public class RoadAction : Action, IReplayAction, IActionProvider
     {
-        public record RoadActionOutcome(int PrevLongestRoadHolder, bool WasFree);
+        public record RoadActionHistory(int PrevLongestRoadHolder, bool WasFree);
 
-        public RoadActionOutcome? Outcome { get; private set; }
+        public RoadActionHistory? History { get; private set; }
 
         public int EdgeIndex { get; init; }
 
@@ -26,7 +26,7 @@ namespace Common.Actions
             base.Apply(state);
 
             // Ensure action was not applied before
-            if (Outcome != null) throw new InvalidOperationException();
+            if (HasHistory()) throw new InvalidOperationException();
 
             // Determine previous longest road holder
             int currentLongestRoadHolder = -1;
@@ -49,7 +49,7 @@ namespace Common.Actions
             BuildingStock buildingStock = state.Players[PlayerIndex].BuildingStock;
             bool hasFreeStock = buildingStock.FreeRoads > 0;
 
-            Outcome = new RoadActionOutcome(currentLongestRoadHolder, hasFreeStock);
+            History = new RoadActionHistory(currentLongestRoadHolder, hasFreeStock);
 
             // Use free road building dev card stock first
             if (hasFreeStock)
@@ -82,7 +82,7 @@ namespace Common.Actions
         public override void Revert(GameState state)
         {
             // Ensure action was applied before
-            if (Outcome == null) throw new InvalidOperationException();
+            if (!HasHistory()) throw new InvalidOperationException();
 
             // Remove road
             Edge road = state.Board.Edges[EdgeIndex];
@@ -93,7 +93,7 @@ namespace Common.Actions
             BuildingStock buildingStock = state.Players[PlayerIndex].BuildingStock;
 
             // Return free building stock
-            if (Outcome.WasFree)
+            if (History!.WasFree)
             {
                 buildingStock.FreeRoads++;
             }
@@ -119,7 +119,7 @@ namespace Common.Actions
             // Move VPs to previous longest road holder in case of draws (or nobody if -1)
             for (int playerIdx = 0; playerIdx < state.Players.Length; playerIdx++)
             {
-                state.Players[playerIdx].VictoryPoints.LongestRoadPoints = (byte)(playerIdx == Outcome.PrevLongestRoadHolder ? 2 : 0);
+                state.Players[playerIdx].VictoryPoints.LongestRoadPoints = (byte)(playerIdx == History.PrevLongestRoadHolder ? 2 : 0);
             }
 
             // Un-complete match
@@ -186,6 +186,16 @@ namespace Common.Actions
             bool hasDirectAdjRoad = (topHasAdjRoad && !topBlocked) || (bottomHasAdjRoad && !bottomBlocked);
 
             return spaceFree && canAfford && (hasDirectAdjBuilding || hasDirectAdjRoad);
+        }
+
+        public bool HasHistory()
+        {
+            return History != null;
+        }
+
+        public void ClearHistory()
+        {
+            History = null;
         }
 
         public static List<Action> GetActionsForState(GameState state, int playerIdx)

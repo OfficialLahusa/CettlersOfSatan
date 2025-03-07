@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 
 namespace Common.Actions
 {
-    public class RollAction : Action, IActionProvider
+    public class RollAction : Action, IReplayAction, IActionProvider
     {
-        public record RollActionOutcome(RollResult PrevRollResult, bool TriggeredRobber, uint[,]? AwardedYields = null, uint RobbedYields = 0, uint CappedYields = 0);
+        public record RollActionHistory(RollResult PrevRollResult, bool TriggeredRobber, uint[,]? AwardedYields = null, uint RobbedYields = 0, uint CappedYields = 0);
 
-        public RollActionOutcome? Outcome { get; private set; }
+        public RollActionHistory? History { get; private set; }
 
         public RollResult RollResult { get; init; }
 
@@ -29,7 +29,7 @@ namespace Common.Actions
             base.Apply(state);
 
             // Ensure action was not applied before
-            if (Outcome != null) throw new InvalidOperationException();
+            if (HasHistory()) throw new InvalidOperationException();
 
             bool robberTriggered = RollResult.Total == 7;
 
@@ -45,13 +45,13 @@ namespace Common.Actions
                 // Require robber move
                 state.Turn.MustMoveRobber = true;
 
-                Outcome = new RollActionOutcome(state.Turn.LastRoll, robberTriggered);
+                History = new RollActionHistory(state.Turn.LastRoll, robberTriggered);
             }
             else
             {
                 (uint[,] yieldSummary, uint robbedYields, uint cappedYields) = AwardYields(state, RollResult.Total);
 
-                Outcome = new RollActionOutcome(state.Turn.LastRoll, robberTriggered, yieldSummary, robbedYields, cappedYields);
+                History = new RollActionHistory(state.Turn.LastRoll, robberTriggered, yieldSummary, robbedYields, cappedYields);
             }
 
             // Update turn state
@@ -62,10 +62,10 @@ namespace Common.Actions
         public override void Revert(GameState state)
         {
             // Ensure action was applied before
-            if (Outcome == null) throw new InvalidOperationException();
+            if (!HasHistory()) throw new InvalidOperationException();
 
             // Cancel required discards and robber movement
-            if (Outcome.TriggeredRobber)
+            if (History!.TriggeredRobber)
             {
                 Array.Fill(state.Turn.AwaitedPlayerDiscards, false);
 
@@ -78,7 +78,7 @@ namespace Common.Actions
                 {
                     for (int resourceTypeIdx = 0; resourceTypeIdx < CardSet<ResourceCardType>.Values.Count; resourceTypeIdx++)
                     {
-                        uint awardedAmount = Outcome.AwardedYields![playerIdx, resourceTypeIdx];
+                        uint awardedAmount = History.AwardedYields![playerIdx, resourceTypeIdx];
                         if (awardedAmount == 0) continue;
 
                         ResourceCardType resourceType = CardSet<ResourceCardType>.Values[resourceTypeIdx];
@@ -90,7 +90,7 @@ namespace Common.Actions
             }
 
             // Update turn state
-            state.Turn.LastRoll = Outcome.PrevRollResult;
+            state.Turn.LastRoll = History.PrevRollResult;
             state.Turn.MustRoll = true;
         }
 
@@ -184,6 +184,16 @@ namespace Common.Actions
             return turn.PlayerIndex == playerIdx
                 && turn.TypeOfRound == TurnState.RoundType.Normal
                 && turn.MustRoll;
+        }
+
+        public bool HasHistory()
+        {
+            return History != null;
+        }
+
+        public void ClearHistory()
+        {
+            History = null;
         }
 
 

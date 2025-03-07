@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace Common.Actions
 {
-    public class MonopolyAction : Action, IActionProvider
+    public class MonopolyAction : Action, IReplayAction, IActionProvider
     {
-        public record MonopolyActionOutcome(ReadOnlyCollection<(int, uint)> TransferredCards);
+        public record MonopolyActionHistory(ReadOnlyCollection<(int, uint)> TransferredCards);
 
-        public MonopolyActionOutcome? Outcome { get; private set; }
+        public MonopolyActionHistory? History { get; private set; }
 
         public ResourceCardType ChosenType { get; set; }
 
@@ -26,7 +26,7 @@ namespace Common.Actions
             base.Apply(state);
 
             // Ensure action was not applied before
-            if (Outcome != null) throw new InvalidOperationException();
+            if (HasHistory()) throw new InvalidOperationException();
 
             // Remove card
             state.Players[PlayerIndex].DevelopmentCards.Remove(DevelopmentCardType.Monopoly, 1);
@@ -47,7 +47,7 @@ namespace Common.Actions
                 transferredCards.Add((otherPlayerIdx, movedCount));
             }
 
-            Outcome = new MonopolyActionOutcome(transferredCards.OrderByDescending(x => (x.Item2, -x.Item1)).ToList().AsReadOnly());
+            History = new MonopolyActionHistory(transferredCards.OrderByDescending(x => (x.Item2, -x.Item1)).ToList().AsReadOnly());
 
             // Update turn state
             state.Turn.HasPlayedDevelopmentCard = true;
@@ -56,13 +56,13 @@ namespace Common.Actions
         public override void Revert(GameState state)
         {
             // Ensure action was applied before
-            if (Outcome == null) throw new InvalidOperationException();
+            if (!HasHistory()) throw new InvalidOperationException();
 
             // Return card
             state.Players[PlayerIndex].DevelopmentCards.Add(DevelopmentCardType.Monopoly, 1);
 
             // Return cards of type to other players
-            foreach ((int otherPlayerIdx, uint movedCount) in Outcome.TransferredCards)
+            foreach ((int otherPlayerIdx, uint movedCount) in History!.TransferredCards)
             {
                 state.Players[otherPlayerIdx].ResourceCards.Add(ChosenType, movedCount);
                 state.Players[PlayerIndex].ResourceCards.Remove(ChosenType, movedCount);
@@ -94,6 +94,16 @@ namespace Common.Actions
             bool cardAgeSufficient = state.Players[PlayerIndex].DevelopmentCards.Get(DevelopmentCardType.Monopoly) > state.Players[PlayerIndex].NewDevelopmentCards.Get(DevelopmentCardType.Monopoly);
 
             return hasCard && cardAgeSufficient;
+        }
+
+        public bool HasHistory()
+        {
+            return History != null;
+        }
+
+        public void ClearHistory()
+        {
+            History = null;
         }
 
         public static List<Action> GetActionsForState(GameState state, int playerIdx)

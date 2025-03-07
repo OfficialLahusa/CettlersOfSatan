@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 
 namespace Common.Actions
 {
-    public class SecondInitialSettlementAction : Action, IActionProvider
+    public class SecondInitialSettlementAction : Action, IReplayAction, IActionProvider
     {
-        public record SecondInitialSettlementActionOutcome(ReadOnlyCollection<ResourceCardType> InitialYields);
+        public record SecondInitialSettlementActionHistory(ReadOnlyCollection<ResourceCardType> InitialYields);
 
-        public SecondInitialSettlementActionOutcome? Outcome { get; private set; }
+        public SecondInitialSettlementActionHistory? History { get; private set; }
 
         public int IntersectionIndex { get; init; }
 
@@ -27,7 +27,7 @@ namespace Common.Actions
             base.Apply(state);
 
             // Ensure action was not applied before
-            if (Outcome != null) throw new InvalidOperationException();
+            if (HasHistory()) throw new InvalidOperationException();
 
             // Place settlement
             Intersection intersection = state.Board.Intersections[IntersectionIndex];
@@ -52,7 +52,7 @@ namespace Common.Actions
                 }
             }
 
-            Outcome = new SecondInitialSettlementActionOutcome(awardedResources.AsReadOnly());
+            History = new SecondInitialSettlementActionHistory(awardedResources.AsReadOnly());
 
             // Award VP
             state.Players[PlayerIndex].VictoryPoints.SettlementPoints++;
@@ -64,7 +64,7 @@ namespace Common.Actions
         public override void Revert(GameState state)
         {
             // Ensure action was applied before
-            if (Outcome == null) throw new InvalidOperationException();
+            if (!HasHistory()) throw new InvalidOperationException();
 
             // Remove settlement
             Intersection intersection = state.Board.Intersections[IntersectionIndex];
@@ -75,7 +75,7 @@ namespace Common.Actions
             state.Players[PlayerIndex].BuildingStock.RemainingSettlements++;
 
             // Remove initial resources
-            foreach (ResourceCardType resourceType in Outcome.InitialYields)
+            foreach (ResourceCardType resourceType in History!.InitialYields)
             {
                 state.Players[PlayerIndex].ResourceCards.Remove(resourceType, 1);
                 state.ResourceBank.Add(resourceType, 1);
@@ -119,6 +119,16 @@ namespace Common.Actions
             }
 
             return spaceFree && oneSettlementPlaced && oneRoadPlaced && !hasAdjacentSettlement;
+        }
+
+        public bool HasHistory()
+        {
+            return History != null;
+        }
+
+        public void ClearHistory()
+        {
+            History = null;
         }
 
         public static List<Action> GetActionsForState(GameState state, int playerIdx)

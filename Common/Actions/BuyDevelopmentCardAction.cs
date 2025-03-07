@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace Common.Actions
 {
-    public class BuyDevelopmentCardAction : Action, IActionProvider
+    public class BuyDevelopmentCardAction : Action, IReplayAction, IActionProvider
     {
-        public record BuyDevelopmentCardActionOutcome(DevelopmentCardType DrawnType);
+        public record BuyDevelopmentCardActionHistory(DevelopmentCardType DrawnType);
 
-        public BuyDevelopmentCardActionOutcome? Outcome { get; private set; }
+        public BuyDevelopmentCardActionHistory? History { get; private set; }
 
         public BuyDevelopmentCardAction(int playerIdx)
             : base(playerIdx)
@@ -21,7 +21,7 @@ namespace Common.Actions
             base.Apply(state);
 
             // Ensure action was not applied before
-            if (Outcome != null) throw new InvalidOperationException();
+            if (HasHistory()) throw new InvalidOperationException();
 
             // Remove cards
             CardSet<ResourceCardType> playerCards = state.Players[PlayerIndex].ResourceCards;
@@ -37,7 +37,7 @@ namespace Common.Actions
             // Draw card from bank
             DevelopmentCardType drawnType = state.DevelopmentBank.Draw(true);
 
-            Outcome = new BuyDevelopmentCardActionOutcome(drawnType);
+            History = new BuyDevelopmentCardActionHistory(drawnType);
 
             // Add drawn card to player
             state.Players[PlayerIndex].DevelopmentCards.Add(drawnType, 1);
@@ -58,7 +58,7 @@ namespace Common.Actions
         public override void Revert(GameState state)
         {
             // Ensure action was applied before
-            if (Outcome == null) throw new InvalidOperationException();
+            if (!HasHistory()) throw new InvalidOperationException();
 
             // Return cards
             CardSet<ResourceCardType> playerCards = state.Players[PlayerIndex].ResourceCards;
@@ -71,7 +71,7 @@ namespace Common.Actions
             state.ResourceBank.Remove(ResourceCardType.Grain, 1);
             state.ResourceBank.Remove(ResourceCardType.Ore, 1);
 
-            DevelopmentCardType drawnType = Outcome.DrawnType;
+            DevelopmentCardType drawnType = History!.DrawnType;
 
             // Remove drawn card from player
             state.Players[PlayerIndex].DevelopmentCards.Remove(drawnType, 1);
@@ -112,6 +112,16 @@ namespace Common.Actions
             bool bankHasDevCards = state.DevelopmentBank.Count() > 0;
 
             return canAfford && bankHasDevCards;
+        }
+
+        public bool HasHistory()
+        {
+            return History != null;
+        }
+
+        public void ClearHistory()
+        {
+            History = null;
         }
 
         public static List<Action> GetActionsForState(GameState state, int playerIdx)

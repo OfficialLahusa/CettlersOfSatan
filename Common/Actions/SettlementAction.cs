@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace Common.Actions
 {
-    public class SettlementAction : Action, IActionProvider
+    public class SettlementAction : Action, IReplayAction, IActionProvider
     {
-        public record SettlementActionOutcome(int PrevLongestRoadHolder);
+        public record SettlementActionHistory(int PrevLongestRoadHolder);
 
-        public SettlementActionOutcome? Outcome {  get; private set; }
+        public SettlementActionHistory? History {  get; private set; }
 
         public int IntersectionIndex { get; init; }
 
@@ -26,7 +26,7 @@ namespace Common.Actions
             base.Apply(state);
 
             // Ensure action was not applied before
-            if (Outcome != null) throw new InvalidOperationException();
+            if (HasHistory()) throw new InvalidOperationException();
 
             // Determine previous longest road holder
             int currentLongestRoadHolder = -1;
@@ -40,7 +40,7 @@ namespace Common.Actions
                 }
             }
 
-            Outcome = new SettlementActionOutcome(currentLongestRoadHolder);
+            History = new SettlementActionHistory(currentLongestRoadHolder);
 
             // Place settlement
             Intersection intersection = state.Board.Intersections[IntersectionIndex];
@@ -95,7 +95,7 @@ namespace Common.Actions
         public override void Revert(GameState state)
         {
             // Ensure action was applied before
-            if (Outcome == null) throw new InvalidOperationException();
+            if (!HasHistory()) throw new InvalidOperationException();
 
             // Remove settlement
             Intersection intersection = state.Board.Intersections[IntersectionIndex];
@@ -133,7 +133,7 @@ namespace Common.Actions
             // Move VPs to previous longest road holder in case of draws (or nobody if -1)
             for (int playerIdx = 0; playerIdx < state.Players.Length; playerIdx++)
             {
-                state.Players[playerIdx].VictoryPoints.LongestRoadPoints = (byte)(playerIdx == Outcome.PrevLongestRoadHolder ? 2 : 0);
+                state.Players[playerIdx].VictoryPoints.LongestRoadPoints = (byte)(playerIdx == History.PrevLongestRoadHolder ? 2 : 0);
             }
 
             // Un-complete match
@@ -180,6 +180,16 @@ namespace Common.Actions
             }
 
             return spaceFree && canAfford && hasAdjacentRoad && !hasAdjacentSettlement;
+        }
+
+        public bool HasHistory()
+        {
+            return History != null;
+        }
+
+        public void ClearHistory()
+        {
+            History = null;
         }
 
         public static List<Action> GetActionsForState(GameState state, int playerIdx)
