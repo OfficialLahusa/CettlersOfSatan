@@ -69,7 +69,7 @@ namespace Client.Logging
                                     }
                                 }
 
-                                if (yieldEntries.Count() > 0)
+                                if (yieldEntries.Count > 0)
                                 {
                                     List<string> yieldStrings = yieldEntries.OrderByDescending(x => x.Item1).Select(x => x.Item2).ToList();
 
@@ -134,7 +134,7 @@ namespace Client.Logging
                         SecondInitialSettlementAction.SecondInitialSettlementActionHistory outcome = secondInitialSettlementAction.History!;
 
                         // Initial yields
-                        if(outcome.InitialYields.Count() > 0)
+                        if(outcome.InitialYields.Count > 0)
                         {
                             List<KeyValuePair<ResourceCardType, int>> initialYields = outcome.InitialYields.CountBy(x => x).OrderByDescending(x => (x.Value, -CardSet<ResourceCardType>.ToInt(x.Key))).ToList();
                             List<string> initialYieldEntries = [];

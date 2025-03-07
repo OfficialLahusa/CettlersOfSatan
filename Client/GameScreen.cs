@@ -567,7 +567,7 @@ namespace Client
 
             float ms = playoutClock.ElapsedTime.AsSeconds() * 1000f;
 
-            Console.WriteLine($"Full playout of {_state.Turn.RoundCounter:n0} rounds ({_playedActions.Count():n0} actions) took {ms:n} ms ({ms / _state.Turn.RoundCounter} ms/round, {ms / _playedActions.Count()} ms/action)");
+            Console.WriteLine($"Full playout of {_state.Turn.RoundCounter:n0} rounds ({_playedActions.Count:n0} actions) took {ms:n} ms ({ms / _state.Turn.RoundCounter} ms/round, {ms / _playedActions.Count} ms/action)");
 
             // Update visuals
             _renderer.Update();
@@ -636,7 +636,7 @@ namespace Client
 
         private void UndoAction()
         {
-            if (_playedActions.Count() == 0) return;
+            if (_playedActions.Count == 0) return;
 
             // Get most recent action
             Action playedAction = _playedActions.Pop();
@@ -670,7 +670,7 @@ namespace Client
 
         private void RedoAction(bool playSound = true)
         {
-            if (_state.HasEnded || _undoHistory.Count() == 0) return;
+            if (_state.HasEnded || _undoHistory.Count == 0) return;
 
             // Get latest undone action
             Action playedAction = _undoHistory.Pop();
