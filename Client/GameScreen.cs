@@ -345,7 +345,7 @@ namespace Client
 
             ImGui.Text($"State Hash: {_state.GetHashCode().ToString("X")}");
 
-            if (ImGui.Button("Find Inconsistent Hashes"))
+            if (ImGui.Button("Find Inconsistent Hashes [O]"))
             {
                 FindInconsistentHashes();
             }
@@ -391,22 +391,22 @@ namespace Client
             moveDelta *= deltaTime.AsSeconds() * _moveSpeed * _viewZoom;
             _mapView.Move(moveDelta);
 
-            if(Keyboard.IsKeyPressed(Keyboard.Key.Space))
+            if (Keyboard.IsKeyPressed(Keyboard.Key.Space))
             {
                 RegenerateMap();
             }
             
-            if(Keyboard.IsKeyPressed(Keyboard.Key.C))
+            if (Keyboard.IsKeyPressed(Keyboard.Key.C))
             {
                 ClearMap();
             }
 
-            if(Keyboard.IsKeyPressed(Keyboard.Key.R))
+            if (Keyboard.IsKeyPressed(Keyboard.Key.R))
             {
                 PlayAgentAction(!_muteQuickPlayouts);
             }
 
-            if(Keyboard.IsKeyPressed(Keyboard.Key.U))
+            if (Keyboard.IsKeyPressed(Keyboard.Key.U))
             {
                 UndoAction();
             }
@@ -421,9 +421,14 @@ namespace Client
                 PlayFullAgentPlayout();
             }
 
-            if(Keyboard.IsKeyPressed(Keyboard.Key.B))
+            if (Keyboard.IsKeyPressed(Keyboard.Key.B))
             {
                 BenchmarkPlayouts(10000);
+            }
+
+            if (Keyboard.IsKeyPressed(Keyboard.Key.O))
+            {
+                FindInconsistentHashes();
             }
         }
 
