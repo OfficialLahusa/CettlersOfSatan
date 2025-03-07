@@ -18,6 +18,7 @@ namespace Common.Actions
 
         // Randomize roll when null is passed
         // The option to specify the roll result is primarily used for action tree exploration
+        // TODO: Potentially rewrite by forcing randomization and moving the result to history
         public RollAction(int playerIdx, RollResult? rollResult)
             : base(playerIdx)
         {
@@ -27,9 +28,6 @@ namespace Common.Actions
         public override void Apply(GameState state)
         {
             base.Apply(state);
-
-            // Ensure action was not applied before
-            if (HasHistory()) throw new InvalidOperationException();
 
             bool robberTriggered = RollResult.Total == 7;
 

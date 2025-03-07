@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Common.Actions
 {
-    public class DiscardAction : Action
+    public class DiscardAction : Action, IActionProvider
     {
         // Cards that are discarded by the player
         public CardSet<ResourceCardType> SelectedCards;

@@ -20,9 +20,6 @@ namespace Common.Actions
         {
             base.Apply(state);
 
-            // Ensure action was not applied before
-            if (HasHistory()) throw new InvalidOperationException();
-
             // Remove cards
             CardSet<ResourceCardType> playerCards = state.Players[PlayerIndex].ResourceCards;
             playerCards.Remove(ResourceCardType.Wool, 1);
@@ -35,9 +32,21 @@ namespace Common.Actions
             state.ResourceBank.Add(ResourceCardType.Ore, 1);
 
             // Draw card from bank
-            DevelopmentCardType drawnType = state.DevelopmentBank.Draw(true);
+            DevelopmentCardType drawnType;
 
-            History = new BuyDevelopmentCardActionHistory(drawnType);
+            // Randomly draw
+            if (!HasHistory())
+            {
+                drawnType = state.DevelopmentBank.Draw(true);
+
+                // Store random outcome
+                History = new BuyDevelopmentCardActionHistory(drawnType);
+            }
+            // Replay stored draw
+            else
+            {
+                drawnType = History!.DrawnType;
+            }
 
             // Add drawn card to player
             state.Players[PlayerIndex].DevelopmentCards.Add(drawnType, 1);
@@ -111,7 +120,10 @@ namespace Common.Actions
             bool canAfford = state.Players[PlayerIndex].CanAffordDevelopmentCard();
             bool bankHasDevCards = state.DevelopmentBank.Count() > 0;
 
-            return canAfford && bankHasDevCards;
+            // If action has history, ensure it is valid
+            bool historyValid = !HasHistory() || state.DevelopmentBank.Get(History!.DrawnType) > 0;
+
+            return canAfford && bankHasDevCards && historyValid;
         }
 
         public bool HasHistory()

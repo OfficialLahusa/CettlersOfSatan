@@ -25,9 +25,6 @@ namespace Common.Actions
         {
             base.Apply(state);
 
-            // Ensure action was not applied before
-            if (HasHistory()) throw new InvalidOperationException();
-
             // Remove card
             state.Players[PlayerIndex].DevelopmentCards.Remove(DevelopmentCardType.Monopoly, 1);
 

@@ -27,9 +27,6 @@ namespace Common.Actions
         {
             base.Apply(state);
 
-            // Ensure action was not applied before
-            if (HasHistory()) throw new InvalidOperationException();
-
             Tile tile = state.Board.Map.ElementAt(TargetTileIndex);
             Tile? prevRobber = state.Board.Robber;
             state.Board.Robber = tile;
@@ -39,10 +36,24 @@ namespace Common.Actions
             {
                 if (state.Players[TargetPlayerIndex.Value].ResourceCards.Count() > 0)
                 {
-                    ResourceCardType drawnCard = state.Players[TargetPlayerIndex.Value].ResourceCards.Draw(true);
-                    state.Players[PlayerIndex].ResourceCards.Add(drawnCard, 1);
+                    ResourceCardType drawnCard;
 
-                    History = new RobberActionHistory(prevRobber, drawnCard);
+                    // Draw random card
+                    if (!HasHistory())
+                    {
+                        drawnCard = state.Players[TargetPlayerIndex.Value].ResourceCards.Draw(true);
+
+                        // Store outcome
+                        History = new RobberActionHistory(prevRobber, drawnCard);
+                    }
+                    // Replay stored outcome
+                    else
+                    {
+                        drawnCard = History!.StolenCard!.Value;
+                        state.Players[TargetPlayerIndex.Value].ResourceCards.Remove(drawnCard, 1);
+                    }
+
+                    state.Players[PlayerIndex].ResourceCards.Add(drawnCard, 1);
                 }
             }
 
@@ -131,7 +142,12 @@ namespace Common.Actions
                 hasValidTarget = !hasOtherAdjacentPlayer;
             }
 
-            return hasValidTarget;
+            // If stored history exists, ensure it is valid
+            bool historyValid = !HasHistory()
+                || !History!.StolenCard.HasValue && (!TargetPlayerIndex.HasValue || state.Players[TargetPlayerIndex.Value].ResourceCards.Count() == 0)
+                || History.StolenCard.HasValue && TargetPlayerIndex.HasValue && state.Players[TargetPlayerIndex.Value].ResourceCards.Count() > 0;
+
+            return hasValidTarget && historyValid;
         }
 
         public bool HasHistory()

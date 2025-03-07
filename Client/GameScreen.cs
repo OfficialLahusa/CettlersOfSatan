@@ -20,6 +20,7 @@ namespace Client
 
         private GameState _state;
         private Stack<Action> _playedActions;
+        private Stack<Action> _undoHistory;
 
         private BoardRenderer _renderer;
         private CardWidget _cardWidget;
@@ -77,6 +78,7 @@ namespace Client
 
             _state = new GameState(MapGenerator.GenerateRandomClassic(), PLAYER_COUNT);
             _playedActions = [];
+            _undoHistory = [];
 
             _renderer = new BoardRenderer(_state.Board, 120, 20);
             _cardWidget = new CardWidget(window, _state.Players[_playerIndex]);
@@ -317,15 +319,26 @@ namespace Client
 
             ImGui.SameLine();
 
+            if (ImGui.Button("Full Playout [E]"))
+            {
+                PlayFullAgentPlayout();
+            }
+
             if (ImGui.Button("Undo Action [U]"))
             {
                 UndoAction();
             }
 
-            if (ImGui.Button("Full Playout [E]"))
+            ImGui.SameLine();
+
+            if(_undoHistory.Count == 0)
+                ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.5f);
+            if (ImGui.Button("Redo Action [I]") && _undoHistory.Count > 0)
             {
-                PlayFullAgentPlayout();
+                RedoAction();
             }
+            if (_undoHistory.Count == 0)
+                ImGui.PopStyleVar();
 
             /*ImGui.Text($"{_legalActions.Count} Legal Actions");
 
@@ -388,7 +401,12 @@ namespace Client
                 UndoAction();
             }
 
-            if(Keyboard.IsKeyPressed(Keyboard.Key.E))
+            if (Keyboard.IsKeyPressed(Keyboard.Key.I))
+            {
+                RedoAction(!_muteQuickPlayouts);
+            }
+
+            if (Keyboard.IsKeyPressed(Keyboard.Key.E))
             {
                 PlayFullAgentPlayout();
             }
@@ -422,6 +440,8 @@ namespace Client
         {
             if (_state.HasEnded) return;
 
+            _undoHistory.Clear();
+
             Clock playoutClock = new Clock();
             int playedActions = 0;
             int playedRounds = 0;
@@ -450,9 +470,6 @@ namespace Client
                     Action playedAction = _agents[actingPlayerIdx.Value].Act(_state);
 
                     if (!playedAction.IsValidFor(_state)) throw new InvalidOperationException();
-
-                    int prevRound = _state.Turn.RoundCounter;
-                    int prevPlayer = _state.Turn.PlayerIndex;
 
                     // Apply action to state
                     playedAction.Apply(_state);
@@ -508,6 +525,8 @@ namespace Client
         {
             if (_state.HasEnded) return;
 
+            _undoHistory.Clear();
+
             Clock playoutClock = new Clock();
 
             while (!_state.HasEnded)
@@ -529,9 +548,6 @@ namespace Client
                 Action playedAction = _agents[actingPlayerIdx.Value].Act(_state);
 
                 if (!playedAction.IsValidFor(_state)) throw new InvalidOperationException();
-
-                int prevRound = _state.Turn.RoundCounter;
-                int prevPlayer = _state.Turn.PlayerIndex;
 
                 // Apply action to state
                 playedAction.Apply(_state);
@@ -568,6 +584,8 @@ namespace Client
         {
             if (_state.HasEnded) return;
 
+            _undoHistory.Clear();
+
             // Find first player that is allowed to act on state
             int? actingPlayerIdx = null;
             for (int playerIdx = 0; playerIdx < PLAYER_COUNT; playerIdx++)
@@ -585,10 +603,6 @@ namespace Client
             Action playedAction = _agents[actingPlayerIdx.Value].Act(_state);
 
             if (!playedAction.IsValidFor(_state)) throw new InvalidOperationException();
-
-            // TODO: Remove?
-            int prevRound = _state.Turn.RoundCounter;
-            int prevPlayer = _state.Turn.PlayerIndex;
 
             // Apply action to state
             playedAction.Apply(_state);
@@ -630,6 +644,9 @@ namespace Client
             // Revert action
             playedAction.Revert(_state);
 
+            // Add to undo history
+            _undoHistory.Push(playedAction);
+
             // Remove from roll distribution tracking
             if (playedAction is RollAction rollAction)
             {
@@ -651,12 +668,52 @@ namespace Client
             _diceWidget.UpdateSprites();
         }
 
+        private void RedoAction(bool playSound = true)
+        {
+            if (_state.HasEnded || _undoHistory.Count() == 0) return;
+
+            // Get latest undone action
+            Action playedAction = _undoHistory.Pop();
+
+            if (!playedAction.IsValidFor(_state)) throw new InvalidOperationException();
+
+            // Apply action to state
+            playedAction.Apply(_state);
+
+            // Push to action stack
+            _playedActions.Push(playedAction);
+
+            // Track distribution of rolls
+            if (playedAction is RollAction rollAction)
+            {
+                _rollDistribution[rollAction.RollResult.Total]++;
+            }
+
+            // Write entry to event log
+            _actionLogger.Log(playedAction, _state);
+
+            // Play associated sound
+            if (playSound)
+                PlaySoundForAction(playedAction);
+
+            // Update visuals
+            _renderer.Update();
+
+            _playerIndex = _state.Turn.PlayerIndex;
+            _cardWidget.SetPlayerState(_state.Players[_playerIndex]);
+
+            _diceWidget.Active = _state.Turn.MustRoll;
+            _diceWidget.RollResult = _state.Turn.LastRoll;
+            _diceWidget.UpdateSprites();
+        }
+
         private void RegenerateMap()
         {
             _state.Board = MapGenerator.GenerateRandomClassic(_centerDesert);
             _state.Reset();
 
             _playedActions.Clear();
+            _undoHistory.Clear();
 
             _eventLog.Clear();
             _actionLogger.Init();
@@ -680,6 +737,7 @@ namespace Client
             _state.Reset();
 
             _playedActions.Clear();
+            _undoHistory.Clear();
 
             _eventLog.Clear();
             _actionLogger.Init();

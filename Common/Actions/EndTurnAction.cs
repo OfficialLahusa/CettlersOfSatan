@@ -20,9 +20,6 @@ namespace Common.Actions
         {
             base.Apply(state);
 
-            // Ensure action was not applied before
-            if (HasHistory()) throw new InvalidOperationException();
-
             History = new EndTurnActionHistory(
                 state.Players[PlayerIndex].BuildingStock.FreeRoads,
                 state.Players[PlayerIndex].NewDevelopmentCards,

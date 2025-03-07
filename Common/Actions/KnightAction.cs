@@ -20,9 +20,6 @@ namespace Common.Actions
         {
             base.Apply(state);
 
-            // Ensure action was not applied before
-            if (HasHistory()) throw new InvalidOperationException();
-
             int currentLargestArmyHolder = -1;
 
             for (int playerIdx = 0; playerIdx < state.Players.Length; playerIdx++)
