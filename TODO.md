@@ -1,7 +1,8 @@
 - Copy für GameState implementieren
 - Herausfinden, welche Actions beim Replay den State Hash verändern (Initial Settlements z.B. nicht)
 	- 4:1, 3:1, BuyDevCard, EndTurn im PlayerState
-	- KnightAction anderswo
+	- KnightAction, RoadAction, RollAction, RobberAction, CityAction irgendwo
+	- Hashes der Bestandteile des States überprüfen, um Mismatch genauer zu lokalisieren
 - Observation Filter (Agents nur die für sie sichtbaren Informationen geben)
 	- Von Robber gestohlene Karten
 	- Gezogene Development Cards

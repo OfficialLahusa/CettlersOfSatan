@@ -733,16 +733,41 @@ namespace Client
             while (_playedActions.Count > 0)
             {
                 int prevHash = _state.GetHashCode();
+                int prevPlayerHash = HashCode.Combine(_state.Players[0], _state.Players[1], _state.Players[2], _state.Players[3]);
+                int prevSettingsHash = _state.Settings.GetHashCode();
+                int prevTurnHash = _state.Turn.GetHashCode();
+                int prevBoardHash = _state.Board.GetHashCode();
+                int prevResHash = _state.ResourceBank.GetHashCode();
+                int prevDevHash = _state.ResourceBank.GetHashCode();
 
                 UndoAction();
 
                 RedoAction();
 
                 int postHash = _state.GetHashCode();
+                int postPlayerHash = HashCode.Combine(_state.Players[0], _state.Players[1], _state.Players[2], _state.Players[3]);
+                int postSettingsHash = _state.Settings.GetHashCode();
+                int postTurnHash = _state.Turn.GetHashCode();
+                int postBoardHash = _state.Board.GetHashCode();
+                int postResHash = _state.ResourceBank.GetHashCode();
+                int postDevHash = _state.ResourceBank.GetHashCode();
 
                 if (prevHash != postHash)
                 {
                     Console.WriteLine($"{_playedActions.Peek().GetType().Name} mismatched: pre {prevHash.ToString("X")}, post {postHash.ToString("X")}");
+
+                    if (prevPlayerHash != postPlayerHash)
+                        Console.WriteLine("\t- PlayerState");
+                    if (prevSettingsHash != postSettingsHash)
+                        Console.WriteLine("\t- Settings");
+                    if (prevTurnHash != postTurnHash)
+                        Console.WriteLine("\t- TurnState");
+                    if (prevBoardHash != postBoardHash)
+                        Console.WriteLine("\t- Board");
+                    if (prevResHash != postResHash)
+                        Console.WriteLine("\t- ResourceBank");
+                    if (prevDevHash != postDevHash)
+                        Console.WriteLine("\t- DevelopmentBank");
                 }
 
                 UndoAction();
