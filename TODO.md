@@ -1,4 +1,3 @@
-- Replay von Actions mit gesetzem Outcome
 - Testen, ob alle Actions genutzt werden
 - Testen, ob Bank immer Gesamtsumme behält
 - Equality, HashCode und Copy für GameState implementieren
