@@ -46,6 +46,8 @@ namespace Common.Actions
             else
             {
                 drawnType = History!.DrawnType;
+
+                state.DevelopmentBank.Remove(drawnType, 1);
             }
 
             // Add drawn card to player

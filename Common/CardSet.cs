@@ -155,7 +155,14 @@ namespace Common
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(_cards);
+            HashCode hash = new HashCode();
+
+            foreach(uint cardAmount in _cards)
+            {
+                hash.Add(cardAmount);
+            }
+
+            return hash.ToHashCode();
         }
     }
 
