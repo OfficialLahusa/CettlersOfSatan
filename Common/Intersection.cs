@@ -1,4 +1,5 @@
-﻿namespace Common
+﻿
+namespace Common
 {
     public class Intersection
     {
@@ -54,6 +55,19 @@
             }
 
             return result;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is Intersection intersection &&
+                   FacesDownwards == intersection.FacesDownwards &&
+                   Building == intersection.Building &&
+                   Owner == intersection.Owner;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(FacesDownwards, Building, Owner);
         }
     }
 }

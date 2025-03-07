@@ -146,6 +146,17 @@ namespace Common
                 _cards[ToInt(cardType)] -= subset.Get(cardType);
             }
         }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is CardSet<T> set
+                && _cards.SequenceEqual(set._cards);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(_cards);
+        }
     }
 
     public static class CardTypeExtensions

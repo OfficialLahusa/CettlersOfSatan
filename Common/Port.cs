@@ -32,5 +32,20 @@ namespace Common
             AnchorDirection = dir;
             Type = type;
         }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is Port port
+                // Avoid circular reference checking by only checking X and Y of AnchorTiles
+                && AnchorTile.X == port.AnchorTile.X
+                && AnchorTile.Y == port.AnchorTile.Y
+                && AnchorDirection == port.AnchorDirection 
+                && Type == port.Type;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(AnchorTile.X, AnchorTile.Y, AnchorDirection, Type);
+        }
     }
 }

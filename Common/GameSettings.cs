@@ -1,4 +1,5 @@
-﻿namespace Common
+﻿
+namespace Common
 {
     public class GameSettings
     {
@@ -11,6 +12,18 @@
         {
             RobberCardLimit = 7;
             VictoryPoints = 10;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is GameSettings settings &&
+                   RobberCardLimit == settings.RobberCardLimit &&
+                   VictoryPoints == settings.VictoryPoints;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(RobberCardLimit, VictoryPoints);
         }
     }
 }

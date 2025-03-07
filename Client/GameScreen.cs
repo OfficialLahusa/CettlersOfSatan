@@ -331,14 +331,19 @@ namespace Client
 
             ImGui.SameLine();
 
-            if(_undoHistory.Count == 0)
+            bool redoPossible = _undoHistory.Count > 0;
+            if (!redoPossible)
                 ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.5f);
-            if (ImGui.Button("Redo Action [I]") && _undoHistory.Count > 0)
+            if (ImGui.Button("Redo Action [I]") && redoPossible)
             {
                 RedoAction();
             }
-            if (_undoHistory.Count == 0)
+            if (!redoPossible)
                 ImGui.PopStyleVar();
+
+            ImGui.Separator();
+
+            ImGui.Text($"State Hash: {_state.GetHashCode().ToString("X")}");
 
             /*ImGui.Text($"{_legalActions.Count} Legal Actions");
 

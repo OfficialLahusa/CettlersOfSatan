@@ -1,4 +1,5 @@
-﻿namespace Common
+﻿
+namespace Common
 {
     public class Board
     {
@@ -41,6 +42,21 @@
                     break;
                 }
             }
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is Board board
+                && Map.Equals(board.Map)
+                && Intersections.SequenceEqual(board.Intersections)
+                && Edges.SequenceEqual(board.Edges)
+                && Ports.SequenceEqual(board.Ports)
+                && Tile.Equals(Robber, board.Robber);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Map, Intersections, Edges, Ports, Robber);
         }
     }
 }

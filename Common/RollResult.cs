@@ -47,5 +47,17 @@ namespace Common
                 Second = (byte)(Utils.Random.Next(6) + 1)
             };
         }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is RollResult result &&
+                   _first == result._first &&
+                   _second == result._second;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(_first, _second);
+        }
     }
 }

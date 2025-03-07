@@ -24,5 +24,20 @@ namespace Common
             LongestRoadPoints = 0;
             LargestArmyPoints = 0;
         }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is VictoryPointTracker tracker &&
+                   SettlementPoints == tracker.SettlementPoints &&
+                   CityPoints == tracker.CityPoints &&
+                   DevelopmentCardPoints == tracker.DevelopmentCardPoints &&
+                   LongestRoadPoints == tracker.LongestRoadPoints &&
+                   LargestArmyPoints == tracker.LargestArmyPoints;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(SettlementPoints, CityPoints, DevelopmentCardPoints, LongestRoadPoints, LargestArmyPoints);
+        }
     }
 }

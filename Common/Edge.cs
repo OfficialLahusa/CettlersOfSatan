@@ -73,5 +73,20 @@ namespace Common
 
             return (fromWest ? leftIntersection : rightIntersection, fromWest ? rightIntersection : leftIntersection);
         }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is Edge edge
+                && Tile.Equals(WestTile, edge.WestTile) 
+                && Tile.Equals(EastTile, edge.EastTile)
+                && Direction == edge.Direction 
+                && Building == edge.Building 
+                && Owner == edge.Owner;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(WestTile, EastTile, Direction, Building, Owner);
+        }
     }
 }

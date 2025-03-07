@@ -27,5 +27,19 @@ namespace Common
 
             FreeRoads = 0;
         }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is BuildingStock stock &&
+                   RemainingRoads == stock.RemainingRoads &&
+                   RemainingSettlements == stock.RemainingSettlements &&
+                   RemainingCities == stock.RemainingCities &&
+                   FreeRoads == stock.FreeRoads;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(RemainingRoads, RemainingSettlements, RemainingCities, FreeRoads);
+        }
     }
 }

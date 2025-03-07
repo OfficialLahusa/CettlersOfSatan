@@ -137,6 +137,29 @@ namespace Common
         {
             return _values.GetEnumerator();
         }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is HexMap<T> map
+                && _values.SequenceEqual(map._values)
+                && Width == map.Width
+                && Height == map.Height;
+        }
+
+        public override int GetHashCode()
+        {
+            HashCode hash = new HashCode();
+
+            foreach(T val in _values)
+            {
+                hash.Add(val);
+            }
+
+            hash.Add(Width);
+            hash.Add(Height);
+
+            return hash.ToHashCode();
+        }
     }
 }
 

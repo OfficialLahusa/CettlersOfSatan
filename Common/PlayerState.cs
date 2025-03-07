@@ -56,6 +56,24 @@ namespace Common
         {
             return ResourceCards.Contains(ResourceCardType.Wool) && ResourceCards.Contains(ResourceCardType.Grain) && ResourceCards.Contains(ResourceCardType.Ore);
         }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is PlayerState state 
+                && VictoryPoints.Equals(state.VictoryPoints) 
+                && PlayedKnights == state.PlayedKnights 
+                && LongestRoadLength == state.LongestRoadLength 
+                && ResourceCards.Equals(state.ResourceCards) 
+                && DevelopmentCards.Equals(state.DevelopmentCards) 
+                && NewDevelopmentCards.Equals(state.NewDevelopmentCards)
+                && BuildingStock.Equals(state.BuildingStock)
+                && PortPrivileges == state.PortPrivileges;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(VictoryPoints, PlayedKnights, LongestRoadLength, ResourceCards, DevelopmentCards, NewDevelopmentCards, BuildingStock, PortPrivileges);
+        }
     }
 
 

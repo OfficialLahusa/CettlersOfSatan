@@ -47,5 +47,39 @@ namespace Common
 
             HasPlayedDevelopmentCard = false;
         }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is TurnState state 
+                && PlayerIndex == state.PlayerIndex 
+                && TypeOfRound == state.TypeOfRound 
+                && RoundCounter == state.RoundCounter 
+                && LastRoll.Equals(state.LastRoll) 
+                && MustRoll == state.MustRoll 
+                && AwaitedPlayerDiscards.SequenceEqual(state.AwaitedPlayerDiscards) 
+                && MustMoveRobber == state.MustMoveRobber 
+                && HasPlayedDevelopmentCard == state.HasPlayedDevelopmentCard;
+        }
+
+        public override int GetHashCode()
+        {
+            HashCode hash = new HashCode();
+
+            hash.Add(PlayerIndex);
+            hash.Add(TypeOfRound);
+            hash.Add(RoundCounter);
+            hash.Add(LastRoll);
+            hash.Add(MustRoll);
+            
+            foreach (bool val in AwaitedPlayerDiscards)
+            {
+                hash.Add(val);
+            }
+
+            hash.Add(MustMoveRobber);
+            hash.Add(HasPlayedDevelopmentCard);
+
+            return hash.ToHashCode();
+        }
     }
 }

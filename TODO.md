@@ -1,4 +1,4 @@
-- Equality, HashCode und Copy für GameState implementieren
+- Copy für GameState implementieren
 - Observation Filter (Agents nur die für sie sichtbaren Informationen geben)
 	- Von Robber gestohlene Karten
 	- Gezogene Development Cards

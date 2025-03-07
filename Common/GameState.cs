@@ -230,5 +230,34 @@ namespace Common
                 Players[i] = new PlayerState();
             }
         }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is GameState other
+                && Settings.Equals(other.Settings)
+                && Turn.Equals(other.Turn)
+                && Board.Equals(other.Board)
+                && ResourceBank.Equals(other.ResourceBank)
+                && DevelopmentBank.Equals(other.DevelopmentBank)
+                && Players.SequenceEqual(other.Players);
+        }
+
+        public override int GetHashCode()
+        {
+            HashCode hash = new HashCode();
+
+            foreach (PlayerState player in Players)
+            {
+                hash.Add(player);
+            }
+
+            hash.Add(Settings);
+            hash.Add(Turn);
+            hash.Add(Board);
+            hash.Add(ResourceBank);
+            hash.Add(DevelopmentBank);
+
+            return hash.ToHashCode();
+        }
     }
 }
