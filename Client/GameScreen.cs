@@ -345,6 +345,11 @@ namespace Client
 
             ImGui.Text($"State Hash: {_state.GetHashCode().ToString("X")}");
 
+            if (ImGui.Button("Find Inconsistent Hashes"))
+            {
+                FindInconsistentHashes();
+            }
+
             /*ImGui.Text($"{_legalActions.Count} Legal Actions");
 
             foreach (Action action in _legalActions)
@@ -710,6 +715,29 @@ namespace Client
             _diceWidget.Active = _state.Turn.MustRoll;
             _diceWidget.RollResult = _state.Turn.LastRoll;
             _diceWidget.UpdateSprites();
+        }
+
+        private void FindInconsistentHashes()
+        {
+            PlayFullAgentPlayout();
+
+            while (_playedActions.Count > 0)
+            {
+                int prevHash = _state.GetHashCode();
+
+                UndoAction();
+
+                RedoAction();
+
+                int postHash = _state.GetHashCode();
+
+                if (prevHash != postHash)
+                {
+                    Console.WriteLine($"{_playedActions.Peek().GetType().Name} mismatched: pre {prevHash.ToString("X")}, post {postHash.ToString("X")}");
+                }
+
+                UndoAction();
+            }
         }
 
         private void RegenerateMap()
