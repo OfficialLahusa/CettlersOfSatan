@@ -33,6 +33,24 @@ namespace Common
             PortPrivileges = PortPrivileges.None;
         }
 
+        /// <summary>
+        /// Deep copy constructor
+        /// </summary>
+        /// <param name="copy">Instance to copy</param>
+        public PlayerState(PlayerState copy)
+        {
+            VictoryPoints = new(copy.VictoryPoints);
+            PlayedKnights = copy.PlayedKnights;
+            LongestRoadLength = copy.LongestRoadLength;
+
+            ResourceCards = new(copy.ResourceCards);
+            DevelopmentCards = new(copy.DevelopmentCards);
+            NewDevelopmentCards = new(copy.NewDevelopmentCards);
+
+            BuildingStock = new(copy.BuildingStock);
+            PortPrivileges = copy.PortPrivileges;
+        }
+
         public bool CanAffordRoad()
         {
             bool hasFreeRoad = BuildingStock.FreeRoads > 0;

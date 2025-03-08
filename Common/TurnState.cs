@@ -42,10 +42,29 @@ namespace Common
             LastRoll = RollResult.GetRandom();
 
             MustRoll = false;
-            MustMoveRobber = false;
             AwaitedPlayerDiscards = new bool[playerCount];
+            MustMoveRobber = false;
 
             HasPlayedDevelopmentCard = false;
+        }
+
+        /// <summary>
+        /// Deep copy constructor
+        /// </summary>
+        /// <param name="copy">Instance to copy</param>
+        public TurnState(TurnState copy)
+        {
+            PlayerIndex = copy.PlayerIndex;
+
+            TypeOfRound = copy.TypeOfRound;
+            RoundCounter = copy.RoundCounter;
+            LastRoll = copy.LastRoll;
+
+            MustRoll = copy.MustRoll;
+            AwaitedPlayerDiscards = (bool[])copy.AwaitedPlayerDiscards.Clone();
+            MustMoveRobber = copy.MustMoveRobber;
+
+            HasPlayedDevelopmentCard = copy.HasPlayedDevelopmentCard;
         }
 
         public override bool Equals(object? obj)

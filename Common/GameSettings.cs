@@ -14,6 +14,16 @@ namespace Common
             VictoryPoints = 10;
         }
 
+        /// <summary>
+        /// Deep copy constructor
+        /// </summary>
+        /// <param name="copy">Instance to copy</param>
+        public GameSettings(GameSettings copy)
+        {
+            RobberCardLimit = copy.RobberCardLimit;
+            VictoryPoints = copy.VictoryPoints;
+        }
+
         public override bool Equals(object? obj)
         {
             return obj is GameSettings settings &&

@@ -27,9 +27,28 @@ namespace Common
             (ResourceBank, DevelopmentBank) = CreateBank();
             Players = new PlayerState[playerCount];
 
-            for(int i = 0; i < playerCount; i++)
+            for (int i = 0; i < playerCount; i++)
             {
                 Players[i] = new PlayerState();
+            }
+        }
+
+        /// <summary>
+        /// Deep copy constructor
+        /// </summary>
+        /// <param name="copy">Instance to copy</param>
+        public GameState(GameState copy)
+        {
+            Settings = new(copy.Settings);
+            Turn = new(copy.Turn);
+            Board = new(copy.Board);
+            ResourceBank = new(copy.ResourceBank);
+            DevelopmentBank = new(copy.DevelopmentBank);
+            Players = new PlayerState[copy.Players.Length];
+
+            for (int i = 0; i < Players.Length; i++)
+            {
+                Players[i] = new(copy.Players[i]);
             }
         }
 

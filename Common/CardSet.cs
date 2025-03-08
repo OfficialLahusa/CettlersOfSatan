@@ -41,6 +41,15 @@ namespace Common
             _cards = new uint[Enum.GetValues(typeof(T)).Length];
         }
 
+        /// <summary>
+        /// Deep copy constructor
+        /// </summary>
+        /// <param name="copy">Instance to copy</param>
+        public CardSet(CardSet<T> copy)
+        {
+            _cards = (uint[])copy._cards.Clone();
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int ToInt(T val)
         {

@@ -18,6 +18,15 @@ namespace Common
             Robber = robber;
         }
 
+        /// <summary>
+        /// Deep copy constructor
+        /// </summary>
+        /// <param name="copy">Instance to copy</param>
+        public Board(Board copy)
+        {
+            throw new NotImplementedException();
+        }
+
         public void Clear()
         {
             // Reset buildings

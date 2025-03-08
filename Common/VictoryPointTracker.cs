@@ -25,6 +25,19 @@ namespace Common
             LargestArmyPoints = 0;
         }
 
+        /// <summary>
+        /// Deep copy constructor
+        /// </summary>
+        /// <param name="copy">Instance to copy</param>
+        public VictoryPointTracker(VictoryPointTracker copy)
+        {
+            SettlementPoints = copy.SettlementPoints;
+            CityPoints = copy.CityPoints;
+            DevelopmentCardPoints = copy.DevelopmentCardPoints;
+            LongestRoadPoints = copy.LongestRoadPoints;
+            LargestArmyPoints = copy.LargestArmyPoints;
+        }
+
         public override bool Equals(object? obj)
         {
             return obj is VictoryPointTracker tracker &&

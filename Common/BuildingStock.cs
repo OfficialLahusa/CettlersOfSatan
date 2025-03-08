@@ -28,6 +28,19 @@ namespace Common
             FreeRoads = 0;
         }
 
+        /// <summary>
+        /// Deep copy constructor
+        /// </summary>
+        /// <param name="copy">Instance to copy</param>
+        public BuildingStock(BuildingStock copy)
+        {
+            RemainingRoads = copy.RemainingRoads;
+            RemainingSettlements = copy.RemainingSettlements;
+            RemainingCities = copy.RemainingCities;
+
+            FreeRoads = copy.FreeRoads;
+        }
+
         public override bool Equals(object? obj)
         {
             return obj is BuildingStock stock &&
