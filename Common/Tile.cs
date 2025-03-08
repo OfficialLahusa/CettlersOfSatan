@@ -35,7 +35,6 @@ namespace Common
             }
         }
 
-        public Port? Port { get; set; }
         public SortedList<Direction.Tile, Tile> Neighbors;
         public SortedList<Direction.Corner, Intersection> Intersections;
         public SortedList<Direction.Tile, Edge> Edges;
@@ -65,16 +64,15 @@ namespace Common
         public override bool Equals(object? obj)
         {
             return obj is Tile tile
-                && X == tile.X 
-                && Y == tile.Y 
-                && Type == tile.Type 
-                && Number == tile.Number 
-                && Port.Equals(Port, tile.Port);
+                && X == tile.X
+                && Y == tile.Y
+                && Type == tile.Type
+                && Number == tile.Number;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(X, Y, Type, Number, Port);
+            return HashCode.Combine(X, Y, Type, Number);
         }
     }
 

@@ -3,8 +3,11 @@ using Common.Actions;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
+using static Common.Direction;
 using static Common.Tile;
 using Color = SFML.Graphics.Color;
+using Edge = Common.Edge;
+using Tile = Common.Tile;
 
 namespace Client
 {
@@ -217,73 +220,6 @@ namespace Client
                         }
                     }
 
-                    // Build port bridges and icons
-                    if(tile.Port != null)
-                    {
-                        Color portColor = new Color(0x65, 0x35, 0x0F);
-
-                        // Coastal bridges
-                        Direction.Corner leftCorner, rightCorner;
-                        float leftAngle, rightAngle;
-
-                        (leftCorner, rightCorner) = tile.Port.AnchorDirection.GetAdjacentCorners();
-                        leftAngle = leftCorner.ToAngle();
-                        rightAngle = rightCorner.ToAngle();
-
-                        Vector2f leftDir = ClientUtils.EulerAngleToVec2f(leftAngle);
-                        Vector2f rightDir = ClientUtils.EulerAngleToVec2f(rightAngle);
-
-                        
-
-                        Vertex vertLeftOuter  = new Vertex(center + (SideLength - _borderWidth / 2f) * leftDir,  portColor);
-                        Vertex vertRightOuter = new Vertex(center + (SideLength - _borderWidth / 2f) * rightDir, portColor);
-                        Vertex vertLeftInner  = new Vertex(center + SideLength * 0.75f * leftDir,  portColor);
-                        Vertex vertRightInner = new Vertex(center + SideLength * 0.75f * rightDir, portColor);
-
-                        _portBridges.Append(vertLeftOuter);
-                        _portBridges.Append(vertRightOuter);
-                        _portBridges.Append(vertLeftInner);
-
-                        _portBridges.Append(vertLeftInner);
-                        _portBridges.Append(vertRightOuter);
-                        _portBridges.Append(vertRightInner);
-                        
-
-                        // Icons
-                        // Port icon (bottom)
-                        IntRect textureRect = TextureAtlas.Sprite.Port.GetTextureRect();
-
-                        Vector2f position = new Vector2f(center.X - IconSize / 2, center.Y - IconSize / 2 + (SideLength / 2.5f));
-                        Vertex vertTopLeft     = new Vertex(position, portColor, new Vector2f(textureRect.Left, textureRect.Top));
-                        Vertex vertTopRight    = new Vertex(position + new Vector2f(IconSize, 0), portColor, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top));
-                        Vertex vertBottomLeft  = new Vertex(position + new Vector2f(0, IconSize), portColor, new Vector2f(textureRect.Left, textureRect.Top + textureRect.Height));
-                        Vertex vertBottomRight = new Vertex(position + new Vector2f(IconSize, IconSize), portColor, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top + textureRect.Height));
-
-                        _overlay.Append(vertTopLeft);
-                        _overlay.Append(vertTopRight);
-                        _overlay.Append(vertBottomLeft);
-                        _overlay.Append(vertTopRight);
-                        _overlay.Append(vertBottomRight);
-                        _overlay.Append(vertBottomLeft);
-
-                        // Type icon (top)
-                        Color resourceColor = ColorPalette.GetPortIconColor(tile.Port.Type);
-                        textureRect = TextureAtlas.GetSprite(tile.Port.Type).GetTextureRect();
-
-                        position = new Vector2f(center.X - IconSize / 2, center.Y - IconSize / 2 - (SideLength / 2.5f));
-                        vertTopLeft = new Vertex(position, resourceColor, new Vector2f(textureRect.Left, textureRect.Top));
-                        vertTopRight = new Vertex(position + new Vector2f(IconSize, 0), resourceColor, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top));
-                        vertBottomLeft = new Vertex(position + new Vector2f(0, IconSize), resourceColor, new Vector2f(textureRect.Left, textureRect.Top + textureRect.Height));
-                        vertBottomRight = new Vertex(position + new Vector2f(IconSize, IconSize), resourceColor, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top + textureRect.Height));
-
-                        _overlay.Append(vertTopLeft);
-                        _overlay.Append(vertTopRight);
-                        _overlay.Append(vertBottomLeft);
-                        _overlay.Append(vertTopRight);
-                        _overlay.Append(vertBottomRight);
-                        _overlay.Append(vertBottomLeft);
-                    }
-
                     // Yield icons for land tiles
                     if(tile.IsLandTile())
                     {
@@ -312,6 +248,74 @@ namespace Client
                 }
             }
             _tiles.Update(tempTiles);
+
+            // Build port bridges and icons
+            foreach (Port port in Board.Ports)
+            {
+                Color portColor = new Color(0x65, 0x35, 0x0F);
+                Vector2f center = new Vector2f(port.AnchorTile.X * 2 * FlatSideLength + ((port.AnchorTile.Y % 2 == 0) ? FlatSideLength : 0), port.AnchorTile.Y * 1.5f * SideLength);
+
+                // Coastal bridges
+                Direction.Corner leftCorner, rightCorner;
+                float leftAngle, rightAngle;
+
+                (leftCorner, rightCorner) = port.AnchorDirection.GetAdjacentCorners();
+                leftAngle = leftCorner.ToAngle();
+                rightAngle = rightCorner.ToAngle();
+
+                Vector2f leftDir = ClientUtils.EulerAngleToVec2f(leftAngle);
+                Vector2f rightDir = ClientUtils.EulerAngleToVec2f(rightAngle);
+
+
+
+                Vertex vertLeftOuter = new Vertex(center + (SideLength - _borderWidth / 2f) * leftDir, portColor);
+                Vertex vertRightOuter = new Vertex(center + (SideLength - _borderWidth / 2f) * rightDir, portColor);
+                Vertex vertLeftInner = new Vertex(center + SideLength * 0.75f * leftDir, portColor);
+                Vertex vertRightInner = new Vertex(center + SideLength * 0.75f * rightDir, portColor);
+
+                _portBridges.Append(vertLeftOuter);
+                _portBridges.Append(vertRightOuter);
+                _portBridges.Append(vertLeftInner);
+
+                _portBridges.Append(vertLeftInner);
+                _portBridges.Append(vertRightOuter);
+                _portBridges.Append(vertRightInner);
+
+
+                // Icons
+                // Port icon (bottom)
+                IntRect textureRect = TextureAtlas.Sprite.Port.GetTextureRect();
+
+                Vector2f position = new Vector2f(center.X - IconSize / 2, center.Y - IconSize / 2 + (SideLength / 2.5f));
+                Vertex vertTopLeft = new Vertex(position, portColor, new Vector2f(textureRect.Left, textureRect.Top));
+                Vertex vertTopRight = new Vertex(position + new Vector2f(IconSize, 0), portColor, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top));
+                Vertex vertBottomLeft = new Vertex(position + new Vector2f(0, IconSize), portColor, new Vector2f(textureRect.Left, textureRect.Top + textureRect.Height));
+                Vertex vertBottomRight = new Vertex(position + new Vector2f(IconSize, IconSize), portColor, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top + textureRect.Height));
+
+                _overlay.Append(vertTopLeft);
+                _overlay.Append(vertTopRight);
+                _overlay.Append(vertBottomLeft);
+                _overlay.Append(vertTopRight);
+                _overlay.Append(vertBottomRight);
+                _overlay.Append(vertBottomLeft);
+
+                // Type icon (top)
+                Color resourceColor = ColorPalette.GetPortIconColor(port.Type);
+                textureRect = TextureAtlas.GetSprite(port.Type).GetTextureRect();
+
+                position = new Vector2f(center.X - IconSize / 2, center.Y - IconSize / 2 - (SideLength / 2.5f));
+                vertTopLeft = new Vertex(position, resourceColor, new Vector2f(textureRect.Left, textureRect.Top));
+                vertTopRight = new Vertex(position + new Vector2f(IconSize, 0), resourceColor, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top));
+                vertBottomLeft = new Vertex(position + new Vector2f(0, IconSize), resourceColor, new Vector2f(textureRect.Left, textureRect.Top + textureRect.Height));
+                vertBottomRight = new Vertex(position + new Vector2f(IconSize, IconSize), resourceColor, new Vector2f(textureRect.Left + textureRect.Width, textureRect.Top + textureRect.Height));
+
+                _overlay.Append(vertTopLeft);
+                _overlay.Append(vertTopRight);
+                _overlay.Append(vertBottomLeft);
+                _overlay.Append(vertTopRight);
+                _overlay.Append(vertBottomRight);
+                _overlay.Append(vertBottomLeft);
+            }
 
             // Build roads
             foreach (Edge edge in Board.Edges)

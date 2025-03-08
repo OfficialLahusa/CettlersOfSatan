@@ -257,7 +257,6 @@ namespace Common
 
                 // Initialize port with random type from shuffled list
                 Port port = new Port(portTile, portPlacement.dir, portTypes[0]);
-                portTile.Port = port;
                 ports.Add(port);
                 portTypes.RemoveAt(0);
             }
