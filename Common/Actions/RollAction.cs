@@ -181,7 +181,8 @@ namespace Common.Actions
         {
             return turn.PlayerIndex == playerIdx
                 && turn.TypeOfRound == TurnState.RoundType.Normal
-                && turn.MustRoll;
+                && turn.MustRoll
+                && !turn.MustMoveRobber;
         }
 
         public bool HasHistory()

@@ -222,6 +222,13 @@ namespace Client
 
             if (ImGui.TreeNode("Debug"))
             {
+                ImGui.Text($"State Hash: {_state.GetHashCode().ToString("X")}");
+
+                if (ImGui.Button("Find Inconsistent Hashes [O]"))
+                {
+                    FindInconsistentHashes();
+                }
+
                 ImGui.Checkbox("Silent Quick Playouts", ref _muteQuickPlayouts);
                 ImGui.Checkbox("Show Yield Points", ref _renderer.DrawYieldPoints);
                 ImGui.Checkbox("Show Shadows", ref _renderer.DrawTokenShadows);
@@ -340,15 +347,6 @@ namespace Client
             }
             if (!redoPossible)
                 ImGui.PopStyleVar();
-
-            ImGui.Separator();
-
-            ImGui.Text($"State Hash: {_state.GetHashCode().ToString("X")}");
-
-            if (ImGui.Button("Find Inconsistent Hashes [O]"))
-            {
-                FindInconsistentHashes();
-            }
 
             /*ImGui.Text($"{_legalActions.Count} Legal Actions");
 
@@ -755,6 +753,9 @@ namespace Client
                 if (prevHash != postHash)
                 {
                     Console.WriteLine($"{_playedActions.Peek().GetType().Name} mismatched: pre {prevHash.ToString("X")}, post {postHash.ToString("X")}");
+
+                    if (_undoHistory.Count > 0)
+                        Console.WriteLine("\t- Previous: " + _undoHistory.Peek().GetType().Name);
 
                     if (prevPlayerHash != postPlayerHash)
                         Console.WriteLine("\t- PlayerState");

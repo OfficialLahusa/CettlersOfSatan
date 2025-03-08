@@ -63,6 +63,9 @@ namespace Common.Actions
             // Decrement largest army
             --state.Players[PlayerIndex].PlayedKnights;
 
+            // Un-complete match
+            state.Turn.TypeOfRound = TurnState.RoundType.Normal;
+
             // Reassign VPs to previous owner (or nobody if previously -1)
             for (int playerIdx = 0; playerIdx < state.Players.Length; playerIdx++)
             {
