@@ -1,3 +1,4 @@
+- Monopoly on unknown ist möglich, sollte aber nicht möglich sein
 - Board Adjacency als Index-Tabellen außerhalb der eigentlichen Intersections/Edges/Tiles speichern
 - Copy für GameState implementieren
 - Observation Filter (Agents nur die für sie sichtbaren Informationen geben)
