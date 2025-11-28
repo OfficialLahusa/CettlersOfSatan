@@ -39,6 +39,7 @@
 - AlphaBetaAgent
 - MCTSAgent
 	- NN für Bewertung von Intersections und Discards als Zusatz
+    - nn.Embedding für kategorische Inputs (jeweils eins pro Art)
 - PlayerAgent
 	- Besseres Interface für Bank/Port Trades implementieren (Dropdown für Zielressource)
 - Serialization
