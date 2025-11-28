@@ -40,6 +40,8 @@
 - MCTSAgent
 	- NN für Bewertung von Intersections und Discards als Zusatz
     - nn.Embedding für kategorische Inputs (jeweils eins pro Art)
+    - Data Loading Implementation: https://docs.pytorch.org/tutorials/beginner/data_loading_tutorial.html
+    - Data Augmentation basierend auf Reduktion der Sichtbarkeit (alle Karten ausser die eines Spielers unknown machen, zufällig Karten unknown machen)
 - PlayerAgent
 	- Besseres Interface für Bank/Port Trades implementieren (Dropdown für Zielressource)
 - Serialization
