@@ -46,8 +46,8 @@
 	- Packets über Netzwerk
 	- YAML?
 - Ranking System
- - https://github.com/EbTech/Elo-MMR
- - https://github.com/moserware/Skills/blob/master/Skills/Team.cs
+    - https://github.com/EbTech/Elo-MMR
+    - https://github.com/moserware/Skills/blob/master/Skills/Team.cs
 	- https://trueskill.org/
 - Tabletalking über LLMs
 	- Zusätzlich zu Value Functions von einem Basisbot
