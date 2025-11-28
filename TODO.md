@@ -1,35 +1,35 @@
-- Monopoly on unknown ist möglich, sollte aber nicht möglich sein
-- Board Adjacency als Index-Tabellen außerhalb der eigentlichen Intersections/Edges/Tiles speichern
-- Copy für GameState implementieren
-- Observation Filter (Agents nur die für sie sichtbaren Informationen geben)
+- Monopoly on unknown ist mÃ¶glich, sollte aber nicht mÃ¶glich sein
+- Board Adjacency als Index-Tabellen auÃŸerhalb der eigentlichen Intersections/Edges/Tiles speichern
+- Copy fÃ¼r GameState implementieren
+- Observation Filter (Agents nur die fÃ¼r sie sichtbaren Informationen geben)
 	- Von Robber gestohlene Karten
 	- Gezogene Development Cards
 - GameState in Static und Dynamic unterteilen?
 	- Tiles, Edges und Intersections als Struktur statisch speichern und teilen
 	- Playstate (Roads, Settlements, Cities) als Byte-Arrays mit gleichen Indizes abbilden
-- Action für variable Domestic Trades
-- Datensatz für einfaches State Value Network generieren
+- Action fÃ¼r variable Domestic Trades
+- Datensatz fÃ¼r einfaches State Value Network generieren
 - Testen, ob alle Actions genutzt werden
-- Testen, ob Bank immer Gesamtsumme behält
+- Testen, ob Bank immer Gesamtsumme behÃ¤lt
 - RandomAgent
-	- Illegale Instanzen örtlich begrenzter Actions besser abgrenzen
+	- Illegale Instanzen Ã¶rtlich begrenzter Actions besser abgrenzen
 - SimpleAgent
-	- Immer die Spots mit den höchsten Yields bebauen
-	- Trades ausschließen, die günstiger mit Port möglich wären (z.B. kein 4:1 wenn 2:1 mit gleichem IO möglich ist)
-	- Trades nur nehmen, wenn sie tatsächlich die Ressourcenbewertung verbessern
-	- Räuber immer auf das Feld bewegen, das die Yield Scores am besten verändert
+	- Immer die Spots mit den hÃ¶chsten Yields bebauen
+	- Trades ausschlieÃŸen, die gÃ¼nstiger mit Port mÃ¶glich wÃ¤ren (z.B. kein 4:1 wenn 2:1 mit gleichem IO mÃ¶glich ist)
+	- Trades nur nehmen, wenn sie tatsÃ¤chlich die Ressourcenbewertung verbessern
+	- RÃ¤uber immer auf das Feld bewegen, das die Yield Scores am besten verÃ¤ndert
 	- Immer vom besten anliegenden Spieler ziehen
 	- Immer die am wenigsten wertvollen Karten (anhand von eigenen Yields) discarden
-	- Längste Straße präferiert verlängern oder neue Build Spots freischalten
+	- LÃ¤ngste StraÃŸe prÃ¤feriert verlÃ¤ngern oder neue Build Spots freischalten
 	- Monopolressource anhand von Bank Stock, eigener Hand und eigenen Yield Scores berechnen
 - AdvancedAgent
 	- Weiterentwicklung vom SimpleAgent
 	- Opponent Modeling
 		- Karten der anderen Spieler tracken
 	- Build Potential in Bewertung von Intersections einbeziehen
-	- Schlauere Nutzung von Ports und Dev Cards für gezieltes Decken von Kosten
-	- Straßen und Settlements nutzen, um Build Potential von anderen Spielern zu minimieren
-	- Knights während largest Army nur defensiv nutzen
+	- Schlauere Nutzung von Ports und Dev Cards fÃ¼r gezieltes Decken von Kosten
+	- StraÃŸen und Settlements nutzen, um Build Potential von anderen Spielern zu minimieren
+	- Knights wÃ¤hrend largest Army nur defensiv nutzen
 - EvolutionaryAgent
 	- Heuristiken anhand von Genom (z.B. Multiplikation von Yield Scores und Action Weights)
 	- Durch Playouts und Mutation trainieren
@@ -38,23 +38,24 @@
 	- Variable Baumtiefe?
 - AlphaBetaAgent
 - MCTSAgent
-	- NN für Bewertung von Intersections und Discards als Zusatz
+	- NN fÃ¼r Bewertung von Intersections und Discards als Zusatz
 - PlayerAgent
-	- Besseres Interface für Bank/Port Trades implementieren (Dropdown für Zielressource)
+	- Besseres Interface fÃ¼r Bank/Port Trades implementieren (Dropdown fÃ¼r Zielressource)
 - Serialization
 	- Maps, Lobby/Agent-Configs und Replays in/aus Dateien
-	- Packets über Netzwerk
+	- Packets Ã¼ber Netzwerk
 	- YAML?
 - Ranking System
+ - https://github.com/EbTech/Elo-MMR
 	- https://github.com/moserware/Skills/blob/master/Skills/Team.cs
 	- https://trueskill.org/
-- Tabletalking über LLMs
-	- Zusätzlich zu Value Functions von einem Basisbot
+- Tabletalking Ã¼ber LLMs
+	- ZusÃ¤tzlich zu Value Functions von einem Basisbot
 	- Self-Hosted oder API?
 	- Playouts gegeneinander ohne Supervision
-	- Gängige Metagame-Varianten (German/American) ausprobieren
+	- GÃ¤ngige Metagame-Varianten (German/American) ausprobieren
 - Szenarien und Varianten
-	- Basisspiel hat erstmal höchste Priorität
+	- Basisspiel hat erstmal hÃ¶chste PrioritÃ¤t
 	- Mainstream-Erweiterungen
 	- 1v1
 	- Map Layout
