@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Common.Port;
 
 namespace Common
 {
@@ -46,6 +47,23 @@ namespace Common
         public override int GetHashCode()
         {
             return HashCode.Combine(AnchorTile.X, AnchorTile.Y, AnchorDirection, Type);
+        }
+    }
+
+    public static class TradeTypeExtensions
+    {
+        public static PortPrivileges GetPortPrivilege(this TradeType type)
+        {
+            return type switch
+            {
+                TradeType.Generic => PortPrivileges.GenericThreeToOne,
+                TradeType.Lumber => PortPrivileges.LumberTwoToOne,
+                TradeType.Brick => PortPrivileges.BrickTwoToOne,
+                TradeType.Wool => PortPrivileges.WoolTwoToOne,
+                TradeType.Grain => PortPrivileges.GrainTwoToOne,
+                TradeType.Ore => PortPrivileges.OreTwoToOne,
+                _ => throw new InvalidOperationException(),
+            };
         }
     }
 }

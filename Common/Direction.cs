@@ -146,7 +146,7 @@ namespace Common
                 Edge.UpDown => Tile.West,
                 Edge.LeftTop => Tile.SouthWest,
                 Edge.RightTop => Tile.NorthWest,
-                _ => throw new NotImplementedException()
+                _ => throw new InvalidOperationException()
             };
         }
         public static Tile ToEastTileDir(this Edge edge)
@@ -156,7 +156,7 @@ namespace Common
                 Edge.UpDown => Tile.East,
                 Edge.LeftTop => Tile.NorthEast,
                 Edge.RightTop => Tile.SouthEast,
-                _ => throw new NotImplementedException()
+                _ => throw new InvalidOperationException()
             };
         }
     }

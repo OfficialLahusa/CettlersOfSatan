@@ -217,17 +217,7 @@ namespace Common.Actions
                 // On port
                 if (settlementIntersection == portEdge.Top || settlementIntersection == portEdge.Bottom)
                 {
-                    state.Players[playerIdx].PortPrivileges |= port.Type switch
-                    {
-                        Port.TradeType.Generic => PortPrivileges.GenericThreeToOne,
-                        Port.TradeType.Lumber => PortPrivileges.LumberTwoToOne,
-                        Port.TradeType.Brick => PortPrivileges.BrickTwoToOne,
-                        Port.TradeType.Wool => PortPrivileges.WoolTwoToOne,
-                        Port.TradeType.Grain => PortPrivileges.GrainTwoToOne,
-                        Port.TradeType.Ore => PortPrivileges.OreTwoToOne,
-                        _ => throw new NotImplementedException(),
-                    };
-
+                    state.Players[playerIdx].PortPrivileges |= port.Type.GetPortPrivilege();
                     break;
                 }
             }
@@ -248,30 +238,12 @@ namespace Common.Actions
 
                 if (portEdge.Top.Building != Intersection.BuildingType.None)
                 {
-                    state.Players[portEdge.Top.Owner].PortPrivileges |= port.Type switch
-                    {
-                        Port.TradeType.Generic => PortPrivileges.GenericThreeToOne,
-                        Port.TradeType.Lumber => PortPrivileges.LumberTwoToOne,
-                        Port.TradeType.Brick => PortPrivileges.BrickTwoToOne,
-                        Port.TradeType.Wool => PortPrivileges.WoolTwoToOne,
-                        Port.TradeType.Grain => PortPrivileges.GrainTwoToOne,
-                        Port.TradeType.Ore => PortPrivileges.OreTwoToOne,
-                        _ => throw new NotImplementedException(),
-                    };
+                    state.Players[portEdge.Top.Owner].PortPrivileges |= port.Type.GetPortPrivilege();
                 }
 
                 if (portEdge.Bottom.Building != Intersection.BuildingType.None)
                 {
-                    state.Players[portEdge.Bottom.Owner].PortPrivileges |= port.Type switch
-                    {
-                        Port.TradeType.Generic => PortPrivileges.GenericThreeToOne,
-                        Port.TradeType.Lumber => PortPrivileges.LumberTwoToOne,
-                        Port.TradeType.Brick => PortPrivileges.BrickTwoToOne,
-                        Port.TradeType.Wool => PortPrivileges.WoolTwoToOne,
-                        Port.TradeType.Grain => PortPrivileges.GrainTwoToOne,
-                        Port.TradeType.Ore => PortPrivileges.OreTwoToOne,
-                        _ => throw new NotImplementedException(),
-                    };
+                    state.Players[portEdge.Bottom.Owner].PortPrivileges |= port.Type.GetPortPrivilege();
                 }
             }
         }
