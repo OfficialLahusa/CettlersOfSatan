@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using static Common.Tile;
+﻿using static Common.Tile;
 
 namespace Common
 {
