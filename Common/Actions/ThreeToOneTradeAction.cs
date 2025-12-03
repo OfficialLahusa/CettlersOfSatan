@@ -84,8 +84,12 @@ namespace Common.Actions
 
             foreach (var inputType in CardSet<ResourceCardType>.Values)
             {
+                if (inputType == ResourceCardType.Unknown) continue;
+
                 foreach (var outputType in CardSet<ResourceCardType>.Values)
                 {
+                    if (outputType == ResourceCardType.Unknown) continue;
+
                     ThreeToOneTradeAction action = new(playerIdx, inputType, outputType);
 
                     if (action.IsBoardValid(state))

@@ -99,8 +99,12 @@ namespace Common.Actions
 
             foreach (var firstChoice in CardSet<ResourceCardType>.Values)
             {
+                if (firstChoice == ResourceCardType.Unknown) continue;
+
                 foreach (var secondChoice in CardSet<ResourceCardType>.Values)
                 {
+                    if (secondChoice == ResourceCardType.Unknown) continue;
+
                     // Avoid adding the same pair twice
                     if (firstChoice > secondChoice) continue;
 
@@ -118,6 +122,8 @@ namespace Common.Actions
             {
                 foreach (var firstChoice in CardSet<ResourceCardType>.Values)
                 {
+                    if (firstChoice == ResourceCardType.Unknown) continue;
+
                     if (state.ResourceBank.Get(firstChoice) == 1)
                     {
                         YearOfPlentyAction action = new(playerIdx, firstChoice, null);

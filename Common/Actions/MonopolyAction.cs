@@ -111,6 +111,9 @@ namespace Common.Actions
 
             foreach (var resourceType in CardSet<ResourceCardType>.Values)
             {
+                // Do not allow monopoly on unknown resource type
+                if (resourceType == ResourceCardType.Unknown) continue;
+
                 MonopolyAction action = new(playerIdx, resourceType);
 
                 if(action.IsBoardValid(state))
