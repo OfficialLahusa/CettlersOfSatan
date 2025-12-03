@@ -24,6 +24,9 @@ namespace Common
         /// <param name="copy">Instance to copy</param>
         public Board(Board copy)
         {
+            Map = new HexMap<Tile>(copy.Map);
+            // TODO: Deep copy Intersections, Edges, Ports, Robber
+
             throw new NotImplementedException();
         }
 

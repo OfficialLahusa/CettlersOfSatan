@@ -23,6 +23,18 @@ namespace Common
             Array.Fill(_values, defaultValue);
         }
 
+        /// <summary>
+        /// Deep copy constructor
+        /// </summary>
+        /// <param name="copy">Instance to copy</param>
+        public HexMap(HexMap<T> copy)
+        {
+            Width = copy.Width;
+            Height = copy.Height;
+            _values = new T[Width * Height];
+            Array.Copy(copy._values, _values, copy._values.Length);
+        }
+
         // Get a Single Tile
         public T GetTile(int x, int y)
         {
