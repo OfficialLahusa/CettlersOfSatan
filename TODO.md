@@ -1,5 +1,5 @@
 - Board Adjacency als Index-Tabellen außerhalb der eigentlichen Intersections/Edges/Tiles speichern
-- Copy für GameState implementieren
+- Copy für GameState implementieren (Board fehlt noch)
 - Observation Filter (Agents nur die für sie sichtbaren Informationen geben)
 	- Von Robber gestohlene Karten
 	- Gezogene Development Cards
