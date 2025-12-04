@@ -1,4 +1,6 @@
 - Board Adjacency als Index-Tabellen außerhalb der eigentlichen Intersections/Edges/Tiles speichern
+	- Erst Logik auf Indices umstellen und Indizes in Strukturen speichern
+	- Dann Adjacency aus den Strukturen entfernen und in eigene Klasse auslagern
 - Copy für GameState implementieren (Board fehlt noch)
 - Observation Filter (Agents nur die für sie sichtbaren Informationen geben)
 	- Von Robber gestohlene Karten

@@ -115,8 +115,10 @@ namespace Common.Actions
             {
                 bool isTargetPlayerAdjacent = false;
 
-                foreach (Intersection intersection in tile.Intersections.Values)
+                foreach (int intersectionIdx in tile.Intersections.Values)
                 {
+                    Intersection intersection = state.Board.Intersections[intersectionIdx];
+
                     if (intersection.Owner == TargetPlayerIndex && intersection.Building != Intersection.BuildingType.None)
                     {
                         isTargetPlayerAdjacent = true;
@@ -130,8 +132,10 @@ namespace Common.Actions
             {
                 bool hasOtherAdjacentPlayer = false;
 
-                foreach (Intersection intersection in tile.Intersections.Values)
+                foreach (int intersectionIdx in tile.Intersections.Values)
                 {
+                    Intersection intersection = state.Board.Intersections[intersectionIdx];
+
                     if (intersection.Owner != PlayerIndex && intersection.Building != Intersection.BuildingType.None)
                     {
                         hasOtherAdjacentPlayer = true;

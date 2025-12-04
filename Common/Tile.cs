@@ -34,9 +34,9 @@ namespace Common
             }
         }
 
-        public SortedList<Direction.Tile, Tile> Neighbors;
-        public SortedList<Direction.Corner, Intersection> Intersections;
-        public SortedList<Direction.Tile, Edge> Edges;
+        public SortedList<Direction.Tile, (int x, int y)> Neighbors;
+        public SortedList<Direction.Corner, int> Intersections;
+        public SortedList<Direction.Tile, int> Edges;
 
         public Tile(int x, int y, TileType type, int? number)
         {
@@ -45,9 +45,9 @@ namespace Common
             Type = type;
             Number = number;
 
-            Neighbors = new SortedList<Direction.Tile, Tile>();
-            Intersections = new SortedList<Direction.Corner, Intersection>();
-            Edges = new SortedList<Direction.Tile, Edge>();
+            Neighbors = new SortedList<Direction.Tile, (int x, int y)>();
+            Intersections = new SortedList<Direction.Corner, int>();
+            Edges = new SortedList<Direction.Tile, int>();
         }
 
         public bool IsLandTile()

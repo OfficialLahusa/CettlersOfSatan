@@ -129,6 +129,23 @@ namespace Common
             return neighbors;
         }
 
+        public SortedList<Direction.Tile, (int x, int y)> GetNeighborIndicesByDirection(int x, int y)
+        {
+            SortedList<Direction.Tile, (int x, int y)> neighborIndices = new SortedList<Direction.Tile, (int x, int y)>();
+
+            // Get neighbor from each direction
+            foreach (Direction.Tile dir in (Direction.Tile[])Enum.GetValues(typeof(Direction.Tile)))
+            {
+                (int nx, int ny) = Coordinates.Shift(x, y, dir);
+                if (Contains(nx, ny))
+                {
+                    neighborIndices.Add(dir, (nx, ny));
+                }
+            }
+
+            return neighborIndices;
+        }
+
         public bool Contains(int x, int y)
         {
             return x < Width && x >= 0 && y < Height && y >= 0;

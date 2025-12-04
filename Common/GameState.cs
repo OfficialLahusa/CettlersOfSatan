@@ -88,7 +88,7 @@ namespace Common
             // Recursively calculate longest road from each possible starting road
             foreach (Edge startingRoad in playerRoads)
             {
-                HashSet<Edge> candidate = CalculateLongestRoadRec(causingPlayerIdx, startingRoad, playerRoads.Remove(startingRoad), []);
+                HashSet<Edge> candidate = CalculateLongestRoadRec(causingPlayerIdx, startingRoad, playerRoads.Remove(startingRoad), [], Board);
                 if (candidate.Count > longestPlayerRoad.Count)
                 {
                     longestPlayerRoad = candidate;
@@ -150,7 +150,7 @@ namespace Common
             }
         }
 
-        private static HashSet<Edge> CalculateLongestRoadRec(int playerIdx, Edge current, ImmutableHashSet<Edge> remaining, ImmutableHashSet<Edge> contained)
+        private static HashSet<Edge> CalculateLongestRoadRec(int playerIdx, Edge current, ImmutableHashSet<Edge> remaining, ImmutableHashSet<Edge> contained, Board board)
         {
             HashSet<Edge> longestPlayerRoad = [.. contained, current];
 
@@ -158,12 +158,15 @@ namespace Common
             if (remaining.IsEmpty) return longestPlayerRoad;
 
             // Find possible branches
-            (Intersection top, Intersection bottom) = current.Intersections;
+            (int topIdx, int bottomIdx) = current.Intersections;
+            Intersection top = board.Intersections[topIdx];
+            Intersection bottom = board.Intersections[bottomIdx];
+
             bool topBlocked = top.Owner != playerIdx && top.Building != Intersection.BuildingType.None;
             bool bottomBlocked = bottom.Owner != playerIdx && bottom.Building != Intersection.BuildingType.None;
 
-            var topRoads = top.AdjacentEdges.Values.Where(edge => edge.Owner == playerIdx && edge != current);
-            var bottomRoads = bottom.AdjacentEdges.Values.Where(edge => edge.Owner == playerIdx && edge != current);
+            var topRoads = top.AdjacentEdges.Select(edgeIdx => board.Edges[edgeIdx]).Where(edge => edge.Owner == playerIdx && edge != current);
+            var bottomRoads = bottom.AdjacentEdges.Select(edgeIdx => board.Edges[edgeIdx]).Where(edge => edge.Owner == playerIdx && edge != current);
 
             bool topAlreadyConnected = topRoads.Any(contained.Contains);
             bool bottomAlreadyConnected = bottomRoads.Any(contained.Contains);
@@ -178,7 +181,7 @@ namespace Common
             // Recursively evaluate branches
             foreach (Edge branch in possibleBranches)
             {
-                HashSet<Edge> candidate = CalculateLongestRoadRec(playerIdx, branch, remaining.Remove(current), [.. contained, current]);
+                HashSet<Edge> candidate = CalculateLongestRoadRec(playerIdx, branch, remaining.Remove(current), [.. contained, current], board);
                 if (candidate.Count > longestPlayerRoad.Count)
                 {
                     longestPlayerRoad = candidate;

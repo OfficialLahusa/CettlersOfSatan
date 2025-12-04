@@ -25,31 +25,31 @@ namespace Common
         // -1 => None, 0/1/.. => Player 1/2/..
         public int Owner { get; set; }
 
-        public Intersection Top
+        public int Top
         {
             get
             {
-                if (_topIntersection == null)
+                if (!_topIntersection.HasValue)
                     (_topIntersection, _bottomIntersection) = GetIntersections();
-                return _topIntersection;
+                return _topIntersection.Value;
             }
         }
-        public Intersection Bottom
+        public int Bottom
         {
             get
             {
-                if (_bottomIntersection == null)
+                if (!_bottomIntersection.HasValue)
                     (_topIntersection, _bottomIntersection) = GetIntersections();
-                return _bottomIntersection;
+                return _bottomIntersection.Value;
             }
         }
-        public (Intersection Top, Intersection Bottom) Intersections
+        public (int Top, int Bottom) Intersections
         {
             get => (Top, Bottom);
         }
 
-        private Intersection? _topIntersection;
-        private Intersection? _bottomIntersection;
+        private int? _topIntersection;
+        private int? _bottomIntersection;
 
         public Edge(Direction.Edge direction)
         {
@@ -60,7 +60,7 @@ namespace Common
             Owner = -1;
         }
 
-        private (Intersection top, Intersection bottom) GetIntersections()
+        private (int top, int bottom) GetIntersections()
         {
             bool fromWest = WestTile != null;
             Tile anchorTile = WestTile ?? EastTile!;
@@ -68,8 +68,8 @@ namespace Common
             Direction.Tile tileDir = fromWest ? Direction.ToEastTileDir() : Direction.ToWestTileDir();
             (Direction.Corner left, Direction.Corner right) = tileDir.GetAdjacentCorners();
 
-            Intersection leftIntersection = anchorTile.Intersections[left];
-            Intersection rightIntersection = anchorTile.Intersections[right];
+            int leftIntersection = anchorTile.Intersections[left];
+            int rightIntersection = anchorTile.Intersections[right];
 
             return (fromWest ? leftIntersection : rightIntersection, fromWest ? rightIntersection : leftIntersection);
         }

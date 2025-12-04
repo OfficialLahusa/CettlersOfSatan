@@ -6,7 +6,7 @@ namespace Common
         // Key: Corner direction this intersection is on at the given tile
         public SortedList<Direction.Corner, Tile> AdjacentTiles;
 
-        public SortedList<Direction.Edge, Edge> AdjacentEdges
+        public HashSet<int> AdjacentEdges
         {
             get
             {
@@ -29,7 +29,7 @@ namespace Common
         // -1 => None, 0/1/.. => Player 1/2/..
         public int Owner { get; set; }
 
-        private SortedList<Direction.Edge, Edge>? _adjacentEdges = null;
+        private HashSet<int>? _adjacentEdges = null;
 
         public Intersection(bool facesDownwards)
         {
@@ -39,19 +39,19 @@ namespace Common
             Owner = -1;
         }
 
-        private SortedList<Direction.Edge, Edge> GetAdjacentEdges()
+        private HashSet<int> GetAdjacentEdges()
         {
-            SortedList<Direction.Edge, Edge> result = new SortedList<Direction.Edge, Edge>();
+            HashSet<int> result = new HashSet<int>();
 
             foreach ((Direction.Corner anchoredDir, Tile tile) in AdjacentTiles)
             {
                 // Get the two roads adjacent to the tile and intersection
                 (Direction.Tile leftAdjEdgeDir, Direction.Tile rightAdjEdgeDir) = anchoredDir.GetAdjacentTiles();
-                Edge leftAdjEdge = tile.Edges[leftAdjEdgeDir];
-                Edge rightAdjEdge = tile.Edges[rightAdjEdgeDir];
+                int leftAdjEdge = tile.Edges[leftAdjEdgeDir];
+                int rightAdjEdge = tile.Edges[rightAdjEdgeDir];
 
-                if (!result.ContainsKey(leftAdjEdge.Direction))  result.Add(leftAdjEdge.Direction,  leftAdjEdge);
-                if (!result.ContainsKey(rightAdjEdge.Direction)) result.Add(rightAdjEdge.Direction, rightAdjEdge);
+                result.Add(leftAdjEdge);
+                result.Add(rightAdjEdge);
             }
 
             return result;

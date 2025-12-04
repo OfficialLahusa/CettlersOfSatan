@@ -68,8 +68,10 @@ namespace Common.Actions
 
             // Check if the settlement might have broken the longest road, which can only happen if there are two adjacent roads from another player
             int? adjPlayer = null;
-            foreach (Edge adjRoad in intersection.AdjacentEdges.Values)
+            foreach (int adjRoadIdx in intersection.AdjacentEdges)
             {
+                Edge adjRoad = state.Board.Edges[adjRoadIdx];
+
                 if (adjRoad.Building == Edge.BuildingType.None || adjRoad.Owner == PlayerIndex) continue;
 
                 // First road from another player
@@ -130,7 +132,7 @@ namespace Common.Actions
             // Move VPs to previous longest road holder in case of draws (or nobody if -1)
             for (int playerIdx = 0; playerIdx < state.Players.Length; playerIdx++)
             {
-                state.Players[playerIdx].VictoryPoints.LongestRoadPoints = (byte)(playerIdx == History.PrevLongestRoadHolder ? 2 : 0);
+                state.Players[playerIdx].VictoryPoints.LongestRoadPoints = (byte)(playerIdx == History!.PrevLongestRoadHolder ? 2 : 0);
             }
 
             // Un-complete match
@@ -162,14 +164,19 @@ namespace Common.Actions
             // Has adjacent road
             bool hasAdjacentRoad = false;
             bool hasAdjacentSettlement = false;
-            foreach(Edge adjacentRoad in intersection.AdjacentEdges.Values)
+            foreach(int adjacentRoadIdx in intersection.AdjacentEdges)
             {
+                Edge adjacentRoad = state.Board.Edges[adjacentRoadIdx];
+
                 if (adjacentRoad.Owner == PlayerIndex && adjacentRoad.Building != Edge.BuildingType.None)
                 {
                     hasAdjacentRoad = true;
                 }
 
-                (Intersection top, Intersection bottom) = adjacentRoad.Intersections;
+                (int topIdx, int bottomIdx) = adjacentRoad.Intersections;
+                Intersection top = state.Board.Intersections[topIdx];
+                Intersection bottom = state.Board.Intersections[bottomIdx];
+
                 if (top.Building != Intersection.BuildingType.None || bottom.Building != Intersection.BuildingType.None)
                 {
                     hasAdjacentSettlement = true;
@@ -211,11 +218,12 @@ namespace Common.Actions
         {
             foreach (Port port in state.Board.Ports)
             {
-                Edge portEdge = port.AnchorTile.Neighbors[port.AnchorDirection].Edges[port.AnchorDirection.Mirror()];
+                (int anchorX, int anchorY) = port.AnchorTile.Neighbors[port.AnchorDirection];
+                Edge portEdge = state.Board.Edges[state.Board.Map.GetTile(anchorX, anchorY).Edges[port.AnchorDirection.Mirror()]];
                 Intersection settlementIntersection = state.Board.Intersections[intersectionIdx];
 
                 // On port
-                if (settlementIntersection == portEdge.Top || settlementIntersection == portEdge.Bottom)
+                if (settlementIntersection == state.Board.Intersections[portEdge.Top] || settlementIntersection == state.Board.Intersections[portEdge.Bottom])
                 {
                     state.Players[playerIdx].PortPrivileges |= port.Type.GetPortPrivilege();
                     break;
@@ -234,16 +242,19 @@ namespace Common.Actions
             // Recalculate for all ports and players
             foreach (Port port in state.Board.Ports)
             {
-                Edge portEdge = port.AnchorTile.Neighbors[port.AnchorDirection].Edges[port.AnchorDirection.Mirror()];
+                (int anchorX, int anchorY) = port.AnchorTile.Neighbors[port.AnchorDirection];
+                Edge portEdge = state.Board.Edges[state.Board.Map.GetTile(anchorX, anchorY).Edges[port.AnchorDirection.Mirror()]];
 
-                if (portEdge.Top.Building != Intersection.BuildingType.None)
+                Intersection top = state.Board.Intersections[portEdge.Top];
+                if (top.Building != Intersection.BuildingType.None)
                 {
-                    state.Players[portEdge.Top.Owner].PortPrivileges |= port.Type.GetPortPrivilege();
+                    state.Players[top.Owner].PortPrivileges |= port.Type.GetPortPrivilege();
                 }
 
-                if (portEdge.Bottom.Building != Intersection.BuildingType.None)
+                Intersection bottom = state.Board.Intersections[portEdge.Bottom];
+                if (bottom.Building != Intersection.BuildingType.None)
                 {
-                    state.Players[portEdge.Bottom.Owner].PortPrivileges |= port.Type.GetPortPrivilege();
+                    state.Players[bottom.Owner].PortPrivileges |= port.Type.GetPortPrivilege();
                 }
             }
         }

@@ -100,7 +100,7 @@ namespace Common
                 for (int x = 0; x < map.Width; x++)
                 {
                     Tile tile = map.GetTile(x, y);
-                    tile.Neighbors = map.GetNeighborsByDirection(x, y);
+                    tile.Neighbors = map.GetNeighborIndicesByDirection(x, y);
                 }
             }
 
@@ -140,24 +140,32 @@ namespace Common
                         (int rx, int ry) = Coordinates.Shift(x, y, right);
 
                         Tile leftTile, rightTile;
-                        Intersection? intersection = null;
+                        int intersectionIdx = -1;
 
                         // Check if left tile is valid land
                         if (map.Contains(lx, ly) && (leftTile = map.GetTile(lx, ly)).IsLandTile())
                         {
                             // Check if neighbor already created the intersection
-                            leftTile.Intersections.TryGetValue(cornerDir.Mirror().Rotate(-1), out intersection);
+                            if (leftTile.Intersections.ContainsKey(cornerDir.Mirror().Rotate(-1)))
+                            {
+                                intersectionIdx = leftTile.Intersections[cornerDir.Mirror().Rotate(-1)];
+                            }
                         }
 
                         // Check if left tile is valid land
-                        if (intersection == null && map.Contains(rx, ry) && (rightTile = map.GetTile(rx, ry)).IsLandTile())
+                        if (intersectionIdx == -1 && map.Contains(rx, ry) && (rightTile = map.GetTile(rx, ry)).IsLandTile())
                         {
                             // Check if neighbor already created the intersection
-                            rightTile.Intersections.TryGetValue(cornerDir.Mirror().Rotate(1), out intersection);
+                            if (rightTile.Intersections.ContainsKey(cornerDir.Mirror().Rotate(1)))
+                            {
+                                intersectionIdx = rightTile.Intersections[cornerDir.Mirror().Rotate(1)];
+                            }
                         }
 
-                        // Create intersection if doesn't already exist
-                        if(intersection == null)
+                        Intersection intersection;
+
+                        // Create intersection if it doesn't already exist
+                        if(intersectionIdx == -1)
                         {
                             intersection = new Intersection(cornerDir.HasDownwardsFacingIntersection());
 
@@ -166,13 +174,18 @@ namespace Common
                             //if (intersection.Building != Intersection.BuildingType.None) intersection.Owner = Utils.Random.Next(4);
 
                             intersections.Add(intersection);
+                            intersectionIdx = intersections.Count - 1;
+                        }
+                        else
+                        {
+                            intersection = intersections[intersectionIdx];
                         }
 
                         // Register self at intersection
                         intersection.AdjacentTiles.Add(cornerDir, tile);
 
                         // Register intersection at self
-                        tile.Intersections.Add(cornerDir, intersection);
+                        tile.Intersections.Add(cornerDir, intersectionIdx);
                     }
                 }
             }
@@ -195,17 +208,21 @@ namespace Common
 
                         // Adjacent tile on the other side of the handled edge
                         Tile adjacentTile;
-                        Edge? edge = null;
+                        int edgeIdx = -1;
 
                         if(map.Contains(px, py))
                         {
                             adjacentTile = map.GetTile(px, py);
                             // Check if neighbor already created the handled edge
-                            adjacentTile.Edges.TryGetValue(tileDir.Mirror(), out edge);
+                            if (adjacentTile.Edges.ContainsKey(tileDir.Mirror()))
+                            {
+                                edgeIdx = adjacentTile.Edges[tileDir.Mirror()];
+                            }
                         }
 
                         // Create edge if doesn't already exist
-                        if (edge == null)
+                        Edge edge;
+                        if (edgeIdx == -1)
                         {
                             edge = new Edge(tileDir.ToEdgeDir());
 
@@ -214,20 +231,25 @@ namespace Common
                             //if (edge.Building != Edge.BuildingType.None) edge.Owner = Utils.Random.Next(4);
 
                             edges.Add(edge);
+                            edgeIdx = edges.Count - 1;
+                        }
+                        else
+                        {
+                            edge = edges[edgeIdx];
                         }
 
                         // Register self at edge
-                        if(tileDir.IsEast())
+                        if (tileDir.IsEast())
                         {
                             edge.WestTile = tile;
-                        } 
+                        }
                         else
                         {
                             edge.EastTile = tile;
                         }
 
                         // Register edge at self
-                        tile.Edges.Add(tileDir, edge);
+                        tile.Edges.Add(tileDir, edgeIdx);
                     }
                 }
             }

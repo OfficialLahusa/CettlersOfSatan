@@ -95,7 +95,9 @@ namespace Common.Actions
             bool oneRoadPlaced = state.Players[PlayerIndex].BuildingStock.RemainingRoads == BuildingStock.MAX_ROADS - 1;
 
             // Get the two intersections on the ends of the road
-            (Intersection top, Intersection bottom) = road.Intersections;
+            (int topIdx, int bottomIdx) = road.Intersections;
+            Intersection top = state.Board.Intersections[topIdx];
+            Intersection bottom = state.Board.Intersections[bottomIdx];
 
             // Check if one of the intersections has a building owned by the player
             bool hasTopBuilding = top.Owner == PlayerIndex && top.Building != Intersection.BuildingType.None;
@@ -106,9 +108,11 @@ namespace Common.Actions
             bool isAdjacentToFirstSettlement = false;
             if(hasDirectAdjBuilding)
             {
-                foreach (Edge adjEdge in (hasTopBuilding ? top : bottom).AdjacentEdges.Values)
+                foreach (int adjEdgeIdx in (hasTopBuilding ? top : bottom).AdjacentEdges)
                 {
-                    if(adjEdge.Owner == PlayerIndex && adjEdge.Building != Edge.BuildingType.None)
+                    Edge adjEdge = state.Board.Edges[adjEdgeIdx];
+
+                    if (adjEdge.Owner == PlayerIndex && adjEdge.Building != Edge.BuildingType.None)
                     {
                         isAdjacentToFirstSettlement = true;
                         break;
