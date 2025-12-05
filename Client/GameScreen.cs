@@ -428,6 +428,20 @@ namespace Client
             {
                 FindInconsistentHashes();
             }
+            // Profile GameState Memory Usage
+            if (Keyboard.IsKeyPressed(Keyboard.Key.Add))
+            {
+                long pre = GC.GetTotalMemory(true);
+                Console.WriteLine("Pre: " + pre);
+                List<GameState> storedStates = new();
+                for (int i = 0; i < 1000000; i++)
+                {
+                    storedStates.Add(new GameState(_state));
+                }
+                long post = GC.GetTotalMemory(true);
+                Console.WriteLine("Post: " + post);
+                Console.WriteLine("Diff: " + (post - pre));
+            }
         }
 
         public void Update(Time deltaTime)
