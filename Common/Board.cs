@@ -27,9 +27,35 @@ namespace Common
         public Board(Board copy)
         {
             Map = new HexMap<Tile>(copy.Map);
-            // TODO: Deep copy Intersections, Edges, Ports, Robber, Adjacency
+            for (int x = 0; x < copy.Map.Width; x++)
+            {
+                for (int y = 0; y < copy.Map.Height; y++)
+                {
+                    Map.SetTile(x, y, new Tile(copy.Map.GetTile(x, y)));
+                }
+            }
 
-            throw new NotImplementedException();
+            Intersections = new List<Intersection>();
+            foreach (Intersection intersection in copy.Intersections)
+            {
+                Intersections.Add(new Intersection(intersection));
+            }
+
+            Edges = new List<Edge>();
+            foreach (Edge edge in copy.Edges)
+            {
+                Edges.Add(new Edge(edge));
+            }
+
+            Ports = new List<Port>();
+            foreach (Port port in copy.Ports)
+            {
+                Ports.Add(new Port(port));
+            }
+
+            Adjacency = new AdjacencyMatrix(copy.Adjacency, Map, Intersections, Edges);
+
+            Robber = copy.Robber != null ? Map.GetTile(copy.Robber.X, copy.Robber.Y) : null;
         }
 
         public void Clear()

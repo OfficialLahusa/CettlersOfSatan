@@ -24,7 +24,7 @@ namespace Common
         }
 
         /// <summary>
-        /// Deep copy constructor
+        /// Copy constructor (does not deep copy reference types)
         /// </summary>
         /// <param name="copy">Instance to copy</param>
         public HexMap(HexMap<T> copy)
