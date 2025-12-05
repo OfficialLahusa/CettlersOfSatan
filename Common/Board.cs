@@ -7,14 +7,16 @@ namespace Common
         public List<Intersection> Intersections { get; set; }
         public List<Edge> Edges { get; set; }
         public List<Port> Ports { get; set; }
+        public AdjacencyMatrix Adjacency { get; set; }
         public Tile? Robber;
 
-        public Board(HexMap<Tile> map, List<Intersection> intersections, List<Edge> edges, List<Port> ports, Tile? robber)
+        public Board(HexMap<Tile> map, List<Intersection> intersections, List<Edge> edges, List<Port> ports, AdjacencyMatrix adjacency, Tile? robber)
         {
             Map = map;
             Intersections = intersections;
             Edges = edges;
             Ports = ports;
+            Adjacency = adjacency;
             Robber = robber;
         }
 
@@ -25,7 +27,7 @@ namespace Common
         public Board(Board copy)
         {
             Map = new HexMap<Tile>(copy.Map);
-            // TODO: Deep copy Intersections, Edges, Ports, Robber
+            // TODO: Deep copy Intersections, Edges, Ports, Robber, Adjacency
 
             throw new NotImplementedException();
         }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualBasic;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -145,9 +146,7 @@ namespace Common.Actions
             bool canAfford = state.Players[PlayerIndex].CanAffordRoad();
 
             // Get the two intersections on the ends of the road
-            (int topIdx, int bottomIdx) = road.Intersections;
-            Intersection top = state.Board.Intersections[topIdx];
-            Intersection bottom = state.Board.Intersections[bottomIdx];
+            (Intersection top, Intersection bottom) = state.Board.Adjacency.GetIntersections(road);
 
             // Check if one of the intersections has a building owned by the player
             bool hasTopBuilding = top.Owner == PlayerIndex && top.Building != Intersection.BuildingType.None;
@@ -163,10 +162,8 @@ namespace Common.Actions
             bool bottomHasAdjRoad = false;
 
             // Check if one of the adjacent roads of the top intersection was built by the player
-            foreach(int adjacentRoadIdx in top.AdjacentEdges)
+            foreach (Edge adjacentRoad in state.Board.Adjacency.GetEdges(top))
             {
-                Edge adjacentRoad = state.Board.Edges[adjacentRoadIdx];
-
                 if (adjacentRoad.Owner == PlayerIndex && adjacentRoad.Building != Edge.BuildingType.None)
                 {
                     topHasAdjRoad = true;
@@ -175,10 +172,8 @@ namespace Common.Actions
             }
 
             // Check if one of the adjacent roads of the bottom intersection was built by the player
-            foreach (int adjacentRoadIdx in bottom.AdjacentEdges)
+            foreach (Edge adjacentRoad in state.Board.Adjacency.GetEdges(bottom))
             {
-                Edge adjacentRoad = state.Board.Edges[adjacentRoadIdx];
-
                 if (adjacentRoad.Owner == PlayerIndex && adjacentRoad.Building != Edge.BuildingType.None)
                 {
                     bottomHasAdjRoad = true;

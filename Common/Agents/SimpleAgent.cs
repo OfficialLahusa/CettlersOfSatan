@@ -74,7 +74,7 @@ namespace Common.Agents
         {
             float value = 0f;
 
-            foreach (Tile adjTile in intersection.AdjacentTiles.Values)
+            foreach (Tile adjTile in state.Board.Adjacency.GetTiles(intersection))
             {
                 if (considerRobber && adjTile == state.Board.Robber)
                     continue;

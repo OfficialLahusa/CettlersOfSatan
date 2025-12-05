@@ -100,10 +100,8 @@ namespace Common.Actions
             // Calculate tile yields
             foreach (Tile tile in state.Board.Map.Where(x => x.HasYield() && x.Number == number))
             {
-                foreach (int intersectionIdx in tile.Intersections.Values)
+                foreach (Intersection intersection in state.Board.Adjacency.GetIntersections(tile))
                 {
-                    Intersection intersection = state.Board.Intersections[intersectionIdx];
-
                     uint yieldCount = intersection.Building switch
                     {
                         Intersection.BuildingType.City => 2,

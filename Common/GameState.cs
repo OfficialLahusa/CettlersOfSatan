@@ -158,15 +158,13 @@ namespace Common
             if (remaining.IsEmpty) return longestPlayerRoad;
 
             // Find possible branches
-            (int topIdx, int bottomIdx) = current.Intersections;
-            Intersection top = board.Intersections[topIdx];
-            Intersection bottom = board.Intersections[bottomIdx];
+            (Intersection top, Intersection bottom) = board.Adjacency.GetIntersections(current);
 
             bool topBlocked = top.Owner != playerIdx && top.Building != Intersection.BuildingType.None;
             bool bottomBlocked = bottom.Owner != playerIdx && bottom.Building != Intersection.BuildingType.None;
 
-            var topRoads = top.AdjacentEdges.Select(edgeIdx => board.Edges[edgeIdx]).Where(edge => edge.Owner == playerIdx && edge != current);
-            var bottomRoads = bottom.AdjacentEdges.Select(edgeIdx => board.Edges[edgeIdx]).Where(edge => edge.Owner == playerIdx && edge != current);
+            var topRoads = board.Adjacency.GetEdges(top).Where(edge => edge.Owner == playerIdx && edge != current);
+            var bottomRoads = board.Adjacency.GetEdges(bottom).Where(edge => edge.Owner == playerIdx && edge != current);
 
             bool topAlreadyConnected = topRoads.Any(contained.Contains);
             bool bottomAlreadyConnected = bottomRoads.Any(contained.Contains);

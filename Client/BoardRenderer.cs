@@ -384,16 +384,29 @@ namespace Client
             }
         }
 
-        public Vector2f GetIntersectionCenter(Intersection intersection)
+        public Vector2f GetIntersectionCenter(Intersection intersection, Board board)
         {
-            if (intersection.AdjacentTiles.Count == 0)
+            if (board.Adjacency.GetTiles(intersection).Count() == 0)
             {
                 throw new InvalidOperationException("Intersection was not properly initialized and lacks adjacent tiles");
             }
 
-            KeyValuePair<Direction.Corner, Tile> adjacentParent = intersection.AdjacentTiles.First();
-            Vector2f parentCenter = GetTileCenter(adjacentParent.Value);
-            float angle = adjacentParent.Key.ToAngle();
+            Direction.Corner? adjacentParentDir = null;
+            Tile? adjacentParent = null;
+            foreach (Direction.Corner corner in Enum.GetValues(typeof(Direction.Corner)))
+            {
+                Tile? tile = board.Adjacency.GetTile(intersection, corner);
+
+                if (tile != null)
+                {
+                    adjacentParentDir = corner;
+                    adjacentParent = tile;
+                    break;
+                }
+            }
+
+            Vector2f parentCenter = GetTileCenter(adjacentParent!);
+            float angle = adjacentParentDir!.Value.ToAngle();
 
             return parentCenter + SideLength * ClientUtils.EulerAngleToVec2f(angle);
         }
@@ -405,15 +418,17 @@ namespace Client
             Direction.Tile anchorDir;
 
             // Anchor to east tile, if it exists
-            if (edge.EastTile != null)
+            Tile? eastTile = Board.Adjacency.GetEastTile(edge);
+            Tile? westTile = Board.Adjacency.GetWestTile(edge);
+            if (eastTile != null)
             {
-                anchor = edge.EastTile;
+                anchor = eastTile;
                 anchorDir = edge.Direction.ToWestTileDir();
             }
             // Anchor to west tile otherwise
-            else if (edge.WestTile != null)
+            else if (westTile != null)
             {
-                anchor = edge.WestTile;
+                anchor = westTile;
                 anchorDir = edge.Direction.ToEastTileDir();
             }
             // If there are no adjacent tiles, the edge state must be invalid
@@ -570,7 +585,7 @@ namespace Client
                     CityAction act2 = new CityAction(playerIdx, i);
                     if (!act.IsValidFor(state) && !act2.IsValidFor(state)) continue;
 
-                    _intersectionMarker.Position = GetIntersectionCenter(intersection);
+                    _intersectionMarker.Position = GetIntersectionCenter(intersection, Board);
                     target.Draw(_intersectionMarker, states);
                 }
             }
@@ -582,7 +597,7 @@ namespace Client
                 {
                     case Intersection.BuildingType.Settlement:
                     case Intersection.BuildingType.City:
-                        _intersectionRect.Position = GetIntersectionCenter(intersection);
+                        _intersectionRect.Position = GetIntersectionCenter(intersection, Board);
                         _intersectionRect.TextureRect = TextureAtlas.GetTextureRect(intersection.Building == Intersection.BuildingType.Settlement ? TextureAtlas.Sprite.Settlement : TextureAtlas.Sprite.City);
                         _intersectionRect.FillColor = ColorPalette.GetPlayerColor(intersection.Owner);
                         target.Draw(_intersectionRect, states);

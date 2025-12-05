@@ -36,7 +36,7 @@ namespace Common.Actions
 
             // Award adjacent resources
             List<ResourceCardType> awardedResources = [];
-            foreach (Tile adjTile in intersection.AdjacentTiles.Values)
+            foreach (Tile adjTile in state.Board.Adjacency.GetTiles(intersection))
             {
                 if(adjTile != null && adjTile.HasYield())
                 {
@@ -106,13 +106,9 @@ namespace Common.Actions
 
             // No adjacent settlements
             bool hasAdjacentSettlement = false;
-            foreach (int adjacentRoadIdx in intersection.AdjacentEdges)
+            foreach (Edge adjacentRoad in state.Board.Adjacency.GetEdges(intersection))
             {
-                Edge adjacentRoad = state.Board.Edges[adjacentRoadIdx];
-
-                (int topIdx, int bottomIdx) = adjacentRoad.Intersections;
-                Intersection top = state.Board.Intersections[topIdx];
-                Intersection bottom = state.Board.Intersections[bottomIdx];
+                (Intersection top, Intersection bottom) = state.Board.Adjacency.GetIntersections(adjacentRoad);
 
                 if (top.Building != Intersection.BuildingType.None || bottom.Building != Intersection.BuildingType.None)
                 {

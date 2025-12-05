@@ -871,7 +871,7 @@ namespace Client
             // Intersection clicking
             foreach (Intersection intersection in _state.Board.Intersections)
             {
-                _intersectionHitbox.Position = _renderer.GetIntersectionCenter(intersection);
+                _intersectionHitbox.Position = _renderer.GetIntersectionCenter(intersection, _state.Board);
 
                 float dist = MathF.Sqrt(
                     MathF.Pow(mapMousePos.X - _intersectionHitbox.Position.X, 2)
