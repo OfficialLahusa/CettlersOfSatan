@@ -7,6 +7,7 @@ using SFML.Audio;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
+using System.Diagnostics;
 using Action = Common.Actions.Action;
 using Edge = Common.Edge;
 
@@ -434,7 +435,7 @@ namespace Client
                 long pre = GC.GetTotalMemory(true);
                 Console.WriteLine("Pre: " + pre);
                 List<GameState> storedStates = new();
-                for (int i = 0; i < 1000000; i++)
+                for (int i = 0; i < 1_000_000; i++)
                 {
                     storedStates.Add(new GameState(_state));
                 }
