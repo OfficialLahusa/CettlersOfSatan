@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -8,13 +8,12 @@ namespace Common
 {
     public class AdjacencyMatrix
     {
-        // TODO: Equals, GetHashCode, Clear, Copy constructor
-
         protected const int NO_ADJACENCY = -1;
+        protected static readonly IntArrayEqualityComparer _intArrayEqualityComparer;
 
-        protected HexMap<Tile> _map;
-        protected List<Intersection> _intersections;
-        protected List<Edge> _edges;
+        public HexMap<Tile> Map;
+        public List<Intersection> Intersections;
+        public List<Edge> Edges;
 
         // Dim 1: Source tile
         // Dim 2: Tile direction
@@ -44,18 +43,109 @@ namespace Common
         // Stored: Tile index of adjacent tile
         protected List<int> _edgeToEastTile;
 
+        // -- Cache --
+        // Dim 1: Source edge
+        // Stored: (top intersection, bottom intersection)
+        protected List<(Intersection top, Intersection bottom)?> _edgeToIntersection;
+
+        // -- Cache --
+        // Dim 1: Source intersection
+        // Stored: Set of adjacent edges
+        protected List<HashSet<Edge>?> _intersectionToEdge;
+
         public AdjacencyMatrix(HexMap<Tile> map, List<Intersection> intersections, List<Edge> edges)
         {
-            _map = map;
-            _intersections = intersections;
-            _edges = edges;
+            Map = map;
+            Intersections = intersections;
+            Edges = edges;
 
-            _tileToTile = new int[_map.Width * _map.Height][];
-            _tileToIntersection = new int[_map.Width * _map.Height][];
-            _tileToEdge = new int[_map.Width * _map.Height][];
+            _tileToTile = new int[Map.Width * Map.Height][];
+            _tileToIntersection = new int[Map.Width * Map.Height][];
+            _tileToEdge = new int[Map.Width * Map.Height][];
             _intersectionToTile = new List<int[]?>();
             _edgeToWestTile = new List<int>();
             _edgeToEastTile = new List<int>();
+
+            // -- Cache --
+            _edgeToIntersection = new List<(Intersection top, Intersection bottom)?>();
+            _intersectionToEdge = new List<HashSet<Edge>?>();
+        }
+
+        /// <summary>
+        /// Deep copy constructor.
+        /// Assumes map, intersections and edges to be cloned beforehand and does not clone them here.
+        /// </summary>
+        /// <param name="copy">Instance to copy</param>
+        public AdjacencyMatrix(AdjacencyMatrix copy, HexMap<Tile> map, List<Intersection> intersections, List<Edge> edges)
+            : this (map, intersections, edges)
+        {
+            for (int i = 0; i < map.Width * map.Height; i++)
+            {
+                if (copy._tileToTile[i] != null)
+                    Array.Copy(copy._tileToTile[i], _tileToTile[i], copy._tileToTile[i].Length);
+                if (copy._tileToIntersection[i] != null)
+                    Array.Copy(copy._tileToIntersection[i], _tileToIntersection[i], copy._tileToIntersection[i].Length);
+                if (copy._tileToEdge[i] != null)
+                    Array.Copy(copy._tileToEdge[i], _tileToEdge[i], copy._tileToEdge[i].Length);
+            }
+
+            for (int i = 0; i < copy._intersectionToTile.Count; i++)
+            {
+                if (copy._intersectionToTile[i] == null)
+                    _intersectionToTile.Add(null);
+                else
+                {
+                    int[] entry = new int[copy._intersectionToTile[i]!.Length];
+                    Array.Copy(copy._intersectionToTile[i]!, entry, copy._intersectionToTile[i]!.Length);
+                    _intersectionToTile.Add(entry);
+                }
+            }
+
+            _edgeToWestTile.AddRange(copy._edgeToWestTile);
+            _edgeToEastTile.AddRange(copy._edgeToEastTile);
+
+            // Copy cache (not strictly necessary)
+            for (int i = 0; i < copy._edgeToIntersection.Count; i++)
+            {
+                if (copy._edgeToIntersection[i] == null)
+                    _edgeToIntersection.Add(null);
+                else
+                {
+                    (Intersection top, Intersection bottom) = copy._edgeToIntersection[i]!.Value;
+                    Intersection newTop = intersections[top.Index];
+                    Intersection newBottom = intersections[bottom.Index];
+                    _edgeToIntersection.Add((newTop, newBottom));
+                }
+            }
+
+            for (int i = 0; i < copy._intersectionToEdge.Count; i++)
+            {
+                if (copy._intersectionToEdge[i] == null)
+                    _intersectionToEdge.Add(null);
+                else
+                {
+                    _intersectionToEdge.Add(copy._intersectionToEdge[i]!.Select(oldEdge => edges[oldEdge.Index]).ToHashSet());
+                }
+            }
+        }
+
+        static AdjacencyMatrix()
+        {
+            _intArrayEqualityComparer = new IntArrayEqualityComparer();
+        }
+
+        public void Clear()
+        {
+            _tileToTile = new int[Map.Width * Map.Height][];
+            _tileToIntersection = new int[Map.Width * Map.Height][];
+            _tileToEdge = new int[Map.Width * Map.Height][];
+            _intersectionToTile = new List<int[]?>();
+            _edgeToWestTile = new List<int>();
+            _edgeToEastTile = new List<int>();
+
+            // -- Cache --
+            _edgeToIntersection = new List<(Intersection top, Intersection bottom)?>();
+            _intersectionToEdge = new List<HashSet<Edge>?>();
         }
 
         public void RegisterTile(Tile source, Direction.Tile direction, Tile neighbor)
@@ -225,7 +315,7 @@ namespace Common
             if (neighborIndex == NO_ADJACENCY)
                 return null;
 
-            return _intersections[neighborIndex];
+            return Intersections[neighborIndex];
         }
 
         public IEnumerable<Intersection> GetIntersections(Tile source)
@@ -237,13 +327,24 @@ namespace Common
             foreach (int neighborIndex in _tileToIntersection[sourceIndex])
             {
                 if (neighborIndex != NO_ADJACENCY)
-                    yield return _intersections[neighborIndex];
+                    yield return Intersections[neighborIndex];
             }
         }
 
-        // TODO: Cachen
         public (Intersection top, Intersection bottom) GetIntersections(Edge edge)
         {
+            // Return cached value if it exists
+            if (_edgeToIntersection.Count > edge.Index && _edgeToIntersection[edge.Index] != null)
+            {
+                return _edgeToIntersection[edge.Index]!.Value;
+            }
+
+            // Otherwise calculate result and cache
+            while (_edgeToIntersection.Count <= edge.Index)
+            {
+                _edgeToIntersection.Add(null);
+            }
+
             Tile? westTile = GetWestTile(edge);
             bool fromWest = westTile != null;
             Tile anchorTile = westTile ?? GetEastTile(edge)!;
@@ -254,7 +355,10 @@ namespace Common
             Intersection leftIntersection = GetIntersection(anchorTile, left)!;
             Intersection rightIntersection = GetIntersection(anchorTile, right)!;
 
-            return (fromWest ? leftIntersection : rightIntersection, fromWest ? rightIntersection : leftIntersection);
+            (Intersection top, Intersection bottom) result = (fromWest ? leftIntersection : rightIntersection, fromWest ? rightIntersection : leftIntersection);
+            _edgeToIntersection[edge.Index] = result;
+
+            return result;
         }
 
         public Edge? GetEdge(Tile source, Direction.Tile direction)
@@ -268,7 +372,7 @@ namespace Common
             if (neighborIndex == NO_ADJACENCY)
                 return null;
 
-            return _edges[neighborIndex];
+            return Edges[neighborIndex];
         }
 
         public IEnumerable<Edge> GetEdges(Tile source)
@@ -280,13 +384,24 @@ namespace Common
             foreach (int neighborIndex in _tileToEdge[sourceIndex])
             {
                 if (neighborIndex != NO_ADJACENCY)
-                    yield return _edges[neighborIndex];
+                    yield return Edges[neighborIndex];
             }
         }
 
-        // TODO: Cachen
         public HashSet<Edge> GetEdges(Intersection intersection)
         {
+            // Return cached value if it exists
+            if (_intersectionToEdge.Count > intersection.Index && _intersectionToEdge[intersection.Index] != null)
+            {
+                return _intersectionToEdge[intersection.Index]!;
+            }
+
+            // Otherwise calculate result and cache
+            while (_intersectionToEdge.Count <= intersection.Index)
+            {
+                _intersectionToEdge.Add(null);
+            }
+
             HashSet<Edge> result = new HashSet<Edge>();
 
             // Iterate through all adjacent tiles to the intersection (by corner direction)
@@ -304,19 +419,44 @@ namespace Common
                 result.Add(rightAdjEdge);
             }
 
+            _intersectionToEdge[intersection.Index] = result;
+
             return result;
         }
 
         protected Tile GetTileByIndex(int idx)
         {
-            int x = (int)(idx % _map.Width);
-            int y = (int)(idx / _map.Width);
-            return _map.GetTile(x, y);
+            int x = (int)(idx % Map.Width);
+            int y = (int)(idx / Map.Width);
+            return Map.GetTile(x, y);
         }
 
         protected int GetIndexByTile(Tile tile)
         {
-            return (int)(tile.Y * _map.Width + tile.X);
+            return (int)(tile.Y * Map.Width + tile.X);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is AdjacencyMatrix matrix
+                && _tileToTile.SequenceEqual(matrix._tileToTile, _intArrayEqualityComparer)
+                && _tileToIntersection.SequenceEqual(matrix._tileToIntersection, _intArrayEqualityComparer)
+                && _tileToEdge.SequenceEqual(matrix._tileToEdge, _intArrayEqualityComparer)
+                && _intersectionToTile.SequenceEqual(matrix._intersectionToTile, _intArrayEqualityComparer)
+                && _edgeToWestTile.SequenceEqual(matrix._edgeToWestTile)
+                && _edgeToEastTile.SequenceEqual(matrix._edgeToEastTile);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(
+                _tileToTile.Aggregate(0, (acc, v) => HashCode.Combine(acc, v.Aggregate(0, (acc2, v2) => HashCode.Combine(acc2, v2.GetHashCode())))),
+                _tileToIntersection.Aggregate(0, (acc, v) => HashCode.Combine(acc, v.Aggregate(0, (acc2, v2) => HashCode.Combine(acc2, v2.GetHashCode())))),
+                _tileToEdge.Aggregate(0, (acc, v) => HashCode.Combine(acc, v.Aggregate(0, (acc2, v2) => HashCode.Combine(acc2, v2.GetHashCode())))),
+                _intersectionToTile.Aggregate(0, (acc, v) => v == null ? acc : HashCode.Combine(acc, v.Aggregate(0, (acc2, v2) => HashCode.Combine(acc2, v2.GetHashCode())))),
+                _edgeToWestTile.Aggregate(0, (acc, v) => HashCode.Combine(acc, v.GetHashCode())),
+                _edgeToEastTile.Aggregate(0, (acc, v) => HashCode.Combine(acc, v.GetHashCode()))
+            );
         }
     }
 }
