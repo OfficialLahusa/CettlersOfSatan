@@ -36,6 +36,18 @@ namespace Common
             Type = type;
         }
 
+        /// <summary>
+        /// Deep copy constructor
+        /// </summary>
+        /// <param name="copy">Instance to copy</param>
+        public Port(Port copy)
+        {
+            AnchorTileX = copy.AnchorTileX;
+            AnchorTileY = copy.AnchorTileY;
+            AnchorDirection = copy.AnchorDirection;
+            Type = copy.Type;
+        }
+
         public override bool Equals(object? obj)
         {
             return obj is Port port
