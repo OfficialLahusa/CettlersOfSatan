@@ -1,8 +1,3 @@
-- Board Adjacency als Index-Tabellen außerhalb der eigentlichen Intersections/Edges/Tiles speichern
-	- Erst Logik auf Indices umstellen und Indizes in Strukturen speichern
-	- Dann Adjacency aus den Strukturen entfernen und in eigene Klasse auslagern
-- Caching für die berechnenden Adjacency-Funktionen implementieren
-- Copy für GameState implementieren (Board fehlt noch)
 - Observation Filter (Agents nur die für sie sichtbaren Informationen geben)
 	- Von Robber gestohlene Karten
 	- Gezogene Development Cards
