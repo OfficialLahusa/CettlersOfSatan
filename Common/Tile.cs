@@ -42,6 +42,18 @@ namespace Common
             Number = number;
         }
 
+        /// <summary>
+        /// Deep copy constructor
+        /// </summary>
+        /// <param name="copy">Instance to copy</param>
+        public Tile(Tile copy)
+        {
+            X = copy.X;
+            Y = copy.Y;
+            Type = copy.Type;
+            Number = copy.Number;
+        }
+
         public bool IsLandTile()
         {
             return Type != TileType.NonPlayable && Type != TileType.Water;

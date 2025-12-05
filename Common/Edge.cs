@@ -30,6 +30,18 @@ namespace Common
             Owner = -1;
         }
 
+        /// <summary>
+        /// Deep copy constructor
+        /// </summary>
+        /// <param name="copy">Instance to copy</param>
+        public Edge(Edge copy)
+        {
+            Index = copy.Index;
+            Direction = copy.Direction;
+            Building = copy.Building;
+            Owner = copy.Owner;
+        }
+
         public override bool Equals(object? obj)
         {
             return obj is Edge edge

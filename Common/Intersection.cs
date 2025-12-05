@@ -25,6 +25,18 @@ namespace Common
             Owner = -1;
         }
 
+        /// <summary>
+        /// Deep copy constructor
+        /// </summary>
+        /// <param name="copy">Instance to copy</param>
+        public Intersection(Intersection copy)
+        {
+            Index = copy.Index;
+            FacesDownwards = copy.FacesDownwards;
+            Building = copy.Building;
+            Owner = copy.Owner;
+        }
+
         public override bool Equals(object? obj)
         {
             return obj is Intersection intersection &&
