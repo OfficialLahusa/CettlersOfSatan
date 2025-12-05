@@ -82,11 +82,20 @@ namespace Common
             for (int i = 0; i < map.Width * map.Height; i++)
             {
                 if (copy._tileToTile[i] != null)
+                {
+                    _tileToTile[i] = new int[copy._tileToTile[i].Length];
                     Array.Copy(copy._tileToTile[i], _tileToTile[i], copy._tileToTile[i].Length);
+                }
                 if (copy._tileToIntersection[i] != null)
+                {
+                    _tileToIntersection[i] = new int[copy._tileToIntersection[i].Length];
                     Array.Copy(copy._tileToIntersection[i], _tileToIntersection[i], copy._tileToIntersection[i].Length);
+                }
                 if (copy._tileToEdge[i] != null)
+                {
+                    _tileToEdge[i] = new int[copy._tileToEdge[i].Length];
                     Array.Copy(copy._tileToEdge[i], _tileToEdge[i], copy._tileToEdge[i].Length);
+                }
             }
 
             for (int i = 0; i < copy._intersectionToTile.Count; i++)
