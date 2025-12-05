@@ -253,7 +253,7 @@ namespace Client
             foreach (Port port in Board.Ports)
             {
                 Color portColor = new Color(0x65, 0x35, 0x0F);
-                Vector2f center = new Vector2f(port.AnchorTile.X * 2 * FlatSideLength + ((port.AnchorTile.Y % 2 == 0) ? FlatSideLength : 0), port.AnchorTile.Y * 1.5f * SideLength);
+                Vector2f center = new Vector2f(port.AnchorTileX * 2 * FlatSideLength + ((port.AnchorTileY % 2 == 0) ? FlatSideLength : 0), port.AnchorTileY * 1.5f * SideLength);
 
                 // Coastal bridges
                 Direction.Corner leftCorner, rightCorner;
@@ -620,7 +620,7 @@ namespace Client
             // Draw port text
             foreach(Port port in Board.Ports)
             {
-                Vector2f center = GetTileCenter(port.AnchorTile);
+                Vector2f center = GetTileCenter(port.AnchorTileX, port.AnchorTileY);
                 _portText.DisplayedString = (port.Type == Port.TradeType.Generic) ? "3:1" : "2:1";
                 FloatRect textBounds = _portText.GetLocalBounds();
                 _portText.Origin = new Vector2f(textBounds.Left + textBounds.Width / 2f, textBounds.Top + textBounds.Height / 2f);

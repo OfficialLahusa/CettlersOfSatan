@@ -212,7 +212,8 @@ namespace Common.Actions
         {
             foreach (Port port in state.Board.Ports)
             {
-                Tile landAnchor = state.Board.Adjacency.GetTile(port.AnchorTile, port.AnchorDirection)!;
+                Tile seaAnchor = state.Board.Map.GetTile(port.AnchorTileX, port.AnchorTileY);
+                Tile landAnchor = state.Board.Adjacency.GetTile(seaAnchor, port.AnchorDirection)!;
                 Edge portEdge = state.Board.Adjacency.GetEdge(landAnchor, port.AnchorDirection.Mirror())!;
                 Intersection settlementIntersection = state.Board.Intersections[intersectionIdx];
 
@@ -238,7 +239,8 @@ namespace Common.Actions
             foreach (Port port in state.Board.Ports)
             {
                 // TODO: Kann man dafür nicht einfach die Wasser-Tile nutzen?
-                Tile landAnchor = state.Board.Adjacency.GetTile(port.AnchorTile, port.AnchorDirection)!;
+                Tile seaAnchor = state.Board.Map.GetTile(port.AnchorTileX, port.AnchorTileY);
+                Tile landAnchor = state.Board.Adjacency.GetTile(seaAnchor, port.AnchorDirection)!;
                 Edge portEdge = state.Board.Adjacency.GetEdge(landAnchor, port.AnchorDirection.Mirror())!;
                 (Intersection top, Intersection bottom) = state.Board.Adjacency.GetIntersections(portEdge);
 

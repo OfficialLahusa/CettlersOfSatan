@@ -9,8 +9,9 @@ namespace Common
 {
     public class Port
     {
-        // Tile the port is situated in
-        public Tile AnchorTile { get; set; }
+        // Tile X coordinate the port is situated in
+        public int AnchorTileX { get; set; }
+        public int AnchorTileY { get; set; }
 
         // Facing direction inside the tile
         public Direction.Tile AnchorDirection { get; set; }
@@ -27,9 +28,10 @@ namespace Common
 
         public TradeType Type { get; set; }
 
-        public Port(Tile tile, Direction.Tile dir, TradeType type)
+        public Port(int anchorTileX, int anchorTileY, Direction.Tile dir, TradeType type)
         {
-            AnchorTile = tile;
+            AnchorTileX = anchorTileX;
+            AnchorTileY = anchorTileY;
             AnchorDirection = dir;
             Type = type;
         }
@@ -38,15 +40,15 @@ namespace Common
         {
             return obj is Port port
                 // Avoid circular reference checking by only checking X and Y of AnchorTiles
-                && AnchorTile.X == port.AnchorTile.X
-                && AnchorTile.Y == port.AnchorTile.Y
+                && AnchorTileX == port.AnchorTileX
+                && AnchorTileY == port.AnchorTileY
                 && AnchorDirection == port.AnchorDirection 
                 && Type == port.Type;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(AnchorTile.X, AnchorTile.Y, AnchorDirection, Type);
+            return HashCode.Combine(AnchorTileX, AnchorTileY, AnchorDirection, Type);
         }
     }
 

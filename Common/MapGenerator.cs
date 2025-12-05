@@ -258,7 +258,7 @@ namespace Common
                 Tile portTile = map.GetTile(x, y);
 
                 // Initialize port with random type from shuffled list
-                Port port = new Port(portTile, portPlacement.dir, portTypes[0]);
+                Port port = new Port(portTile.X, portTile.Y, portPlacement.dir, portTypes[0]);
                 ports.Add(port);
                 portTypes.RemoveAt(0);
             }
