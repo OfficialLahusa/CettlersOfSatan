@@ -1,4 +1,3 @@
-- Speicher der Integer in der Adjacency Matrix reduzieren
 - Observation Filter (Agents nur die für sie sichtbaren Informationen geben)
 	- Von Robber gestohlene Karten
 	- Gezogene Development Cards
