@@ -9,7 +9,7 @@ namespace Common
     public class AdjacencyMatrix
     {
         protected const int NO_ADJACENCY = -1;
-        protected static readonly IntArrayEqualityComparer _intArrayEqualityComparer;
+        protected static readonly ArrayEqualityComparer<int> _arrayEqualityComparer;
 
         public HexMap<Tile> Map;
         public List<Intersection> Intersections;
@@ -52,6 +52,11 @@ namespace Common
         // Dim 1: Source intersection
         // Stored: Set of adjacent edges
         protected List<HashSet<Edge>?> _intersectionToEdge;
+
+        static AdjacencyMatrix()
+        {
+            _arrayEqualityComparer = new ArrayEqualityComparer<int>();
+        }
 
         public AdjacencyMatrix(HexMap<Tile> map, List<Intersection> intersections, List<Edge> edges)
         {
@@ -136,11 +141,6 @@ namespace Common
                     _intersectionToEdge.Add(copy._intersectionToEdge[i]!.Select(oldEdge => edges[oldEdge.Index]).ToHashSet());
                 }
             }
-        }
-
-        static AdjacencyMatrix()
-        {
-            _intArrayEqualityComparer = new IntArrayEqualityComparer();
         }
 
         public void Clear()
@@ -448,10 +448,10 @@ namespace Common
         public override bool Equals(object? obj)
         {
             return obj is AdjacencyMatrix matrix
-                && _tileToTile.SequenceEqual(matrix._tileToTile, _intArrayEqualityComparer)
-                && _tileToIntersection.SequenceEqual(matrix._tileToIntersection, _intArrayEqualityComparer)
-                && _tileToEdge.SequenceEqual(matrix._tileToEdge, _intArrayEqualityComparer)
-                && _intersectionToTile.SequenceEqual(matrix._intersectionToTile, _intArrayEqualityComparer)
+                && _tileToTile.SequenceEqual(matrix._tileToTile, _arrayEqualityComparer)
+                && _tileToIntersection.SequenceEqual(matrix._tileToIntersection, _arrayEqualityComparer)
+                && _tileToEdge.SequenceEqual(matrix._tileToEdge, _arrayEqualityComparer)
+                && _intersectionToTile.SequenceEqual(matrix._intersectionToTile, _arrayEqualityComparer)
                 && _edgeToWestTile.SequenceEqual(matrix._edgeToWestTile)
                 && _edgeToEastTile.SequenceEqual(matrix._edgeToEastTile);
         }

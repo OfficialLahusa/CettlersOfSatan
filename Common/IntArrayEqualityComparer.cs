@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace Common
 {
-    public class IntArrayEqualityComparer : IEqualityComparer<int[]?>
+    public class ArrayEqualityComparer<T> : IEqualityComparer<T[]?>
     {
-        public bool Equals(int[]? a, int[]? b)
+        public bool Equals(T[]? a, T[]? b)
         {
             if (a == null && b == null)
                 return true;
@@ -20,10 +20,10 @@ namespace Common
             return a!.SequenceEqual(b!);
         }
 
-        public int GetHashCode(int[] arr)
+        public int GetHashCode(T[] arr)
         {
             if (arr == null) return 0;
-            return arr.Aggregate(0, (acc, v) => HashCode.Combine(acc, v.GetHashCode()));
+            return arr.Aggregate(0, (acc, v) => HashCode.Combine(acc, v!.GetHashCode()));
         }
     }
 }
