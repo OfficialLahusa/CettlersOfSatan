@@ -443,6 +443,26 @@ namespace Client
                 Console.WriteLine("Post: " + post);
                 Console.WriteLine("Diff: " + (post - pre));
             }
+            // YAML Serialization Test
+            if (Keyboard.IsKeyPressed(Keyboard.Key.Subtract))
+            {
+                var serializer = new YamlDotNet.Serialization.SerializerBuilder().Build();
+                var deserializer = new YamlDotNet.Serialization.DeserializerBuilder().Build();
+                string yaml = serializer.Serialize(_state);
+
+                // Write YAML to file for inspection
+                File.WriteAllText("gamestate_dump.yaml", yaml);
+
+                GameState? loadedState = deserializer.Deserialize<GameState>(yaml);
+                if (loadedState == null || !_state.Equals(loadedState))
+                {
+                    Console.WriteLine("YAML Serialization Test Failed!");
+                }
+                else
+                {
+                    Console.WriteLine("YAML Serialization Test Succeeded!");
+                }
+            }
         }
 
         public void Update(Time deltaTime)
