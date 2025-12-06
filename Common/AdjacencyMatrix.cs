@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 
 namespace Common
 {
+    using AdjIdx = byte;
+
     public class AdjacencyMatrix
     {
-        protected const int NO_ADJACENCY = -1;
-        protected static readonly ArrayEqualityComparer<int> _arrayEqualityComparer;
+        protected const AdjIdx NO_ADJACENCY = 255;
+        protected static readonly ArrayEqualityComparer<AdjIdx> _arrayEqualityComparer;
 
         public HexMap<Tile> Map;
         public List<Intersection> Intersections;
@@ -18,30 +20,30 @@ namespace Common
         // Dim 1: Source tile
         // Dim 2: Tile direction
         // Stored: Flattened index of adjacent tile (y * width + x)
-        protected int[][] _tileToTile;
+        protected AdjIdx[][] _tileToTile;
 
         // Dim 1: Source tile
         // Dim 2: Corner direction
         // Stored: Index of adjacent intersection
-        protected int[][] _tileToIntersection;
+        protected AdjIdx[][] _tileToIntersection;
 
         // Dim 1: Source tile
         // Dim 2: Tile direction
         // Stored: Index of adjacent edge
-        protected int[][] _tileToEdge;
+        protected AdjIdx[][] _tileToEdge;
 
         // Dim 1: Source intersection
         // Dim 2: Corner direction (that the source intersection is on at the adjacent tile)
         // Stored: Tile index of adjacent tile
-        protected List<int[]?> _intersectionToTile;
+        protected List<AdjIdx[]?> _intersectionToTile;
 
         // Dim 1: Source edge
         // Stored: Tile index of adjacent tile
-        protected List<int> _edgeToWestTile;
+        protected List<AdjIdx> _edgeToWestTile;
 
         // Dim 1: Source edge
         // Stored: Tile index of adjacent tile
-        protected List<int> _edgeToEastTile;
+        protected List<AdjIdx> _edgeToEastTile;
 
         // -- Cache --
         // Dim 1: Source edge
@@ -55,7 +57,7 @@ namespace Common
 
         static AdjacencyMatrix()
         {
-            _arrayEqualityComparer = new ArrayEqualityComparer<int>();
+            _arrayEqualityComparer = new ArrayEqualityComparer<AdjIdx>();
         }
 
         public AdjacencyMatrix(HexMap<Tile> map, List<Intersection> intersections, List<Edge> edges)
@@ -64,12 +66,12 @@ namespace Common
             Intersections = intersections;
             Edges = edges;
 
-            _tileToTile = new int[Map.Width * Map.Height][];
-            _tileToIntersection = new int[Map.Width * Map.Height][];
-            _tileToEdge = new int[Map.Width * Map.Height][];
-            _intersectionToTile = new List<int[]?>();
-            _edgeToWestTile = new List<int>();
-            _edgeToEastTile = new List<int>();
+            _tileToTile = new AdjIdx[Map.Width * Map.Height][];
+            _tileToIntersection = new AdjIdx[Map.Width * Map.Height][];
+            _tileToEdge = new AdjIdx[Map.Width * Map.Height][];
+            _intersectionToTile = new List<AdjIdx[]?>();
+            _edgeToWestTile = new List<AdjIdx>();
+            _edgeToEastTile = new List<AdjIdx>();
 
             // -- Cache --
             _edgeToIntersection = new List<(Intersection top, Intersection bottom)?>();
@@ -88,17 +90,17 @@ namespace Common
             {
                 if (copy._tileToTile[i] != null)
                 {
-                    _tileToTile[i] = new int[copy._tileToTile[i].Length];
+                    _tileToTile[i] = new AdjIdx[copy._tileToTile[i].Length];
                     Array.Copy(copy._tileToTile[i], _tileToTile[i], copy._tileToTile[i].Length);
                 }
                 if (copy._tileToIntersection[i] != null)
                 {
-                    _tileToIntersection[i] = new int[copy._tileToIntersection[i].Length];
+                    _tileToIntersection[i] = new AdjIdx[copy._tileToIntersection[i].Length];
                     Array.Copy(copy._tileToIntersection[i], _tileToIntersection[i], copy._tileToIntersection[i].Length);
                 }
                 if (copy._tileToEdge[i] != null)
                 {
-                    _tileToEdge[i] = new int[copy._tileToEdge[i].Length];
+                    _tileToEdge[i] = new AdjIdx[copy._tileToEdge[i].Length];
                     Array.Copy(copy._tileToEdge[i], _tileToEdge[i], copy._tileToEdge[i].Length);
                 }
             }
@@ -109,7 +111,7 @@ namespace Common
                     _intersectionToTile.Add(null);
                 else
                 {
-                    int[] entry = new int[copy._intersectionToTile[i]!.Length];
+                    AdjIdx[] entry = new AdjIdx[copy._intersectionToTile[i]!.Length];
                     Array.Copy(copy._intersectionToTile[i]!, entry, copy._intersectionToTile[i]!.Length);
                     _intersectionToTile.Add(entry);
                 }
@@ -145,12 +147,12 @@ namespace Common
 
         public void Clear()
         {
-            _tileToTile = new int[Map.Width * Map.Height][];
-            _tileToIntersection = new int[Map.Width * Map.Height][];
-            _tileToEdge = new int[Map.Width * Map.Height][];
-            _intersectionToTile = new List<int[]?>();
-            _edgeToWestTile = new List<int>();
-            _edgeToEastTile = new List<int>();
+            _tileToTile = new AdjIdx[Map.Width * Map.Height][];
+            _tileToIntersection = new AdjIdx[Map.Width * Map.Height][];
+            _tileToEdge = new AdjIdx[Map.Width * Map.Height][];
+            _intersectionToTile = new List<AdjIdx[]?>();
+            _edgeToWestTile = new List<AdjIdx>();
+            _edgeToEastTile = new List<AdjIdx>();
 
             // -- Cache --
             _edgeToIntersection = new List<(Intersection top, Intersection bottom)?>();
@@ -159,12 +161,12 @@ namespace Common
 
         public void RegisterTile(Tile source, Direction.Tile direction, Tile neighbor)
         {
-            int sourceIndex = GetIndexByTile(source);
-            int neighborIndex = GetIndexByTile(neighbor);
+            AdjIdx sourceIndex = GetIndexByTile(source);
+            AdjIdx neighborIndex = GetIndexByTile(neighbor);
 
             if (_tileToTile[sourceIndex] == null)
             {
-                _tileToTile[sourceIndex] = new int[6];
+                _tileToTile[sourceIndex] = new AdjIdx[6];
                 Array.Fill(_tileToTile[sourceIndex], NO_ADJACENCY);
             }
 
@@ -173,7 +175,7 @@ namespace Common
 
         public void RegisterTile(Intersection source, Direction.Corner direction, Tile neighbor)
         {
-            int neighborIndex = GetIndexByTile(neighbor);
+            AdjIdx neighborIndex = GetIndexByTile(neighbor);
 
             // Add empty entries until the list is large enough to map the source intersection
             while (_intersectionToTile.Count <= source.Index)
@@ -183,7 +185,7 @@ namespace Common
 
             if (_intersectionToTile[source.Index] == null)
             {
-                _intersectionToTile[source.Index] = new int[6];
+                _intersectionToTile[source.Index] = new AdjIdx[6];
                 Array.Fill(_intersectionToTile[source.Index]!, NO_ADJACENCY);
             }
 
@@ -192,7 +194,7 @@ namespace Common
 
         public void RegisterWestTile(Edge source, Tile neighbor)
         {
-            int neighborIndex = GetIndexByTile(neighbor);
+            AdjIdx neighborIndex = GetIndexByTile(neighbor);
 
             // Add empty entries until the list is large enough to map the source intersection
             while (_edgeToWestTile.Count <= source.Index)
@@ -205,7 +207,7 @@ namespace Common
 
         public void RegisterEastTile(Edge source, Tile neighbor)
         {
-            int neighborIndex = GetIndexByTile(neighbor);
+            AdjIdx neighborIndex = GetIndexByTile(neighbor);
 
             // Add empty entries until the list is large enough to map the source intersection
             while (_edgeToEastTile.Count <= source.Index)
@@ -218,36 +220,36 @@ namespace Common
 
         public void RegisterIntersection(Tile source, Direction.Corner direction, Intersection intersection)
         {
-            int sourceIndex = GetIndexByTile(source);
+            AdjIdx sourceIndex = GetIndexByTile(source);
 
             if (_tileToIntersection[sourceIndex] == null)
             {
-                _tileToIntersection[sourceIndex] = new int[6];
+                _tileToIntersection[sourceIndex] = new AdjIdx[6];
                 Array.Fill(_tileToIntersection[sourceIndex], NO_ADJACENCY);
             }
 
-            _tileToIntersection[sourceIndex][(int)direction] = intersection.Index;
+            _tileToIntersection[sourceIndex][(int)direction] = (AdjIdx)intersection.Index;
         }
 
         public void RegisterEdge(Tile source, Direction.Tile direction, Edge edge)
         {
-            int sourceIndex = GetIndexByTile(source);
+            AdjIdx sourceIndex = GetIndexByTile(source);
             if (_tileToEdge[sourceIndex] == null)
             {
-                _tileToEdge[sourceIndex] = new int[6];
+                _tileToEdge[sourceIndex] = new AdjIdx[6];
                 Array.Fill(_tileToEdge[sourceIndex], NO_ADJACENCY);
             }
-            _tileToEdge[sourceIndex][(int)direction] = edge.Index;
+            _tileToEdge[sourceIndex][(int)direction] = (AdjIdx)edge.Index;
         }
 
         public Tile? GetTile(Tile source, Direction.Tile direction)
         {
-            int sourceIndex = GetIndexByTile(source);
+            AdjIdx sourceIndex = GetIndexByTile(source);
 
             if (_tileToTile[sourceIndex] == null)
                 return null;
 
-            int neighborIndex = _tileToTile[sourceIndex][(int)direction];
+            AdjIdx neighborIndex = _tileToTile[sourceIndex][(int)direction];
             if (neighborIndex == NO_ADJACENCY)
                 return null;
 
@@ -259,7 +261,7 @@ namespace Common
             if (_intersectionToTile[source.Index] == null)
                 return null;
 
-            int neighborIndex = _intersectionToTile[source.Index]![(int)direction];
+            AdjIdx neighborIndex = _intersectionToTile[source.Index]![(int)direction];
             if (neighborIndex == NO_ADJACENCY)
                 return null;
 
@@ -290,11 +292,11 @@ namespace Common
 
         public IEnumerable<Tile> GetTiles(Tile source)
         {
-            int sourceIndex = GetIndexByTile(source);
+            AdjIdx sourceIndex = GetIndexByTile(source);
             if (_tileToTile[sourceIndex] == null)
                 yield break;
 
-            foreach (int neighborIndex in _tileToTile[sourceIndex])
+            foreach (AdjIdx neighborIndex in _tileToTile[sourceIndex])
             {
                 if (neighborIndex != NO_ADJACENCY)
                     yield return GetTileByIndex(neighborIndex);
@@ -306,7 +308,7 @@ namespace Common
             if (_intersectionToTile[source.Index] == null)
                 yield break;
 
-            foreach (int neighborIndex in _intersectionToTile[source.Index]!)
+            foreach (AdjIdx neighborIndex in _intersectionToTile[source.Index]!)
             {
                 if (neighborIndex != NO_ADJACENCY)
                     yield return GetTileByIndex(neighborIndex);
@@ -315,12 +317,12 @@ namespace Common
 
         public Intersection? GetIntersection(Tile source, Direction.Corner direction)
         {
-            int sourceIndex = GetIndexByTile(source);
+            AdjIdx sourceIndex = GetIndexByTile(source);
 
             if (_tileToIntersection[sourceIndex] == null)
                 return null;
 
-            int neighborIndex = _tileToIntersection[sourceIndex][(int)direction];
+            AdjIdx neighborIndex = _tileToIntersection[sourceIndex][(int)direction];
             if (neighborIndex == NO_ADJACENCY)
                 return null;
 
@@ -329,11 +331,11 @@ namespace Common
 
         public IEnumerable<Intersection> GetIntersections(Tile source)
         {
-            int sourceIndex = GetIndexByTile(source);
+            AdjIdx sourceIndex = GetIndexByTile(source);
             if (_tileToIntersection[sourceIndex] == null)
                 yield break;
 
-            foreach (int neighborIndex in _tileToIntersection[sourceIndex])
+            foreach (AdjIdx neighborIndex in _tileToIntersection[sourceIndex])
             {
                 if (neighborIndex != NO_ADJACENCY)
                     yield return Intersections[neighborIndex];
@@ -372,12 +374,12 @@ namespace Common
 
         public Edge? GetEdge(Tile source, Direction.Tile direction)
         {
-            int sourceIndex = GetIndexByTile(source);
+            AdjIdx sourceIndex = GetIndexByTile(source);
 
             if (_tileToEdge[sourceIndex] == null)
                 return null;
 
-            int neighborIndex = _tileToEdge[sourceIndex][(int)direction];
+            AdjIdx neighborIndex = _tileToEdge[sourceIndex][(int)direction];
             if (neighborIndex == NO_ADJACENCY)
                 return null;
 
@@ -386,11 +388,11 @@ namespace Common
 
         public IEnumerable<Edge> GetEdges(Tile source)
         {
-            int sourceIndex = GetIndexByTile(source);
+            AdjIdx sourceIndex = GetIndexByTile(source);
             if (_tileToEdge[sourceIndex] == null)
                 yield break;
 
-            foreach (int neighborIndex in _tileToEdge[sourceIndex])
+            foreach (AdjIdx neighborIndex in _tileToEdge[sourceIndex])
             {
                 if (neighborIndex != NO_ADJACENCY)
                     yield return Edges[neighborIndex];
@@ -433,16 +435,16 @@ namespace Common
             return result;
         }
 
-        protected Tile GetTileByIndex(int idx)
+        protected Tile GetTileByIndex(AdjIdx idx)
         {
             int x = (int)(idx % Map.Width);
             int y = (int)(idx / Map.Width);
             return Map.GetTile(x, y);
         }
 
-        protected int GetIndexByTile(Tile tile)
+        protected AdjIdx GetIndexByTile(Tile tile)
         {
-            return (int)(tile.Y * Map.Width + tile.X);
+            return (AdjIdx)(tile.Y * Map.Width + tile.X);
         }
 
         public override bool Equals(object? obj)
