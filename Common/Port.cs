@@ -48,6 +48,14 @@ namespace Common
             Type = copy.Type;
         }
 
+        /// <summary>
+        /// Parameterless constructor for deserialization
+        /// </summary>
+        private Port()
+        {
+
+        }
+
         public override bool Equals(object? obj)
         {
             return obj is Port port

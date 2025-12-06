@@ -27,7 +27,7 @@ namespace Common.Actions
         {
             base.Apply(state);
 
-            Tile tile = state.Board.Map.ElementAt(TargetTileIndex);
+            Tile tile = state.Board.Map.Values.ElementAt(TargetTileIndex);
             Tile? prevRobber = state.Board.Robber;
             state.Board.Robber = tile;
 
@@ -101,7 +101,7 @@ namespace Common.Actions
 
         public bool IsBoardValid(GameState state)
         {
-            Tile tile = state.Board.Map.ElementAt(TargetTileIndex);
+            Tile tile = state.Board.Map.Values.ElementAt(TargetTileIndex);
 
             bool isLandTile = tile.IsLandTile();
             bool alreadyHasRobber = state.Board.Robber == tile;

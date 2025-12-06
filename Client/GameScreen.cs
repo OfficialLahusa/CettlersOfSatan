@@ -7,7 +7,6 @@ using SFML.Audio;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
-using System.Diagnostics;
 using Action = Common.Actions.Action;
 using Edge = Common.Edge;
 
@@ -446,17 +445,32 @@ namespace Client
             // YAML Serialization Test
             if (Keyboard.IsKeyPressed(Keyboard.Key.Subtract))
             {
-                var serializer = new YamlDotNet.Serialization.SerializerBuilder().Build();
-                var deserializer = new YamlDotNet.Serialization.DeserializerBuilder().Build();
+                var serializer = new YamlDotNet.Serialization.SerializerBuilder()
+                    .WithTypeConverter(new AdjacencyMatrix.Converter())
+                    .WithTypeConverter(new CardSet<ResourceCardType>.Converter())
+                    .WithTypeConverter(new CardSet<DevelopmentCardType>.Converter())
+                    .EnablePrivateConstructors()
+                    .Build();
+                var deserializer = new YamlDotNet.Serialization.DeserializerBuilder()
+                    .WithTypeConverter(new AdjacencyMatrix.Converter())
+                    .WithTypeConverter(new CardSet<ResourceCardType>.Converter())
+                    .WithTypeConverter(new CardSet<DevelopmentCardType>.Converter())
+                    .EnablePrivateConstructors()
+                    .Build();
                 string yaml = serializer.Serialize(_state);
 
                 // Write YAML to file for inspection
-                File.WriteAllText("gamestate_dump.yaml", yaml);
+                string filename = string.Format("gamestate_dump_{0}.yaml", DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"));
+                File.WriteAllText(filename, yaml);
 
                 GameState? loadedState = deserializer.Deserialize<GameState>(yaml);
                 if (loadedState == null || !_state.Equals(loadedState))
                 {
                     Console.WriteLine("YAML Serialization Test Failed!");
+
+                    string diffFilename = string.Format("gamestate_diff_{0}.txt", DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"));
+                    string diffYaml = serializer.Serialize(loadedState);
+                    File.WriteAllText(diffFilename, diffYaml);
                 }
                 else
                 {

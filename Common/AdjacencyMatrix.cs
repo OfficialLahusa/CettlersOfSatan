@@ -3,6 +3,9 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using YamlDotNet.Core;
+using YamlDotNet.Core.Events;
+using YamlDotNet.Serialization;
 
 namespace Common
 {
@@ -143,6 +146,14 @@ namespace Common
                     _intersectionToEdge.Add(copy._intersectionToEdge[i]!.Select(oldEdge => edges[oldEdge.Index]).ToHashSet());
                 }
             }
+        }
+
+        /// <summary>
+        /// Parameterless constructor for deserialization
+        /// </summary>
+        private AdjacencyMatrix()
+        {
+
         }
 
         public void Clear()
@@ -468,6 +479,158 @@ namespace Common
                 _edgeToWestTile.Aggregate(0, (acc, v) => HashCode.Combine(acc, v.GetHashCode())),
                 _edgeToEastTile.Aggregate(0, (acc, v) => HashCode.Combine(acc, v.GetHashCode()))
             );
+        }
+
+        public sealed class Converter : IYamlTypeConverter
+        {
+            public bool Accepts(Type type)
+            {
+                return type == typeof(AdjacencyMatrix);
+            }
+
+            public object? ReadYaml(IParser parser, Type type, ObjectDeserializer rootDeserializer)
+            {
+                // Expect mapping start
+                parser.Expect<MappingStart>();
+
+                var result = new AdjacencyMatrix();
+
+                while (!parser.Accept<MappingEnd>())
+                {
+                    var key = parser.Expect<Scalar>().Value ?? string.Empty;
+                    switch (key)
+                    {
+                        case "Map":
+                        case "_map":
+                            result.Map = (HexMap<Tile>?)rootDeserializer(typeof(HexMap<Tile>)) ?? throw new YamlException("Map missing or invalid");
+                            break;
+                        case "Intersections":
+                        case "_intersections":
+                            result.Intersections = (List<Intersection>?)rootDeserializer(typeof(List<Intersection>)) ?? throw new YamlException("Intersections missing or invalid");
+                            break;
+                        case "Edges":
+                        case "_edges":
+                            result.Edges = (List<Edge>?)rootDeserializer(typeof(List<Edge>)) ?? throw new YamlException("Edges missing or invalid");
+                            break;
+                        case "TileToTile":
+                        case "_tileToTile":
+                            result._tileToTile = (AdjIdx[][]?)rootDeserializer(typeof(AdjIdx[][]))!;
+                            break;
+                        case "TileToIntersection":
+                        case "_tileToIntersection":
+                            result._tileToIntersection = (AdjIdx[][]?)rootDeserializer(typeof(AdjIdx[][]))!;
+                            break;
+                        case "TileToEdge":
+                        case "_tileToEdge":
+                            result._tileToEdge = (AdjIdx[][]?)rootDeserializer(typeof(AdjIdx[][]))!;
+                            break;
+                        case "IntersectionToTile":
+                        case "_intersectionToTile":
+                            result._intersectionToTile = (List<AdjIdx[]?>?)rootDeserializer(typeof(List<AdjIdx[]?>))!;
+                            break;
+                        case "EdgeToWestTile":
+                        case "_edgeToWestTile":
+                            result._edgeToWestTile = (List<AdjIdx>?)rootDeserializer(typeof(List<AdjIdx>))!;
+                            break;
+                        case "EdgeToEastTile":
+                        case "_edgeToEastTile":
+                            result._edgeToEastTile = (List<AdjIdx>?)rootDeserializer(typeof(List<AdjIdx>))!;
+                            break;
+                        default:
+                            // Unknown key: skip value
+                            _ = rootDeserializer(typeof(object));
+                            break;
+                    }
+                }
+
+                parser.Expect<MappingEnd>();
+
+                // Basic validation & normalization
+                if (result.Map == null) throw new YamlException("AdjacencyMatrix: Map is required");
+                if (result.Intersections == null) result.Intersections = new List<Intersection>();
+                if (result.Edges == null) result.Edges = new List<Edge>();
+
+                int expected = (int)(result.Map.Width * result.Map.Height);
+
+                // Ensure tile arrays exist and have correct length
+                if (result._tileToTile == null || result._tileToTile.Length != expected)
+                {
+                    var tmp = new AdjIdx[expected][];
+                    if (result._tileToTile != null)
+                    {
+                        Array.Copy(result._tileToTile, tmp, Math.Min(result._tileToTile.Length, tmp.Length));
+                    }
+                    result._tileToTile = tmp;
+                }
+
+                if (result._tileToIntersection == null || result._tileToIntersection.Length != expected)
+                {
+                    var tmp = new AdjIdx[expected][];
+                    if (result._tileToIntersection != null)
+                    {
+                        Array.Copy(result._tileToIntersection, tmp, Math.Min(result._tileToIntersection.Length, tmp.Length));
+                    }
+                    result._tileToIntersection = tmp;
+                }
+
+                if (result._tileToEdge == null || result._tileToEdge.Length != expected)
+                {
+                    var tmp = new AdjIdx[expected][];
+                    if (result._tileToEdge != null)
+                    {
+                        Array.Copy(result._tileToEdge, tmp, Math.Min(result._tileToEdge.Length, tmp.Length));
+                    }
+                    result._tileToEdge = tmp;
+                }
+
+                if (result._intersectionToTile == null) result._intersectionToTile = new List<AdjIdx[]?>();
+                if (result._edgeToWestTile == null) result._edgeToWestTile = new List<AdjIdx>();
+                if (result._edgeToEastTile == null) result._edgeToEastTile = new List<AdjIdx>();
+
+                // Caches are not serialized
+                // Instead, they will be calculated lazily by methods that rely on them
+
+                return result;
+            }
+
+
+            public void WriteYaml(IEmitter emitter, object? value, Type type, ObjectSerializer serializer)
+            {
+                emitter.Emit(new MappingStart());
+
+                AdjacencyMatrix matrix = (AdjacencyMatrix)value!;
+
+                // Core structural members
+                emitter.Emit(new Scalar("Map"));
+                serializer(matrix.Map);
+
+                emitter.Emit(new Scalar("Intersections"));
+                serializer(matrix.Intersections);
+
+                emitter.Emit(new Scalar("Edges"));
+                serializer(matrix.Edges);
+
+                // Adjacency arrays and lists
+                emitter.Emit(new Scalar("TileToTile"));
+                serializer(matrix._tileToTile);
+
+                emitter.Emit(new Scalar("TileToIntersection"));
+                serializer(matrix._tileToIntersection);
+
+                emitter.Emit(new Scalar("TileToEdge"));
+                serializer(matrix._tileToEdge);
+
+                emitter.Emit(new Scalar("IntersectionToTile"));
+                serializer(matrix._intersectionToTile);
+
+                emitter.Emit(new Scalar("EdgeToWestTile"));
+                serializer(matrix._edgeToWestTile);
+
+                emitter.Emit(new Scalar("EdgeToEastTile"));
+                serializer(matrix._edgeToEastTile);
+
+                emitter.Emit(new MappingEnd());
+            }
         }
     }
 }

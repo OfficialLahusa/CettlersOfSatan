@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using YamlDotNet.Serialization;
 
 namespace Common
 {
@@ -34,6 +35,7 @@ namespace Common
             }
         }
 
+        [YamlIgnore]
         public readonly byte Total
         {
             get { return (byte)(First + Second); }

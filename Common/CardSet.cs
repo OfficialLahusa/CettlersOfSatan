@@ -3,6 +3,9 @@ using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows.Markup;
+using YamlDotNet.Core;
+using YamlDotNet.Core.Events;
+using YamlDotNet.Serialization;
 
 namespace Common
 {
@@ -172,6 +175,83 @@ namespace Common
             }
 
             return hash.ToHashCode();
+        }
+
+        public sealed class Converter : IYamlTypeConverter
+        {
+            public bool Accepts(Type type)
+            {
+                return type == typeof(CardSet<T>);
+            }
+
+            public object? ReadYaml(IParser parser, Type type, ObjectDeserializer rootDeserializer)
+            {
+                parser.Expect<MappingStart>();
+
+                var result = new CardSet<T>();
+
+                while (!parser.Accept<MappingEnd>())
+                {
+                    var keyScalar = parser.Expect<Scalar>().Value ?? string.Empty;
+
+                    // Determine enum value from key (allow name or numeric)
+                    T enumKey;
+                    object? enumObj = null;
+                    if (!Enum.TryParse(typeof(T), keyScalar, ignoreCase: true, out enumObj) || enumObj == null)
+                    {
+                        if (int.TryParse(keyScalar, out int numericKey))
+                        {
+                            enumKey = (T)Enum.ToObject(typeof(T), numericKey);
+                        }
+                        else
+                        {
+                            throw new YamlException($"Invalid enum key '{keyScalar}' for type {typeof(T).Name}");
+                        }
+                    }
+                    else
+                    {
+                        enumKey = (T)enumObj;
+                    }
+
+                    // Deserialize the value (use rootDeserializer to consume next node)
+                    object? deserializedValue = rootDeserializer(typeof(object));
+                    uint amount = 0;
+                    if (deserializedValue != null)
+                    {
+                        try
+                        {
+                            amount = Convert.ToUInt32(deserializedValue);
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new YamlException($"Invalid amount for '{keyScalar}': {ex.Message}");
+                        }
+                    }
+
+                    result._cards[ToInt(enumKey)] = amount;
+                }
+
+                parser.Expect<MappingEnd>();
+                return result;
+            }
+
+
+            public void WriteYaml(IEmitter emitter, object? value, Type type, ObjectSerializer serializer)
+            {
+                emitter.Emit(new MappingStart());
+
+                var set = (CardSet<T>)value!;
+
+                foreach (T cardType in Values)
+                {
+                    uint amount = set._cards[ToInt(cardType)];
+                    // Write all entries (including zero) to be explicit; adjust if you prefer sparse output.
+                    emitter.Emit(new Scalar(cardType.ToString()));
+                    serializer(amount);
+                }
+
+                emitter.Emit(new MappingEnd());
+            }
         }
     }
 

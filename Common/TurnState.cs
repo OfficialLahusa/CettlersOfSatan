@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using YamlDotNet.Serialization;
 
 namespace Common
 {
@@ -24,6 +25,7 @@ namespace Common
 
         public bool MustRoll { get; set; }
         public bool[] AwaitedPlayerDiscards { get; set; }
+        [YamlIgnore]
         public bool MustDiscard
         {
             get { return AwaitedPlayerDiscards.Any(x => x); }
@@ -65,6 +67,14 @@ namespace Common
             MustMoveRobber = copy.MustMoveRobber;
 
             HasPlayedDevelopmentCard = copy.HasPlayedDevelopmentCard;
+        }
+
+        /// <summary>
+        /// Parameterless constructor for deserialization
+        /// </summary>
+        private TurnState()
+        {
+
         }
 
         public override bool Equals(object? obj)

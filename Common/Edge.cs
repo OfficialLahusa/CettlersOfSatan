@@ -8,8 +8,8 @@ namespace Common
 {
     public class Edge
     {
-        public readonly byte Index;
-        public readonly Direction.Edge Direction;
+        public byte Index { get; init; }
+        public Direction.Edge Direction { get; init; }
 
         public enum BuildingType : byte
         {
@@ -40,6 +40,14 @@ namespace Common
             Direction = copy.Direction;
             Building = copy.Building;
             Owner = copy.Owner;
+        }
+
+        /// <summary>
+        /// Parameterless constructor for deserialization
+        /// </summary>
+        private Edge()
+        {
+
         }
 
         public override bool Equals(object? obj)

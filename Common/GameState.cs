@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using YamlDotNet.Serialization;
 using static Common.Direction;
 
 namespace Common
@@ -17,6 +18,7 @@ namespace Common
         public CardSet<ResourceCardType> ResourceBank { get; set; }
         public CardSet<DevelopmentCardType> DevelopmentBank { get; set; }
         public PlayerState[] Players { get; set; }
+        [YamlIgnore]
         public bool HasEnded => Turn.TypeOfRound == TurnState.RoundType.MatchEnded;
 
         public GameState(Board board, uint playerCount)
@@ -50,6 +52,14 @@ namespace Common
             {
                 Players[i] = new(copy.Players[i]);
             }
+        }
+
+        /// <summary>
+        /// Parameterless constructor for deserialization
+        /// </summary>
+        private GameState()
+        {
+
         }
 
         public void CalculateLargestArmy(int causingPlayerIdx)

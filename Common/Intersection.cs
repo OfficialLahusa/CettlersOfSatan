@@ -3,8 +3,8 @@ namespace Common
 {
     public class Intersection
     {
-        public readonly byte Index;
-        public readonly bool FacesDownwards;
+        public byte Index { get; init; }
+        public bool FacesDownwards { get; init; }
 
         public enum BuildingType : byte
         {
@@ -35,6 +35,14 @@ namespace Common
             FacesDownwards = copy.FacesDownwards;
             Building = copy.Building;
             Owner = copy.Owner;
+        }
+
+        /// <summary>
+        /// Parameterless constructor for deserialization
+        /// </summary>
+        private Intersection()
+        {
+
         }
 
         public override bool Equals(object? obj)

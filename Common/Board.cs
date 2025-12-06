@@ -1,4 +1,6 @@
 ﻿
+using YamlDotNet.Serialization;
+
 namespace Common
 {
     public class Board
@@ -58,6 +60,14 @@ namespace Common
             Robber = copy.Robber != null ? Map.GetTile(copy.Robber.X, copy.Robber.Y) : null;
         }
 
+        /// <summary>
+        /// Parameterless constructor for deserialization
+        /// </summary>
+        private Board()
+        {
+
+        }
+
         public void Clear()
         {
             // Reset buildings
@@ -74,7 +84,7 @@ namespace Common
             }
 
             // Reset robber
-            foreach(Tile tile in Map)
+            foreach(Tile tile in Map.Values)
             {
                 if (tile.Type == Tile.TileType.Desert)
                 {

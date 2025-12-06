@@ -1,10 +1,12 @@
-﻿using static Common.Tile;
+﻿using YamlDotNet.Serialization;
+using static Common.Tile;
 
 namespace Common
 {
     public class Tile
     {
-        public readonly byte X, Y;
+        public byte X { get; init; }
+        public byte Y { get; init; }
         public enum TileType : byte
         {
             Water,
@@ -18,6 +20,7 @@ namespace Common
         };
         public TileType Type { get; set; }
         public byte? Number { get; set; }
+        [YamlIgnore]
         public int YieldPoints
         {
             get
@@ -52,6 +55,14 @@ namespace Common
             Y = copy.Y;
             Type = copy.Type;
             Number = copy.Number;
+        }
+
+        /// <summary>
+        /// Parameterless constructor for deserialization
+        /// </summary>
+        private Tile()
+        {
+
         }
 
         public bool IsLandTile()

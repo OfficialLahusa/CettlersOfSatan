@@ -1,11 +1,13 @@
 ﻿using System.Collections;
 using System.Numerics;
+using YamlDotNet.Serialization;
 
 namespace Common
 {
-    public class HexMap<T> : IEnumerable<T>
+    public class HexMap<T>
     {
-        private T[] _values;
+        //private T[] _values;
+        public T[] Values { get; init; }
 
         // Width of the HexMap (X)
         public uint Width { get; set; }
@@ -13,14 +15,15 @@ namespace Common
         // Height of the HexMap (Y)
         public uint Height { get; set; }
 
-        public int Length { get { return _values.Length; } }
+        [YamlIgnore]
+        public int Length { get { return Values.Length; } }
 
         public HexMap(uint width, uint height, T defaultValue = default)
         {
             Width = width;
             Height = height;
-            _values = new T[Width*Height];
-            Array.Fill(_values, defaultValue);
+            Values = new T[Width*Height];
+            Array.Fill(Values, defaultValue);
         }
 
         /// <summary>
@@ -31,8 +34,16 @@ namespace Common
         {
             Width = copy.Width;
             Height = copy.Height;
-            _values = new T[Width * Height];
-            Array.Copy(copy._values, _values, copy._values.Length);
+            Values = new T[Width * Height];
+            Array.Copy(copy.Values, Values, copy.Values.Length);
+        }
+
+        /// <summary>
+        /// Parameterless constructor for deserialization
+        /// </summary>
+        private HexMap()
+        {
+
         }
 
         // Get a Single Tile
@@ -40,7 +51,7 @@ namespace Common
         {
             if (x >= Width || x < 0) throw new ArgumentOutOfRangeException("x", "x needs to be 0 <= x < Width");
             if (y >= Height || y < 0) throw new ArgumentOutOfRangeException("y", "y needs to be 0 <= y < Height");
-            return _values[y*Width+x];
+            return Values[y*Width+x];
         }
 
         // Update a Single Tile 
@@ -49,7 +60,7 @@ namespace Common
             if (x >= Width || x < 0) throw new ArgumentOutOfRangeException("x", "x needs to be 0 <= x < Width");
             if (y >= Height || y < 0) throw new ArgumentOutOfRangeException("y", "y needs to be 0 <= y < Height");
             // Set Internally Stored Value
-            _values[y * Width + x] = value;
+            Values[y * Width + x] = value;
         }
 
         // Update All Tiles from an Array of Values
@@ -61,7 +72,7 @@ namespace Common
                 for (int y = 0; y < Height; y++)
                 {
                     // Set Internally Stored Value
-                    _values[y*Width+x] = values[x, y];
+                    Values[y*Width+x] = values[x, y];
                 }
             }
         }
@@ -75,14 +86,14 @@ namespace Common
                 for (int y = 0; y < Height; y++)
                 {
                     // Set Internally Stored Value
-                    _values[y * Width + x] = values[y * Width + x];
+                    Values[y * Width + x] = values[y * Width + x];
                 }
             }
         }
 
         public HashSet<T> Where(Func<T, bool> filter)
         {
-            return _values.Where(filter).ToHashSet();
+            return Values.Where(filter).ToHashSet();
         }
 
         public HashSet<T> GetNeighbors(int x, int y, Func<T, bool>? filter = null)
@@ -140,20 +151,10 @@ namespace Common
             return Contains(x, y);
         }
 
-        public IEnumerator<T> GetEnumerator()
-        {
-            return ((IEnumerable<T>)_values).GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return _values.GetEnumerator();
-        }
-
         public override bool Equals(object? obj)
         {
             return obj is HexMap<T> map
-                && _values.SequenceEqual(map._values)
+                && Values.SequenceEqual(map.Values)
                 && Width == map.Width
                 && Height == map.Height;
         }
@@ -162,7 +163,7 @@ namespace Common
         {
             HashCode hash = new HashCode();
 
-            foreach(T val in _values)
+            foreach(T val in Values)
             {
                 hash.Add(val);
             }

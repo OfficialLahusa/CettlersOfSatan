@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using YamlDotNet.Serialization;
 
 namespace Common
 {
@@ -14,6 +15,7 @@ namespace Common
         public byte LongestRoadPoints;
         public byte LargestArmyPoints;
 
+        [YamlIgnore]
         public int Total => SettlementPoints + CityPoints + DevelopmentCardPoints + LongestRoadPoints + LargestArmyPoints;
 
         public VictoryPointTracker()
