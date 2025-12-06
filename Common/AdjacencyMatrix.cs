@@ -459,9 +459,9 @@ namespace Common
         public override int GetHashCode()
         {
             return HashCode.Combine(
-                _tileToTile.Aggregate(0, (acc, v) => HashCode.Combine(acc, v.Aggregate(0, (acc2, v2) => HashCode.Combine(acc2, v2.GetHashCode())))),
-                _tileToIntersection.Aggregate(0, (acc, v) => HashCode.Combine(acc, v.Aggregate(0, (acc2, v2) => HashCode.Combine(acc2, v2.GetHashCode())))),
-                _tileToEdge.Aggregate(0, (acc, v) => HashCode.Combine(acc, v.Aggregate(0, (acc2, v2) => HashCode.Combine(acc2, v2.GetHashCode())))),
+                _tileToTile.Aggregate(0, (acc, v) => v == null ? acc : HashCode.Combine(acc, v.Aggregate(0, (acc2, v2) => HashCode.Combine(acc2, v2.GetHashCode())))),
+                _tileToIntersection.Aggregate(0, (acc, v) => v == null ? acc : HashCode.Combine(acc, v.Aggregate(0, (acc2, v2) => HashCode.Combine(acc2, v2.GetHashCode())))),
+                _tileToEdge.Aggregate(0, (acc, v) => v == null ? acc : HashCode.Combine(acc, v.Aggregate(0, (acc2, v2) => HashCode.Combine(acc2, v2.GetHashCode())))),
                 _intersectionToTile.Aggregate(0, (acc, v) => v == null ? acc : HashCode.Combine(acc, v.Aggregate(0, (acc2, v2) => HashCode.Combine(acc2, v2.GetHashCode())))),
                 _edgeToWestTile.Aggregate(0, (acc, v) => HashCode.Combine(acc, v.GetHashCode())),
                 _edgeToEastTile.Aggregate(0, (acc, v) => HashCode.Combine(acc, v.GetHashCode()))
