@@ -10,9 +10,9 @@ namespace Common.Agents
 {
     public abstract class Agent
     {
-        public readonly int PlayerIndex;
+        public readonly sbyte PlayerIndex;
 
-        public Agent(int playerIndex)
+        public Agent(sbyte playerIndex)
         {
             PlayerIndex = playerIndex;
         }

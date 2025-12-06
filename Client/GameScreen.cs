@@ -112,7 +112,7 @@ namespace Client
             _selectedAgentTypes = new int[PLAYER_COUNT];
             _agents = new Agent[PLAYER_COUNT];
 
-            for(int i = 0; i < PLAYER_COUNT; i++)
+            for(sbyte i = 0; i < PLAYER_COUNT; i++)
             {
                 _selectedAgentTypes[i] = 1;
                 _agents[i] = new SimpleAgent(i);
@@ -137,7 +137,7 @@ namespace Client
             _window.SetView(_mapView);
 
             //_window.Draw(_renderer);
-            _renderer.Draw(_window, RenderStates.Default, _state, _playerIndex);
+            _renderer.Draw(_window, RenderStates.Default, _state, (sbyte)_playerIndex);
 
             // Draw UI
             _window.SetView(_uiView);
@@ -242,7 +242,7 @@ namespace Client
 
             if (ImGui.TreeNode("Agents"))
             {
-                for (int agentIdx = 0; agentIdx < _agents.Length; agentIdx++)
+                for (sbyte agentIdx = 0; agentIdx < _agents.Length; agentIdx++)
                 {
                     using (new ImGuiTextColor(ColorPalette.GetPlayerColor(agentIdx)))
                         ImGui.Text($"Player {agentIdx}:");
@@ -923,7 +923,7 @@ namespace Client
                     }
 
                     // Claim intersection for current player
-                    intersection.Owner = _playerIndex;
+                    intersection.Owner = (sbyte)_playerIndex;
 
                     // Play place sound
                     _placeSound.Play();
@@ -979,7 +979,7 @@ namespace Client
                     }
 
                     // Claim edge for current player
-                    edge.Owner = _playerIndex;
+                    edge.Owner = (sbyte)_playerIndex;
 
                     // Play place sound
                     _placeSound.Play();

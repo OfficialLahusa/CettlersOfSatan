@@ -4,7 +4,7 @@ namespace Common
 {
     public class Tile
     {
-        public readonly int X, Y;
+        public readonly byte X, Y;
         public enum TileType : byte
         {
             Water,
@@ -17,7 +17,7 @@ namespace Common
             NonPlayable = 255,
         };
         public TileType Type { get; set; }
-        public int? Number { get; set; }
+        public byte? Number { get; set; }
         public int YieldPoints
         {
             get
@@ -34,7 +34,7 @@ namespace Common
             }
         }
 
-        public Tile(int x, int y, TileType type, int? number)
+        public Tile(byte x, byte y, TileType type, byte? number)
         {
             X = x;
             Y = y;

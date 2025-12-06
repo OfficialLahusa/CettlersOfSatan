@@ -10,7 +10,7 @@ namespace Common.Agents
 {
     public class SimpleAgent : Agent
     {
-        public SimpleAgent(int playerIndex)
+        public SimpleAgent(sbyte playerIndex)
             : base(playerIndex)
         {
 

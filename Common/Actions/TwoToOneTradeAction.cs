@@ -11,7 +11,7 @@ namespace Common.Actions
         public ResourceCardType InputType { get; init; }
         public ResourceCardType OutputType { get; init; }
 
-        public TwoToOneTradeAction(int playerIdx, ResourceCardType inputType, ResourceCardType outputType)
+        public TwoToOneTradeAction(sbyte playerIdx, ResourceCardType inputType, ResourceCardType outputType)
             : base(playerIdx)
         {
             InputType = inputType;
@@ -84,7 +84,7 @@ namespace Common.Actions
             return cardTypesDiffer && playerHasInput && bankHasOutput && hasPort;
         }
 
-        public static List<Action> GetActionsForState(GameState state, int playerIdx)
+        public static List<Action> GetActionsForState(GameState state, sbyte playerIdx)
         {
             List<Action> actions = [];
 

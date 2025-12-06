@@ -463,7 +463,7 @@ namespace Client
         public void Draw(RenderTarget target, RenderStates states) { }
 
         // Render the HexMap to a RenderTarget
-        public void Draw(RenderTarget target, RenderStates states, GameState state, int playerIdx) // TODO: Remove state debug parameter
+        public void Draw(RenderTarget target, RenderStates states, GameState state, sbyte playerIdx) // TODO: Remove state debug parameter
         {
             target.Draw(_tiles, states);
             target.Draw(_grid, states);

@@ -15,7 +15,7 @@ namespace Common.Actions
 
         public ResourceCardType ChosenType { get; set; }
 
-        public MonopolyAction(int playerIdx, ResourceCardType chosenType)
+        public MonopolyAction(sbyte playerIdx, ResourceCardType chosenType)
             : base(playerIdx)
         {
             ChosenType = chosenType;
@@ -103,7 +103,7 @@ namespace Common.Actions
             History = null;
         }
 
-        public static List<Action> GetActionsForState(GameState state, int playerIdx)
+        public static List<Action> GetActionsForState(GameState state, sbyte playerIdx)
         {
             List<Action> actions = [];
 

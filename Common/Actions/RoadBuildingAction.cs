@@ -8,7 +8,7 @@ namespace Common.Actions
 {
     public class RoadBuildingAction : Action, IActionProvider
     {
-        public RoadBuildingAction(int playerIdx)
+        public RoadBuildingAction(sbyte playerIdx)
             : base(playerIdx)
         { }
 
@@ -67,7 +67,7 @@ namespace Common.Actions
             return hasCard && cardAgeSufficient;
         }
 
-        public static List<Action> GetActionsForState(GameState state, int playerIdx)
+        public static List<Action> GetActionsForState(GameState state, sbyte playerIdx)
         {
             RoadBuildingAction action = new(playerIdx);
 

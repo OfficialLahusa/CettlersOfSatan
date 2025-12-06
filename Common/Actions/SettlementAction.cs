@@ -15,7 +15,7 @@ namespace Common.Actions
 
         public int IntersectionIndex { get; init; }
 
-        public SettlementAction(int playerIdx, int intersectionIndex)
+        public SettlementAction(sbyte playerIdx, int intersectionIndex)
             : base(playerIdx)
         {
             IntersectionIndex = intersectionIndex;
@@ -190,7 +190,7 @@ namespace Common.Actions
             History = null;
         }
 
-        public static List<Action> GetActionsForState(GameState state, int playerIdx)
+        public static List<Action> GetActionsForState(GameState state, sbyte playerIdx)
         {
             List<Action> actions = new List<Action>();
 

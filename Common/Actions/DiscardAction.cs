@@ -13,7 +13,7 @@ namespace Common.Actions
         // Cards that are discarded by the player
         public CardSet<ResourceCardType> SelectedCards;
 
-        public DiscardAction(int playerIdx, CardSet<ResourceCardType> selectedCards)
+        public DiscardAction(sbyte playerIdx, CardSet<ResourceCardType> selectedCards)
             : base(playerIdx)
         {
             SelectedCards = selectedCards;
@@ -76,7 +76,7 @@ namespace Common.Actions
             return validAmount && validSubset;
         }
 
-        public static List<Action> GetActionsForState(GameState state, int playerIdx)
+        public static List<Action> GetActionsForState(GameState state, sbyte playerIdx)
         {
             List<Action> actions = [];
 
@@ -118,7 +118,7 @@ namespace Common.Actions
             return actions;
         }
 
-        public static DiscardAction GetRandomDiscard(GameState state, int playerIdx)
+        public static DiscardAction GetRandomDiscard(GameState state, sbyte playerIdx)
         {
             // Get list of types of held resource cards
             List<ResourceCardType> heldResources = CardSet<ResourceCardType>.Values

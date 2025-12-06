@@ -8,7 +8,7 @@ namespace Common
 {
     public class Edge
     {
-        public readonly int Index;
+        public readonly byte Index;
         public readonly Direction.Edge Direction;
 
         public enum BuildingType : byte
@@ -20,9 +20,9 @@ namespace Common
         public BuildingType Building { get; set; }
 
         // -1 => None, 0/1/.. => Player 1/2/..
-        public int Owner { get; set; }
+        public sbyte Owner { get; set; }
 
-        public Edge(int index, Direction.Edge direction)
+        public Edge(byte index, Direction.Edge direction)
         {
             Index = index;
             Direction = direction;

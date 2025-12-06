@@ -11,7 +11,7 @@ namespace Common.Actions
     {
         public int EdgeIndex { get; init; }
 
-        public SecondInitialRoadAction(int playerIdx, int edgeIndex)
+        public SecondInitialRoadAction(sbyte playerIdx, int edgeIndex)
             : base(playerIdx)
         {
             EdgeIndex = edgeIndex;
@@ -122,7 +122,7 @@ namespace Common.Actions
             return spaceFree && twoSettlementsPlaced && oneRoadPlaced && isAdjacentToSecondSettlement;
         }
 
-        public static List<Action> GetActionsForState(GameState state, int playerIdx)
+        public static List<Action> GetActionsForState(GameState state, sbyte playerIdx)
         {
             List<Action> actions = [];
 

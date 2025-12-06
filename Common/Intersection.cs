@@ -3,7 +3,7 @@ namespace Common
 {
     public class Intersection
     {
-        public readonly int Index;
+        public readonly byte Index;
         public readonly bool FacesDownwards;
 
         public enum BuildingType : byte
@@ -15,9 +15,9 @@ namespace Common
         public BuildingType Building { get; set; }
 
         // -1 => None, 0/1/.. => Player 1/2/..
-        public int Owner { get; set; }
+        public sbyte Owner { get; set; }
 
-        public Intersection(int index, bool facesDownwards)
+        public Intersection(byte index, bool facesDownwards)
         {
             Index = index;
             FacesDownwards = facesDownwards;

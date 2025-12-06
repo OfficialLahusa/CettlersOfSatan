@@ -14,9 +14,9 @@ namespace Common.Actions
         public RobberActionHistory? History { get; private set; }
 
         public int TargetTileIndex { get; init; }
-        public int? TargetPlayerIndex { get; init; }
+        public sbyte? TargetPlayerIndex { get; init; }
 
-        public RobberAction(int playerIdx, int targetTileIdx, int? targetPlayerIdx)
+        public RobberAction(sbyte playerIdx, int targetTileIdx, sbyte? targetPlayerIdx)
             : base(playerIdx)
         {
             TargetTileIndex = targetTileIdx;
@@ -160,7 +160,7 @@ namespace Common.Actions
             History = null;
         }
 
-        public static List<Action> GetActionsForState(GameState state, int playerIdx)
+        public static List<Action> GetActionsForState(GameState state, sbyte playerIdx)
         {
             List<Action> actions = [];
 
@@ -168,7 +168,7 @@ namespace Common.Actions
 
             for(int tileIdx = 0; tileIdx < state.Board.Map.Length; tileIdx++)
             {
-                for(int targetPlayerIdx = -1; targetPlayerIdx < state.Players.Length; targetPlayerIdx++)
+                for(sbyte targetPlayerIdx = -1; targetPlayerIdx < state.Players.Length; targetPlayerIdx++)
                 {
                     RobberAction action = new(playerIdx, tileIdx, targetPlayerIdx < 0 ? null : targetPlayerIdx);
 

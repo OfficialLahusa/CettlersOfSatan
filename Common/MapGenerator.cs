@@ -21,7 +21,7 @@ namespace Common
 
         public static Board GenerateRandomClassic(bool centerDesert = false)
         {
-            HexMap<Tile> map = new HexMap<Tile>(7, 7, new Tile(-1, -1, TileType.NonPlayable, null));
+            HexMap<Tile> map = new HexMap<Tile>(7, 7, new Tile(0, 0, TileType.NonPlayable, null));
             List<Intersection> intersections = new();
             List<Edge> edges = new();
             AdjacencyMatrix adjacency = new AdjacencyMatrix(map, intersections, edges);
@@ -64,7 +64,7 @@ namespace Common
                     // Center tile Desert option
                     if (centerDesert && dist == 0)
                     {
-                        map.SetTile(x, y, new Tile(x, y, TileType.Desert, null));
+                        map.SetTile(x, y, new Tile((byte)x, (byte)y, TileType.Desert, null));
                         robber = map.GetTile(x, y);
                     }
                     // Land tiles
@@ -80,7 +80,7 @@ namespace Common
                             numberTokens.RemoveAt(0);
                         }
 
-                        map.SetTile(x, y, new Tile(x, y, type, number));
+                        map.SetTile(x, y, new Tile((byte)x, (byte)y, type, (byte?)number));
 
                         if(type == TileType.Desert)
                         {
@@ -88,11 +88,11 @@ namespace Common
                         }
                     }
                     // Water tiles
-                    else if (dist < 4) map.SetTile(x, y, new Tile(x, y, TileType.Water, null));
+                    else if (dist < 4) map.SetTile(x, y, new Tile((byte)x, (byte)y, TileType.Water, null));
                     // Non-playable tiles
                     else
                     {
-                        map.SetTile(x, y, new Tile(x, y, TileType.NonPlayable, null));
+                        map.SetTile(x, y, new Tile((byte)x, (byte)y, TileType.NonPlayable, null));
                     }
                 }
             }
@@ -122,7 +122,7 @@ namespace Common
                 int blackIdx = Utils.Random.Next(freeBlackNumbers.Count);
                 Tile black = freeBlackNumbers.ElementAt(blackIdx);
                 
-                int? blackNum = black.Number;
+                byte? blackNum = black.Number;
                 black.Number = red.Number;
                 red.Number = blackNum;
             }
@@ -163,7 +163,7 @@ namespace Common
                         // Create intersection if it doesn't already exist
                         if(intersection == null)
                         {
-                            intersection = new Intersection(intersections.Count, cornerDir.HasDownwardsFacingIntersection());
+                            intersection = new Intersection((byte)intersections.Count, cornerDir.HasDownwardsFacingIntersection());
 
                             // (Debug) Randomize building and owner
                             //intersection.Building = (Intersection.BuildingType)Math.Max(0, Utils.Random.Next(-2, 3));
@@ -209,7 +209,7 @@ namespace Common
                         // Create edge if doesn't already exist
                         if (edge == null)
                         {
-                            edge = new Edge(edges.Count, tileDir.ToEdgeDir());
+                            edge = new Edge((byte)edges.Count, tileDir.ToEdgeDir());
 
                             // (Debug) Randomize building and owner
                             //edge.Building = (Edge.BuildingType)Math.Max(0, Utils.Random.Next(-3, 2));

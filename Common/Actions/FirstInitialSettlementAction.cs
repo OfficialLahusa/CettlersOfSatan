@@ -11,7 +11,7 @@ namespace Common.Actions
     {
         public int IntersectionIndex { get; init; }
 
-        public FirstInitialSettlementAction(int playerIdx, int intersectionIndex)
+        public FirstInitialSettlementAction(sbyte playerIdx, int intersectionIndex)
             : base(playerIdx)
         {
             IntersectionIndex = intersectionIndex;
@@ -86,7 +86,7 @@ namespace Common.Actions
             return spaceFree && noSettlementPlaced && !hasAdjacentSettlement;
         }
 
-        public static List<Action> GetActionsForState(GameState state, int playerIdx)
+        public static List<Action> GetActionsForState(GameState state, sbyte playerIdx)
         {
             List<Action> actions = new List<Action>();
 

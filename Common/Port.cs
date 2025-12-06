@@ -10,8 +10,8 @@ namespace Common
     public class Port
     {
         // Tile X coordinate the port is situated in
-        public int AnchorTileX { get; set; }
-        public int AnchorTileY { get; set; }
+        public byte AnchorTileX { get; set; }
+        public byte AnchorTileY { get; set; }
 
         // Facing direction inside the tile
         public Direction.Tile AnchorDirection { get; set; }
@@ -28,7 +28,7 @@ namespace Common
 
         public TradeType Type { get; set; }
 
-        public Port(int anchorTileX, int anchorTileY, Direction.Tile dir, TradeType type)
+        public Port(byte anchorTileX, byte anchorTileY, Direction.Tile dir, TradeType type)
         {
             AnchorTileX = anchorTileX;
             AnchorTileY = anchorTileY;

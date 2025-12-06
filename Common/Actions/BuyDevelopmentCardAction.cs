@@ -12,7 +12,7 @@ namespace Common.Actions
 
         public BuyDevelopmentCardActionHistory? History { get; private set; }
 
-        public BuyDevelopmentCardAction(int playerIdx)
+        public BuyDevelopmentCardAction(sbyte playerIdx)
             : base(playerIdx)
         { }
 
@@ -108,7 +108,7 @@ namespace Common.Actions
             return IsTurnValid(state.Turn, PlayerIndex) && IsBoardValid(state);
         }
 
-        public static bool IsTurnValid(TurnState turn, int playerIdx)
+        public static bool IsTurnValid(TurnState turn, sbyte playerIdx)
         {
             return turn.PlayerIndex == playerIdx
                 && turn.TypeOfRound == TurnState.RoundType.Normal
@@ -138,7 +138,7 @@ namespace Common.Actions
             History = null;
         }
 
-        public static List<Action> GetActionsForState(GameState state, int playerIdx)
+        public static List<Action> GetActionsForState(GameState state, sbyte playerIdx)
         {
             BuyDevelopmentCardAction action = new(playerIdx);
             return action.IsValidFor(state) ? [action] : [];

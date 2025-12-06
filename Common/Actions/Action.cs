@@ -9,9 +9,9 @@ namespace Common.Actions
     public abstract class Action
     {
         // Index of the player performing the action
-        public int PlayerIndex { get; init; }
+        public sbyte PlayerIndex { get; init; }
 
-        public Action(int playerIndex)
+        public Action(sbyte playerIndex)
         {
             PlayerIndex = playerIndex;
         }

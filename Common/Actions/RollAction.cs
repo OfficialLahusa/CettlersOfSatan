@@ -19,7 +19,7 @@ namespace Common.Actions
         // Randomize roll when null is passed
         // The option to specify the roll result is primarily used for action tree exploration
         // TODO: Potentially rewrite by forcing randomization and moving the result to history
-        public RollAction(int playerIdx, RollResult? rollResult)
+        public RollAction(sbyte playerIdx, RollResult? rollResult)
             : base(playerIdx)
         {
             RollResult = rollResult ?? RollResult.GetRandom();
@@ -196,7 +196,7 @@ namespace Common.Actions
         }
 
 
-        public static List<Action> GetActionsForState(GameState state, int playerIdx)
+        public static List<Action> GetActionsForState(GameState state, sbyte playerIdx)
         {
             List<Action> actions = [];
 
@@ -211,7 +211,7 @@ namespace Common.Actions
                 for (byte second = 1; second <= 6; second++)
                 {
                     RollResult roll = new() { First = first, Second = second };
-                    RollAction action = new(state.Turn.PlayerIndex, roll);
+                    RollAction action = new((sbyte)state.Turn.PlayerIndex, roll);
 
                     if(action.IsValidFor(state))
                     {

@@ -8,7 +8,7 @@ namespace Common.Actions
 {
     public class LegalActionProvider : IActionProvider
     {
-        public static List<Action> GetActionsForState(GameState state, int playerIdx)
+        public static List<Action> GetActionsForState(GameState state, sbyte playerIdx)
         {
             List<Action> actions = [
                 .. EndTurnAction.GetActionsForState(state, playerIdx),

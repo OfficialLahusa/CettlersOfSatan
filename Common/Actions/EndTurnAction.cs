@@ -12,7 +12,7 @@ namespace Common.Actions
 
         public EndTurnActionHistory? History { get; private set; }
 
-        public EndTurnAction(int playerIdx)
+        public EndTurnAction(sbyte playerIdx)
             : base(playerIdx)
         { }
 
@@ -101,7 +101,7 @@ namespace Common.Actions
             History = null;
         }
 
-        public static List<Action> GetActionsForState(GameState state, int playerIdx)
+        public static List<Action> GetActionsForState(GameState state, sbyte playerIdx)
         {
             EndTurnAction action = new EndTurnAction(playerIdx);
 

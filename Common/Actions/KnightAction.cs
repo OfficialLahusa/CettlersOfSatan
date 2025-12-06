@@ -12,7 +12,7 @@ namespace Common.Actions
 
         public KnightActionHistory? History { get; private set; }
 
-        public KnightAction(int playerIdx)
+        public KnightAction(sbyte playerIdx)
             : base(playerIdx)
         { }
 
@@ -107,7 +107,7 @@ namespace Common.Actions
             History = null;
         }
 
-        public static List<Action> GetActionsForState(GameState state, int playerIdx)
+        public static List<Action> GetActionsForState(GameState state, sbyte playerIdx)
         {
             KnightAction action = new(playerIdx);
 

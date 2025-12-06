@@ -10,7 +10,7 @@ namespace Common.Agents
 {
     public class RandomAgent : Agent
     {
-        public RandomAgent(int playerIndex)
+        public RandomAgent(sbyte playerIndex)
             : base(playerIndex)
         {
 

@@ -11,7 +11,7 @@ namespace Common.Actions
         public ResourceCardType FirstChoice { get; set; }
         public ResourceCardType? SecondChoice { get; set; }
 
-        public YearOfPlentyAction(int playerIdx, ResourceCardType firstChoice, ResourceCardType? secondChoice)
+        public YearOfPlentyAction(sbyte playerIdx, ResourceCardType firstChoice, ResourceCardType? secondChoice)
             : base(playerIdx)
         {
             FirstChoice = firstChoice;
@@ -91,7 +91,7 @@ namespace Common.Actions
             return hasCard && cardAgeSufficient && bankHasCards && secondChoiceValid;
         }
 
-        public static List<Action> GetActionsForState(GameState state, int playerIdx)
+        public static List<Action> GetActionsForState(GameState state, sbyte playerIdx)
         {
             List<Action> actions = [];
 

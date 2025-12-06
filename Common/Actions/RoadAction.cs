@@ -16,7 +16,7 @@ namespace Common.Actions
 
         public int EdgeIndex { get; init; }
 
-        public RoadAction(int playerIdx, int edgeIndex)
+        public RoadAction(sbyte playerIdx, int edgeIndex)
             : base(playerIdx)
         {
             EdgeIndex = edgeIndex;
@@ -196,7 +196,7 @@ namespace Common.Actions
             History = null;
         }
 
-        public static List<Action> GetActionsForState(GameState state, int playerIdx)
+        public static List<Action> GetActionsForState(GameState state, sbyte playerIdx)
         {
             List<Action> actions = [];
 
