@@ -16,6 +16,13 @@ namespace Common.Actions
             EdgeIndex = edgeIndex;
         }
 
+        /// <summary>
+        /// Parameterless constructor for deserialization
+        /// </summary>
+        private FirstInitialRoadAction()
+            : base(-1)
+        { }
+
         public override void Apply(GameState state)
         {
             base.Apply(state);

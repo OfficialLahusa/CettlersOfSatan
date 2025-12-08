@@ -17,6 +17,13 @@ namespace Common.Actions
             IntersectionIndex = intersectionIndex;
         }
 
+        /// <summary>
+        /// Parameterless constructor for deserialization
+        /// </summary>
+        private FirstInitialSettlementAction()
+            : base(-1)
+        { }
+
         public override void Apply(GameState state)
         {
             base.Apply(state);

@@ -8,12 +8,25 @@ namespace Common.Actions
 {
     public class BuyDevelopmentCardAction : Action, IReplayAction, IActionProvider
     {
-        public record BuyDevelopmentCardActionHistory(DevelopmentCardType DrawnType);
+        public record BuyDevelopmentCardActionHistory(DevelopmentCardType DrawnType)
+        {
+            /// <summary>
+            /// Parameterless constructor for deserialization
+            /// </summary>
+            private BuyDevelopmentCardActionHistory() : this(0) { }
+        }
 
         public BuyDevelopmentCardActionHistory? History { get; private set; }
 
         public BuyDevelopmentCardAction(sbyte playerIdx)
             : base(playerIdx)
+        { }
+
+        /// <summary>
+        /// Parameterless constructor for deserialization
+        /// </summary>
+        private BuyDevelopmentCardAction()
+            : base(-1)
         { }
 
         public override void Apply(GameState state)

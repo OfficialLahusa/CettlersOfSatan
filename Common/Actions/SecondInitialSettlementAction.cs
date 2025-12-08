@@ -10,7 +10,13 @@ namespace Common.Actions
 {
     public class SecondInitialSettlementAction : Action, IReplayAction, IActionProvider
     {
-        public record SecondInitialSettlementActionHistory(ReadOnlyCollection<ResourceCardType> InitialYields);
+        public record SecondInitialSettlementActionHistory(ReadOnlyCollection<ResourceCardType> InitialYields)
+        {
+            /// <summary>
+            /// Parameterless constructor for deserialization
+            /// </summary>
+            private SecondInitialSettlementActionHistory() : this(InitialYields: null!) { }
+        }
 
         public SecondInitialSettlementActionHistory? History { get; private set; }
 
@@ -21,6 +27,13 @@ namespace Common.Actions
         {
             IntersectionIndex = intersectionIndex;
         }
+
+        /// <summary>
+        /// Parameterless constructor for deserialization
+        /// </summary>
+        private SecondInitialSettlementAction()
+            : base(-1)
+        { }
 
         public override void Apply(GameState state)
         {

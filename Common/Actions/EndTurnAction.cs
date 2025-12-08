@@ -8,12 +8,25 @@ namespace Common.Actions
 {
     public class EndTurnAction : Action, IReplayAction, IActionProvider
     {
-        public record EndTurnActionHistory(uint PrevFreeRoads, CardSet<DevelopmentCardType> PrevNewDevelopmentCards, bool PrevHasPlayedDevelopmentCard);
+        public record EndTurnActionHistory(uint PrevFreeRoads, CardSet<DevelopmentCardType> PrevNewDevelopmentCards, bool PrevHasPlayedDevelopmentCard)
+        {
+            /// <summary>
+            /// Parameterless constructor for deserialization
+            /// </summary>
+            private EndTurnActionHistory() : this(0, null!, false) { }
+        }
 
         public EndTurnActionHistory? History { get; private set; }
 
         public EndTurnAction(sbyte playerIdx)
             : base(playerIdx)
+        { }
+
+        /// <summary>
+        /// Parameterless constructor for deserialization
+        /// </summary>
+        private EndTurnAction()
+            : base(-1)
         { }
 
         public override void Apply(GameState state)

@@ -9,7 +9,13 @@ namespace Common.Actions
 {
     public class RobberAction : Action, IReplayAction, IActionProvider
     {
-        public record RobberActionHistory(Tile? PrevRobber, ResourceCardType? StolenCard = null);
+        public record RobberActionHistory(Tile? PrevRobber, ResourceCardType? StolenCard = null)
+        {
+            /// <summary>
+            /// Parameterless constructor for deserialization
+            /// </summary>
+            private RobberActionHistory() : this(null, null) { }
+        }
 
         public RobberActionHistory? History { get; private set; }
 
@@ -22,6 +28,13 @@ namespace Common.Actions
             TargetTileIndex = targetTileIdx;
             TargetPlayerIndex = targetPlayerIdx;
         }
+
+        /// <summary>
+        /// Parameterless constructor for deserialization
+        /// </summary>
+        private RobberAction()
+            : base(-1)
+        { }
 
         public override void Apply(GameState state)
         {

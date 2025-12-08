@@ -8,12 +8,25 @@ namespace Common.Actions
 {
     public class KnightAction : Action, IReplayAction, IActionProvider
     {
-        public record KnightActionHistory(int PrevLargestArmyHolder);
+        public record KnightActionHistory(int PrevLargestArmyHolder)
+        {
+            /// <summary>
+            /// Parameterless constructor for deserialization
+            /// </summary>
+            private KnightActionHistory() : this(-1) { }
+        }
 
         public KnightActionHistory? History { get; private set; }
 
         public KnightAction(sbyte playerIdx)
             : base(playerIdx)
+        { }
+
+        /// <summary>
+        /// Parameterless constructor for deserialization
+        /// </summary>
+        private KnightAction()
+            : base(-1)
         { }
 
         public override void Apply(GameState state)

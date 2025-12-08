@@ -18,6 +18,13 @@ namespace Common.Actions
             SecondChoice = secondChoice;
         }
 
+        /// <summary>
+        /// Parameterless constructor for deserialization
+        /// </summary>
+        private YearOfPlentyAction()
+            : base(-1)
+        { }
+
         public override void Apply(GameState state)
         {
             base.Apply(state);

@@ -6,6 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.BufferedDeserialization;
+using YamlDotNet.Serialization.NamingConventions;
+using YamlDotNet.Serialization.NodeDeserializers;
 using Action = Common.Actions.Action;
 
 namespace Common.Serialization
@@ -16,6 +19,8 @@ namespace Common.Serialization
         public static readonly ISerializer Serializer;
         static SaveFileSerializer()
         {
+            var NamingConvention = CamelCaseNamingConvention.Instance;
+
             List<Type> actionTypes = [
                 typeof(BuyDevelopmentCardAction),
                 typeof(CityAction),
@@ -43,18 +48,25 @@ namespace Common.Serialization
                 actionTypeMapping[actionType.Name] = actionType;
             }
 
+            ActionTypeDiscriminator actionTypeDiscriminator = new ActionTypeDiscriminator(NamingConvention);
+
             Deserializer = new DeserializerBuilder()
+                    .WithNamingConvention(NamingConvention)
                     .WithTypeConverter(new AdjacencyMatrix.Converter())
                     .WithTypeConverter(new CardSet<ResourceCardType>.Converter())
                     .WithTypeConverter(new CardSet<DevelopmentCardType>.Converter())
-                    .WithTypeDiscriminatingNodeDeserializer(options =>
+                    /*.WithTypeDiscriminatingNodeDeserializer(options =>
                     {
                         options.AddKeyValueTypeDiscriminator<Action>("ActionType", actionTypeMapping);
-                    })
+                    })*/
+                    .WithNodeDeserializer(
+                        inner => new AbstractNodeNodeTypeResolver(inner, actionTypeDiscriminator),
+                        s => s.InsteadOf<ObjectNodeDeserializer>())
                     .EnablePrivateConstructors()
                     .Build();
 
             Serializer = new SerializerBuilder()
+                    .WithNamingConvention(NamingConvention)
                     .WithTypeConverter(new AdjacencyMatrix.Converter())
                     .WithTypeConverter(new CardSet<ResourceCardType>.Converter())
                     .WithTypeConverter(new CardSet<DevelopmentCardType>.Converter())

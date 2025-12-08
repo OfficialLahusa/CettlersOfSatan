@@ -9,7 +9,13 @@ namespace Common.Actions
 {
     public class MonopolyAction : Action, IReplayAction, IActionProvider
     {
-        public record MonopolyActionHistory(ReadOnlyCollection<(int, uint)> TransferredCards);
+        public record MonopolyActionHistory(ReadOnlyCollection<(int, uint)> TransferredCards)
+        {
+            /// <summary>
+            /// Parameterless constructor for deserialization
+            /// </summary>
+            private MonopolyActionHistory() : this(TransferredCards: null!) { }
+        }
 
         public MonopolyActionHistory? History { get; private set; }
 
@@ -20,6 +26,13 @@ namespace Common.Actions
         {
             ChosenType = chosenType;
         }
+
+        /// <summary>
+        /// Parameterless constructor for deserialization
+        /// </summary>
+        private MonopolyAction()
+            : base(-1)
+        { }
 
         public override void Apply(GameState state)
         {

@@ -12,6 +12,13 @@ namespace Common.Actions
             : base(playerIdx)
         { }
 
+        /// <summary>
+        /// Parameterless constructor for deserialization
+        /// </summary>
+        private RoadBuildingAction()
+            : base(-1)
+        { }
+
         public override void Apply(GameState state)
         {
             base.Apply(state);

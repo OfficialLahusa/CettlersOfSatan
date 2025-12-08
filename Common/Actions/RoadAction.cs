@@ -10,7 +10,13 @@ namespace Common.Actions
 {
     public class RoadAction : Action, IReplayAction, IActionProvider
     {
-        public record RoadActionHistory(int PrevLongestRoadHolder, bool WasFree);
+        public record RoadActionHistory(int PrevLongestRoadHolder, bool WasFree)
+        {
+            /// <summary>
+            /// Parameterless constructor for deserialization
+            /// </summary>
+            private RoadActionHistory() : this(-1, false) { }
+        }
 
         public RoadActionHistory? History { get; private set; }
 
@@ -21,6 +27,13 @@ namespace Common.Actions
         {
             EdgeIndex = edgeIndex;
         }
+
+        /// <summary>
+        /// Parameterless constructor for deserialization
+        /// </summary>
+        private RoadAction()
+            : base(-1)
+        { }
 
         public override void Apply(GameState state)
         {

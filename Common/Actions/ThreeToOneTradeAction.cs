@@ -18,6 +18,13 @@ namespace Common.Actions
             OutputType = outputType;
         }
 
+        /// <summary>
+        /// Parameterless constructor for deserialization
+        /// </summary>
+        private ThreeToOneTradeAction()
+            : base(-1)
+        { }
+
         public override void Apply(GameState state)
         {
             base.Apply(state);

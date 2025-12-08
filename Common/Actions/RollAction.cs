@@ -10,7 +10,13 @@ namespace Common.Actions
 {
     public class RollAction : Action, IReplayAction, IActionProvider
     {
-        public record RollActionHistory(RollResult PrevRollResult, bool TriggeredRobber, uint[,]? AwardedYields = null, uint RobbedYields = 0, uint CappedYields = 0);
+        public record RollActionHistory(RollResult PrevRollResult, bool TriggeredRobber, uint[,]? AwardedYields = null, uint RobbedYields = 0, uint CappedYields = 0)
+        {
+            /// <summary>
+            /// Parameterless constructor for deserialization
+            /// </summary>
+            private RollActionHistory() : this(new(), false) { }
+        }
 
         public RollActionHistory? History { get; private set; }
 
@@ -24,6 +30,13 @@ namespace Common.Actions
         {
             RollResult = rollResult ?? RollResult.GetRandom();
         }
+
+        /// <summary>
+        /// Parameterless constructor for deserialization
+        /// </summary>
+        private RollAction()
+            : base(-1)
+        { }
 
         public override void Apply(GameState state)
         {

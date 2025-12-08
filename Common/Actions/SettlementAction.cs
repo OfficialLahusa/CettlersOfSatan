@@ -9,7 +9,13 @@ namespace Common.Actions
 {
     public class SettlementAction : Action, IReplayAction, IActionProvider
     {
-        public record SettlementActionHistory(int PrevLongestRoadHolder);
+        public record SettlementActionHistory(int PrevLongestRoadHolder)
+        {
+            /// <summary>
+            /// Parameterless constructor for deserialization
+            /// </summary>
+            private SettlementActionHistory() : this(-1) { }
+        }
 
         public SettlementActionHistory? History {  get; private set; }
 
@@ -20,6 +26,13 @@ namespace Common.Actions
         {
             IntersectionIndex = intersectionIndex;
         }
+
+        /// <summary>
+        /// Parameterless constructor for deserialization
+        /// </summary>
+        private SettlementAction()
+            : base(-1)
+        { }
 
         public override void Apply(GameState state)
         {

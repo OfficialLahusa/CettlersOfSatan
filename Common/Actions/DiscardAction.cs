@@ -19,6 +19,13 @@ namespace Common.Actions
             SelectedCards = selectedCards;
         }
 
+        /// <summary>
+        /// Parameterless constructor for deserialization
+        /// </summary>
+        private DiscardAction()
+            : base(-1)
+        { }
+
         public override void Apply(GameState state)
         {
             base.Apply(state);
