@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using YamlDotNet.Serialization;
 
 namespace Common.Actions
 {
@@ -10,6 +11,9 @@ namespace Common.Actions
     {
         // Index of the player performing the action
         public sbyte PlayerIndex { get; init; }
+
+        // For serialization
+        public string ActionType { get => GetType().Name; }
 
         public Action(sbyte playerIndex)
         {

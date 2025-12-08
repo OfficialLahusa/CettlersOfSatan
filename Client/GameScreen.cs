@@ -2,6 +2,7 @@
 using Common;
 using Common.Actions;
 using Common.Agents;
+using Common.Serialization;
 using ImGuiNET;
 using SFML.Audio;
 using SFML.Graphics;
@@ -61,6 +62,10 @@ namespace Client
         private bool _muteQuickPlayouts = false;
         private Sound _placeSound;
         private Sound _diceRollSound;
+
+        // UI Modals
+        private readonly string saveFileModalId = "save-file";
+        private readonly string loadFileModalId = "load-file";
 
         // Player Agents
         private Agent[] _agents;
@@ -220,6 +225,50 @@ namespace Client
 
             ImGui.Separator();
 
+            if (ImGui.TreeNode("Save Files"))
+            {
+                if (ImGui.Button("Save Game"))
+                {
+                    ImGui.OpenPopup(saveFileModalId);
+                }
+
+                ImGui.SameLine();
+
+                if (ImGui.Button("Load Game"))
+                {
+                    ImGui.OpenPopup(loadFileModalId);
+                }
+
+                bool isSaveModalOpen = true;
+                if (ImGui.BeginPopupModal(saveFileModalId, ref isSaveModalOpen, ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize))
+                {
+                    string defaultFileName = string.Format("gamestate_dump_{0}.yaml", DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"));
+                    var picker = FilePicker.GetFilePicker(this, Path.Combine(Environment.CurrentDirectory, ""), true, ".yaml", false, defaultFileName);
+                    if (picker.Draw())
+                    {
+                        Console.WriteLine(picker.GetSaveFilePath());
+                        WriteSaveFile(picker.GetSaveFilePath());
+                        FilePicker.RemoveFilePicker(this);
+                    }
+                    ImGui.EndPopup();
+                }
+
+                bool isLoadModalOpen = true;
+                if (ImGui.BeginPopupModal(loadFileModalId, ref isLoadModalOpen, ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize))
+                {
+                    var picker = FilePicker.GetFilePicker(this, Path.Combine(Environment.CurrentDirectory, ""), false, ".yaml");
+                    if (picker.Draw())
+                    {
+                        Console.WriteLine(picker.SelectedFile);
+                        ReadSaveFile(picker.SelectedFile);
+                        FilePicker.RemoveFilePicker(this);
+                    }
+                    ImGui.EndPopup();
+                }
+
+                ImGui.TreePop();
+            }
+
             if (ImGui.TreeNode("Debug"))
             {
                 ImGui.Text($"State Hash: {_state.GetHashCode().ToString("X")}");
@@ -276,7 +325,6 @@ namespace Client
             }
 
             ImGui.End();
-
 
             // Legal action window
             ImGui.Begin("Scoreboard", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.AlwaysVerticalScrollbar);
@@ -369,6 +417,10 @@ namespace Client
 
         public void HandleInput(Time deltaTime)
         {
+            // Block if ImGui is capturing input
+            if (ImGui.GetIO().WantCaptureKeyboard)
+                return;
+
             Vector2f moveDelta = new Vector2f();
             if (Keyboard.IsKeyPressed(Keyboard.Key.W))
             {
@@ -445,31 +497,19 @@ namespace Client
             // YAML Serialization Test
             if (Keyboard.IsKeyPressed(Keyboard.Key.Subtract))
             {
-                var serializer = new YamlDotNet.Serialization.SerializerBuilder()
-                    .WithTypeConverter(new AdjacencyMatrix.Converter())
-                    .WithTypeConverter(new CardSet<ResourceCardType>.Converter())
-                    .WithTypeConverter(new CardSet<DevelopmentCardType>.Converter())
-                    .EnablePrivateConstructors()
-                    .Build();
-                var deserializer = new YamlDotNet.Serialization.DeserializerBuilder()
-                    .WithTypeConverter(new AdjacencyMatrix.Converter())
-                    .WithTypeConverter(new CardSet<ResourceCardType>.Converter())
-                    .WithTypeConverter(new CardSet<DevelopmentCardType>.Converter())
-                    .EnablePrivateConstructors()
-                    .Build();
-                string yaml = serializer.Serialize(_state);
+                string yaml = SaveFileSerializer.Serializer.Serialize(_state);
 
                 // Write YAML to file for inspection
                 string filename = string.Format("gamestate_dump_{0}.yaml", DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"));
                 File.WriteAllText(filename, yaml);
 
-                GameState? loadedState = deserializer.Deserialize<GameState>(yaml);
+                GameState? loadedState = SaveFileSerializer.Deserializer.Deserialize<GameState>(yaml);
                 if (loadedState == null || !_state.Equals(loadedState))
                 {
                     Console.WriteLine("YAML Serialization Test Failed!");
 
                     string diffFilename = string.Format("gamestate_diff_{0}.txt", DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"));
-                    string diffYaml = serializer.Serialize(loadedState);
+                    string diffYaml = SaveFileSerializer.Serializer.Serialize(loadedState);
                     File.WriteAllText(diffFilename, diffYaml);
                 }
                 else
@@ -874,6 +914,9 @@ namespace Client
 
         private void Window_MouseWheelScrolled(object? sender, MouseWheelScrollEventArgs e)
         {
+            if (ImGui.GetIO().WantCaptureMouse)
+                return;
+
             _mapView.Zoom(1 / _viewZoom);
             _viewZoomBase = (float)Math.Max(0.001, _viewZoomBase - e.Delta);
             _viewZoom = (float)Math.Pow(1.3, _viewZoomBase) / 1.3f;
@@ -1069,6 +1112,33 @@ namespace Client
             {
                 _placeSound.Play();
             }
+        }
+
+        public void ReadSaveFile(string filepath)
+        {
+            string saveData = File.ReadAllText(filepath);
+            SaveFile saveFile = SaveFileSerializer.Deserializer.Deserialize<SaveFile>(saveData);
+            _state = saveFile.GameState;
+            _playedActions = new(saveFile.PlayedActions);
+            _undoHistory = new(saveFile.UndoHistory);
+
+            // Update visuals
+            _renderer.Board = _state.Board;
+            _renderer.Update();
+
+            _playerIndex = _state.Turn.PlayerIndex;
+            _cardWidget.SetPlayerState(_state.Players[_playerIndex]);
+
+            _diceWidget.Active = _state.Turn.MustRoll;
+            _diceWidget.RollResult = _state.Turn.LastRoll;
+            _diceWidget.UpdateSprites();
+        }
+
+        public void WriteSaveFile(string filepath)
+        {
+            SaveFile saveFile = new SaveFile(_state, _playedActions.ToList(), _undoHistory.ToList());
+            string saveData = SaveFileSerializer.Serializer.Serialize(saveFile);
+            File.WriteAllText(filepath, saveData);
         }
     }
 }
