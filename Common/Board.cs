@@ -106,7 +106,12 @@ namespace Common
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Map, Intersections, Edges, Ports, Robber);
+            return HashCode.Combine(
+                Map,
+                Intersections.Aggregate(0, (acc, v) => HashCode.Combine(acc, v.GetHashCode())),
+                Edges.Aggregate(0, (acc, v) => HashCode.Combine(acc, v.GetHashCode())),
+                Ports.Aggregate(0, (acc, v) => HashCode.Combine(acc, v.GetHashCode())),
+                Robber);
         }
     }
 }
