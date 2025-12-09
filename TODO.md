@@ -1,3 +1,4 @@
+- Replay Actions sind nicht consistent (Rückwärts: BuyDevCard wegen leeren NewDevCards, Vorwärts: FirstInitialRoad fehlendes Gebäude)
 - Observation Filter (Agents nur die für sie sichtbaren Informationen geben)
 	- Von Robber gestohlene Karten
 	- Gezogene Development Cards
@@ -42,9 +43,7 @@
 - PlayerAgent
 	- Besseres Interface für Bank/Port Trades implementieren (Dropdown für Zielressource)
 - Serialization
-	- Maps, Lobby/Agent-Configs und Replays in/aus Dateien
 	- Packets über Netzwerk
-	- YAML?
 - Ranking System
     - https://github.com/EbTech/Elo-MMR
     - https://github.com/moserware/Skills/blob/master/Skills/Team.cs
