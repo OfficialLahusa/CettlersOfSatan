@@ -1,4 +1,6 @@
 - Replay Actions sind nicht consistent (Rückwärts: BuyDevCard wegen leeren NewDevCards, Vorwärts: FirstInitialRoad fehlendes Gebäude)
+    - Undo von Actions setzt PortPrivileges von Spieler mit Index 1 nicht richtig
+    - Es läuft wahrscheinlich etwas in AdjacencyMatrix.GetIntersections falsch
 - Observation Filter (Agents nur die für sie sichtbaren Informationen geben)
 	- Von Robber gestohlene Karten
 	- Gezogene Development Cards
