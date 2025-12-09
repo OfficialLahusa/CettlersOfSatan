@@ -40,8 +40,6 @@ namespace Common.Serialization
             var supportedTypes = typeDiscriminators.Where(t => t.BaseType == expectedType);
             if (!supportedTypes.Any())
             {
-                Console.WriteLine(expectedType.FullName);
-
                 // no? then not a node/type we want to deal with
                 return original.Deserialize(reader, expectedType, nestedObjectDeserializer, out value, rootDeserializer);
             }
