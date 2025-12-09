@@ -23,6 +23,7 @@ namespace Common
                 }
             }
         }
+
         public readonly byte Second
         {
             get { return _second; }
@@ -39,6 +40,11 @@ namespace Common
         public readonly byte Total
         {
             get { return (byte)(First + Second); }
+        }
+
+        public RollResult()
+        {
+
         }
 
         public static RollResult GetRandom()
@@ -60,6 +66,16 @@ namespace Common
         public override int GetHashCode()
         {
             return HashCode.Combine(_first, _second);
+        }
+
+        public static bool operator ==(RollResult left, RollResult right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(RollResult left, RollResult right)
+        {
+            return !(left == right);
         }
     }
 }

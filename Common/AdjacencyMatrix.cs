@@ -153,7 +153,9 @@ namespace Common
         /// </summary>
         private AdjacencyMatrix()
         {
-
+            // -- Cache --
+            _edgeToIntersection = new List<(Intersection top, Intersection bottom)?>();
+            _intersectionToEdge = new List<HashSet<Edge>?>();
         }
 
         public void Clear()

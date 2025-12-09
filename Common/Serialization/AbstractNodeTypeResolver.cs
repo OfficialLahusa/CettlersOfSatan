@@ -26,7 +26,7 @@ namespace Common.Serialization
             typeDiscriminators = discriminators;
         }
 
-        public bool Deserialize(IParser reader, Type expectedType, Func<IParser, Type, object?> nestedObjectDeserializer, out object value, ObjectDeserializer rootDeserializer)
+        public bool Deserialize(IParser reader, Type expectedType, Func<IParser, Type, object?> nestedObjectDeserializer, out object? value, ObjectDeserializer rootDeserializer)
         {
             // we're essentially "in front of" the normal ObjectNodeDeserializer.
             // We could let it check if the current event is a mapping, but we also need to know.

@@ -9,7 +9,7 @@ namespace Common.Actions
 {
     public class MonopolyAction : Action, IReplayAction, IActionProvider
     {
-        public record MonopolyActionHistory(ReadOnlyCollection<(int, uint)> TransferredCards)
+        public record MonopolyActionHistory(List<(int, uint)> TransferredCards)
         {
             /// <summary>
             /// Parameterless constructor for deserialization
@@ -57,7 +57,7 @@ namespace Common.Actions
                 transferredCards.Add((otherPlayerIdx, movedCount));
             }
 
-            History = new MonopolyActionHistory(transferredCards.OrderByDescending(x => (x.Item2, -x.Item1)).ToList().AsReadOnly());
+            History = new MonopolyActionHistory(transferredCards.OrderByDescending(x => (x.Item2, -x.Item1)).ToList());
 
             // Update turn state
             state.Turn.HasPlayedDevelopmentCard = true;

@@ -17,9 +17,9 @@ namespace Common.Serialization
         private readonly string targetKey;
         private readonly Dictionary<string, Type> typeLookup;
 
-        public ActionTypeDiscriminator(INamingConvention namingConvention)
+        public ActionTypeDiscriminator()
         {
-            targetKey = namingConvention.Apply(TargetKey);
+            targetKey = TargetKey;
 
             List<Type> actionTypes = [
                 typeof(BuyDevelopmentCardAction),

@@ -1,17 +1,75 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
+using YamlDotNet.Serialization;
 
 namespace Common.Actions
 {
     public class RollAction : Action, IReplayAction, IActionProvider
     {
-        public record RollActionHistory(RollResult PrevRollResult, bool TriggeredRobber, uint[,]? AwardedYields = null, uint RobbedYields = 0, uint CappedYields = 0)
+        public record RollActionHistory
         {
+            public RollResult PrevRollResult { get; init; }
+            public bool TriggeredRobber { get; init; }
+            [YamlIgnore]
+            public uint[,]? AwardedYields { get; set; } = null;
+
+            // YamlDotNet cannot serialize multidimensional arrays, so expose a
+            // jagged-array view which is YAML-serializable and converts to/from the
+            // internal uint[,] representation.
+            [YamlMember(Alias = "AwardedYields")]
+            public uint[][]? AwardedYieldsSerialized
+            {
+                get
+                {
+                    if (AwardedYields == null) return null;
+
+                    int rows = AwardedYields.GetLength(0);
+                    int cols = AwardedYields.GetLength(1);
+                    uint[][] result = new uint[rows][];
+                    for (int i = 0; i < rows; i++)  
+                    {
+                        result[i] = new uint[cols];
+                        for (int j = 0; j < cols; j++) result[i][j] = AwardedYields[i, j];
+                    }
+
+                    return result;
+                }
+                set
+                {
+                    if (value == null)
+                    {
+                        AwardedYields = null;
+                        return;
+                    }
+
+                    int rows = value.Length;
+                    int cols = rows > 0 ? value[0].Length : 0;
+                    uint[,] arr = new uint[rows, cols];
+
+                    for (int i = 0; i < rows; i++)
+                    {
+                        if (value[i].Length != cols) throw new InvalidOperationException("Inconsistent row lengths in AwardedYieldsSerialized");
+                        for (int j = 0; j < cols; j++) arr[i, j] = value[i][j];
+                    }
+
+                    AwardedYields = arr;
+                }
+            }
+            public uint RobbedYields { get; init; } = 0;
+            public uint CappedYields { get; init; } = 0;
+
+            public RollActionHistory(RollResult PrevRollResult, bool TriggeredRobber, uint[,]? AwardedYields = null, uint RobbedYields = 0, uint CappedYields = 0)
+            {
+                this.PrevRollResult = PrevRollResult;
+                this.TriggeredRobber = TriggeredRobber;
+                this.AwardedYields = AwardedYields;
+                this.RobbedYields = RobbedYields;
+                this.CappedYields = CappedYields;
+            }
+
             /// <summary>
             /// Parameterless constructor for deserialization
             /// </summary>

@@ -1136,7 +1136,7 @@ namespace Client
 
         public void WriteSaveFile(string filepath)
         {
-            SaveFile saveFile = new SaveFile(_state, _playedActions.ToList(), _undoHistory.ToList());
+            SaveFile saveFile = new SaveFile(_state, _playedActions.Reverse().ToList(), _undoHistory.Reverse().ToList());
             string saveData = SaveFileSerializer.Serializer.Serialize(saveFile);
             File.WriteAllText(filepath, saveData);
         }

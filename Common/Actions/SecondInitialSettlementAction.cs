@@ -10,7 +10,7 @@ namespace Common.Actions
 {
     public class SecondInitialSettlementAction : Action, IReplayAction, IActionProvider
     {
-        public record SecondInitialSettlementActionHistory(ReadOnlyCollection<ResourceCardType> InitialYields)
+        public record SecondInitialSettlementActionHistory(List<ResourceCardType> InitialYields)
         {
             /// <summary>
             /// Parameterless constructor for deserialization
@@ -62,7 +62,7 @@ namespace Common.Actions
                 }
             }
 
-            History = new SecondInitialSettlementActionHistory(awardedResources.AsReadOnly());
+            History = new SecondInitialSettlementActionHistory(awardedResources);
 
             // Award VP
             state.Players[PlayerIndex].VictoryPoints.SettlementPoints++;

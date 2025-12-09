@@ -19,8 +19,6 @@ namespace Common.Serialization
         public static readonly ISerializer Serializer;
         static SaveFileSerializer()
         {
-            var NamingConvention = CamelCaseNamingConvention.Instance;
-
             List<Type> actionTypes = [
                 typeof(BuyDevelopmentCardAction),
                 typeof(CityAction),
@@ -48,10 +46,9 @@ namespace Common.Serialization
                 actionTypeMapping[actionType.Name] = actionType;
             }
 
-            ActionTypeDiscriminator actionTypeDiscriminator = new ActionTypeDiscriminator(NamingConvention);
+            ActionTypeDiscriminator actionTypeDiscriminator = new ActionTypeDiscriminator();
 
             Deserializer = new DeserializerBuilder()
-                    .WithNamingConvention(NamingConvention)
                     .WithTypeConverter(new AdjacencyMatrix.Converter())
                     .WithTypeConverter(new CardSet<ResourceCardType>.Converter())
                     .WithTypeConverter(new CardSet<DevelopmentCardType>.Converter())
@@ -62,11 +59,11 @@ namespace Common.Serialization
                     .WithNodeDeserializer(
                         inner => new AbstractNodeNodeTypeResolver(inner, actionTypeDiscriminator),
                         s => s.InsteadOf<ObjectNodeDeserializer>())
+                    .IgnoreUnmatchedProperties()
                     .EnablePrivateConstructors()
                     .Build();
 
             Serializer = new SerializerBuilder()
-                    .WithNamingConvention(NamingConvention)
                     .WithTypeConverter(new AdjacencyMatrix.Converter())
                     .WithTypeConverter(new CardSet<ResourceCardType>.Converter())
                     .WithTypeConverter(new CardSet<DevelopmentCardType>.Converter())

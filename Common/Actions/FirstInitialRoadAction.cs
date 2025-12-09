@@ -105,6 +105,7 @@ namespace Common.Actions
             bool hasTopBuilding = top.Owner == PlayerIndex && top.Building != Intersection.BuildingType.None;
             bool hasBottomBuilding = bottom.Owner == PlayerIndex && bottom.Building != Intersection.BuildingType.None;
 
+            // TODO: Irgendwo hier ist was off
             bool hasDirectAdjBuilding = hasTopBuilding || hasBottomBuilding;
 
             return spaceFree && oneSettlementPlaced && noRoadPlaced && hasDirectAdjBuilding;
