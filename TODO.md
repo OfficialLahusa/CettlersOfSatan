@@ -1,4 +1,5 @@
 - Widget für Kartenanzahlen der anderen Spieler (Typ unbekannt)
+- RoadAction.GetActionsForState optimieren (derzeit sehr ineffizient)
 - Observation Filter (Agents nur die für sie sichtbaren Informationen geben)
 	- Von Robber gestohlene Karten
 	- Gezogene Development Cards
