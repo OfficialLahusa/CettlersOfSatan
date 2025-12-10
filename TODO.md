@@ -8,6 +8,8 @@
 	- Playstate (Roads, Settlements, Cities) als Byte-Arrays mit gleichen Indizes abbilden
 - Action für variable Domestic Trades
 - Datensatz für einfaches State Value Network generieren
+- State Value Network in PyTorch bauen
+    - Dann als ONNX exportieren und in C# ausführen für gute Performance
 - Testen, ob alle Actions genutzt werden
 - Testen, ob Bank immer Gesamtsumme behält
 - RandomAgent
