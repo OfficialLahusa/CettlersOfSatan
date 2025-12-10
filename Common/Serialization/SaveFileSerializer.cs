@@ -15,8 +15,8 @@ namespace Common.Serialization
 {
     public class SaveFileSerializer
     {
-        public static readonly IDeserializer Deserializer;
-        public static readonly ISerializer Serializer;
+        protected static readonly IDeserializer Deserializer;
+        protected static readonly ISerializer Serializer;
         static SaveFileSerializer()
         {
             List<Type> actionTypes = [
@@ -68,7 +68,39 @@ namespace Common.Serialization
                     .WithTypeConverter(new CardSet<ResourceCardType>.Converter())
                     .WithTypeConverter(new CardSet<DevelopmentCardType>.Converter())
                     .EnablePrivateConstructors()
+                    .DisableAliases()
                     .Build();
+        }
+
+        public static string Serialize(SaveFile saveFile)
+        {
+            return Serializer.Serialize(saveFile);
+        }
+
+        public static SaveFile Deserialize(string yaml)
+        {
+            SaveFile save = Deserializer.Deserialize<SaveFile>(yaml);
+
+            // Reattach AdjacencyMatrix to board after deserialization
+            save.GameState.Board.Adjacency.Attach(save.GameState.Board);
+
+            return save;
+        }
+
+        public static string Serialize<T>(T obj)
+        {
+            if (typeof(T) == typeof(SaveFile))
+                throw new InvalidOperationException("Use Serialize(SaveFile) method for SaveFile serialization.");
+
+            return Serializer.Serialize(obj);
+        }
+
+        public static T Deserialize<T>(string yaml)
+        {
+            if (typeof(T) == typeof(SaveFile))
+                throw new InvalidOperationException("Use Deserialize(string) method for SaveFile deserialization.");
+
+            return Deserializer.Deserialize<T>(yaml);
         }
     }
 }

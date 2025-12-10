@@ -92,6 +92,22 @@ namespace Common
         {
             return HashCode.Combine(VictoryPoints, PlayedKnights, LongestRoadLength, ResourceCards, DevelopmentCards, NewDevelopmentCards, BuildingStock, PortPrivileges);
         }
+
+        public int GetVerboseHashCode()
+        {
+            Console.WriteLine($"VictoryPoints: {VictoryPoints.GetHashCode()}");
+            Console.WriteLine($"PlayedKnights: {PlayedKnights.GetHashCode()}");
+            Console.WriteLine($"LongestRoadLength: {LongestRoadLength.GetHashCode()}");
+            Console.WriteLine($"ResourceCards: {ResourceCards.GetHashCode()}");
+            Console.WriteLine($"DevelopmentCards: {DevelopmentCards.GetHashCode()}");
+            Console.WriteLine($"NewDevelopmentCards: {NewDevelopmentCards.GetHashCode()}");
+            Console.WriteLine($"BuildingStock: {BuildingStock.GetHashCode()}");
+            Console.WriteLine($"PortPrivileges: {PortPrivileges.GetHashCode()}");
+
+            Console.WriteLine("Total HashCode: " + GetHashCode());
+
+            return GetHashCode();
+        }
     }
 
 

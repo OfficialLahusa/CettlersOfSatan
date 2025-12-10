@@ -266,6 +266,11 @@ namespace Client
                     ImGui.EndPopup();
                 }
 
+                if (ImGui.Button("Quick Reload"))
+                {
+                    SerializeLoop();
+                }
+
                 ImGui.TreePop();
             }
 
@@ -497,24 +502,33 @@ namespace Client
             // YAML Serialization Test
             if (Keyboard.IsKeyPressed(Keyboard.Key.Subtract))
             {
-                string yaml = SaveFileSerializer.Serializer.Serialize(_state);
+                string yaml = SaveFileSerializer.Serialize(_state);
 
                 // Write YAML to file for inspection
                 string filename = string.Format("gamestate_dump_{0}.yaml", DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"));
                 File.WriteAllText(filename, yaml);
 
-                GameState? loadedState = SaveFileSerializer.Deserializer.Deserialize<GameState>(yaml);
+                GameState? loadedState = SaveFileSerializer.Deserialize<GameState>(yaml);
                 if (loadedState == null || !_state.Equals(loadedState))
                 {
                     Console.WriteLine("YAML Serialization Test Failed!");
 
                     string diffFilename = string.Format("gamestate_diff_{0}.txt", DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"));
-                    string diffYaml = SaveFileSerializer.Serializer.Serialize(loadedState);
+                    string diffYaml = SaveFileSerializer.Serialize(loadedState);
                     File.WriteAllText(diffFilename, diffYaml);
                 }
                 else
                 {
                     Console.WriteLine("YAML Serialization Test Succeeded!");
+                }
+            }
+            if (Keyboard.IsKeyPressed(Keyboard.Key.V))
+            {
+                for (int i = 0; i < _state.Players.Length; i++)
+                {
+                    Console.WriteLine($"Player {i}:");
+                    _state.Players[i].GetVerboseHashCode();
+                    Console.WriteLine("======================");
                 }
             }
         }
@@ -747,6 +761,8 @@ namespace Client
             // Get most recent action
             Action playedAction = _playedActions.Pop();
 
+            Console.WriteLine("Undoing Action: " + playedAction.GetType().Name);
+
             // Revert action
             playedAction.Revert(_state);
 
@@ -772,6 +788,16 @@ namespace Client
             _diceWidget.Active = _state.Turn.MustRoll;
             _diceWidget.RollResult = _state.Turn.LastRoll;
             _diceWidget.UpdateSprites();
+
+            foreach (PlayerState playerState in _state.Players)
+            {
+                //Console.WriteLine(playerState.GetHashCode());
+                Console.WriteLine(playerState.PortPrivileges.ToString());
+            }
+
+            //_state.GetVerboseHashCode();
+
+            Console.WriteLine("======================");
         }
 
         private void RedoAction(bool playSound = true)
@@ -1117,7 +1143,7 @@ namespace Client
         public void ReadSaveFile(string filepath)
         {
             string saveData = File.ReadAllText(filepath);
-            SaveFile saveFile = SaveFileSerializer.Deserializer.Deserialize<SaveFile>(saveData);
+            SaveFile saveFile = SaveFileSerializer.Deserialize(saveData);
             _state = saveFile.GameState;
             _playedActions = new(saveFile.PlayedActions);
             _undoHistory = new(saveFile.UndoHistory);
@@ -1137,8 +1163,29 @@ namespace Client
         public void WriteSaveFile(string filepath)
         {
             SaveFile saveFile = new SaveFile(_state, _playedActions.Reverse().ToList(), _undoHistory.Reverse().ToList());
-            string saveData = SaveFileSerializer.Serializer.Serialize(saveFile);
+            string saveData = SaveFileSerializer.Serialize(saveFile);
             File.WriteAllText(filepath, saveData);
+        }
+
+        public void SerializeLoop()
+        {
+            SaveFile saveFile = new SaveFile(_state, _playedActions.Reverse().ToList(), _undoHistory.Reverse().ToList());
+            string saveData = SaveFileSerializer.Serialize(saveFile);
+            saveFile = SaveFileSerializer.Deserialize(saveData);
+            _state = saveFile.GameState;
+            _playedActions = new(saveFile.PlayedActions);
+            _undoHistory = new(saveFile.UndoHistory);
+
+            // Update visuals
+            _renderer.Board = _state.Board;
+            _renderer.Update();
+
+            _playerIndex = _state.Turn.PlayerIndex;
+            _cardWidget.SetPlayerState(_state.Players[_playerIndex]);
+
+            _diceWidget.Active = _state.Turn.MustRoll;
+            _diceWidget.RollResult = _state.Turn.LastRoll;
+            _diceWidget.UpdateSprites();
         }
     }
 }

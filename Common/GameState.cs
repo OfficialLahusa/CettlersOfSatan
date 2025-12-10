@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using YamlDotNet.Serialization;
@@ -286,6 +287,34 @@ namespace Common
             hash.Add(Board);
             hash.Add(ResourceBank);
             hash.Add(DevelopmentBank);
+
+            return hash.ToHashCode();
+        }
+
+        public int GetVerboseHashCode()
+        {
+            HashCode hash = new HashCode();
+
+            foreach (PlayerState player in Players)
+            {
+                hash.Add(player);
+                Console.WriteLine("Player: " + player.GetHashCode());
+            }
+
+            hash.Add(Settings);
+            Console.WriteLine("Settings: " + Settings.GetHashCode());
+            hash.Add(Turn);
+            Console.WriteLine("Turn: " + Turn.GetHashCode());
+            hash.Add(Board);
+            Console.WriteLine("Board: " + Board.GetHashCode());
+            hash.Add(ResourceBank);
+            Console.WriteLine("ResourceBank: " + ResourceBank.GetHashCode());
+            hash.Add(DevelopmentBank);
+            Console.WriteLine("DevelopmentBank: " + DevelopmentBank.GetHashCode());
+
+            Console.WriteLine("Total: " + hash.ToHashCode());
+
+            Console.WriteLine("===============================");
 
             return hash.ToHashCode();
         }
