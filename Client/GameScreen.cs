@@ -72,6 +72,8 @@ namespace Client
         private Agent[] _agents;
         private readonly string[] _agentTypes = ["RandomAgent", "SimpleAgent"];
         private int[] _selectedAgentTypes;
+        private int _randomPlayoutCount = 1000;
+        private int _randomPlayoutThreadCount = Environment.ProcessorCount;
 
         static GameScreen()
         {
@@ -312,9 +314,14 @@ namespace Client
                     }
                 }
 
+                ImGui.Separator();
+
+                ImGui.InputInt("Playouts", ref _randomPlayoutCount);
+                ImGui.InputInt("Threads", ref _randomPlayoutThreadCount);
+
                 if (ImGui.Button("Simulate Random Playouts"))
                 {
-                    Task.Run(() => SimulateRandomRollouts(1000, Environment.ProcessorCount));
+                    Task.Run(() => SimulateRandomRollouts(_randomPlayoutCount, _randomPlayoutThreadCount));
                 }
 
                 ImGui.TreePop();
