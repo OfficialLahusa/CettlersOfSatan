@@ -8,6 +8,7 @@ using SFML.Audio;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
+using System.Collections.Concurrent;
 using Action = Common.Actions.Action;
 using Edge = Common.Edge;
 
@@ -309,6 +310,11 @@ namespace Client
                             _ => throw new InvalidOperationException()
                         };
                     }
+                }
+
+                if (ImGui.Button("Simulate Random Playouts"))
+                {
+                    Task.Run(() => SimulateRandomRollouts(1000, Environment.ProcessorCount));
                 }
 
                 ImGui.TreePop();
@@ -866,6 +872,82 @@ namespace Client
                 }
 
                 UndoAction();
+            }
+        }
+
+        private async Task SimulateRandomRollouts(int playoutCount, int threadCount)
+        {
+            Console.WriteLine($"Simulating {playoutCount:n0} random playouts...");
+
+            Clock playoutClock = new Clock();
+
+            ConcurrentQueue<int> runs = new ConcurrentQueue<int>(Enumerable.Range(0, playoutCount));
+            CountdownEvent countdown = new CountdownEvent(playoutCount);
+
+            object lockObj = new object();
+            List<int> timesWon = new List<int>();
+            for (int i = 0; i < PLAYER_COUNT; i++)
+                timesWon.Add(0);
+
+            System.Action doPlayout = () =>
+            {
+                while (runs.TryDequeue(out int runIdx))
+                {
+                    GameState simState = new GameState(_state);
+                    while (!simState.HasEnded)
+                    {
+                        // Find first player that is allowed to act on state
+                        sbyte? actingPlayerIdx = null;
+                        for (sbyte playerIdx = 0; playerIdx < PLAYER_COUNT; playerIdx++)
+                        {
+                            if (simState.CanPlayerAct(playerIdx))
+                            {
+                                actingPlayerIdx = playerIdx;
+                                break;
+                            }
+                        }
+
+                        if (!actingPlayerIdx.HasValue) throw new InvalidOperationException();
+
+                        // Pick action
+                        Action playedAction = _agents[actingPlayerIdx.Value].Act(simState);
+
+                        // Apply action to state
+                        playedAction.Apply(simState);
+                    }
+
+                    // Since players can only win on their own turn, the winner is the current turn player
+                    int winnerIdx = simState.Turn.PlayerIndex;
+
+                    // Collect match result thread-safely
+                    lock (lockObj)
+                    {
+                        timesWon[winnerIdx]++;
+                    }
+
+                    countdown.Signal();
+                }
+            };
+
+            Console.WriteLine($"Starting {threadCount} threads...");
+
+            List<Task> tasks = new List<Task>();
+            for (int t = 0; t < threadCount; t++)
+            {
+                tasks.Add(Task.Run(doPlayout));
+            }
+
+            countdown.Wait();
+
+            // Not strictly necessary, but ensures all tasks are complete
+            await Task.WhenAll(tasks);
+
+            float totalSeconds = playoutClock.ElapsedTime.AsSeconds();
+            Console.WriteLine($"All playouts completed in {totalSeconds} seconds ({playoutCount / totalSeconds:n1}/s, {playoutCount / totalSeconds / threadCount:n1}/s per thread).");
+
+            for (int i = 0; i < PLAYER_COUNT; i++)
+            {
+                Console.WriteLine($"Player {i} won {timesWon[i]:n0} times ({(float)timesWon[i] / playoutCount:P2})");
             }
         }
 
