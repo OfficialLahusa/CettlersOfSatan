@@ -522,15 +522,6 @@ namespace Client
                     Console.WriteLine("YAML Serialization Test Succeeded!");
                 }
             }
-            if (Keyboard.IsKeyPressed(Keyboard.Key.V))
-            {
-                for (int i = 0; i < _state.Players.Length; i++)
-                {
-                    Console.WriteLine($"Player {i}:");
-                    _state.Players[i].GetVerboseHashCode();
-                    Console.WriteLine("======================");
-                }
-            }
         }
 
         public void Update(Time deltaTime)
@@ -761,8 +752,6 @@ namespace Client
             // Get most recent action
             Action playedAction = _playedActions.Pop();
 
-            Console.WriteLine("Undoing Action: " + playedAction.GetType().Name);
-
             // Revert action
             playedAction.Revert(_state);
 
@@ -788,16 +777,6 @@ namespace Client
             _diceWidget.Active = _state.Turn.MustRoll;
             _diceWidget.RollResult = _state.Turn.LastRoll;
             _diceWidget.UpdateSprites();
-
-            foreach (PlayerState playerState in _state.Players)
-            {
-                //Console.WriteLine(playerState.GetHashCode());
-                Console.WriteLine(playerState.PortPrivileges.ToString());
-            }
-
-            //_state.GetVerboseHashCode();
-
-            Console.WriteLine("======================");
         }
 
         private void RedoAction(bool playSound = true)

@@ -246,7 +246,6 @@ namespace Common.Actions
             for (int playerIdx = 0; playerIdx < state.Players.Length; playerIdx++)
             {
                 state.Players[playerIdx].PortPrivileges = PortPrivileges.None;
-                Console.WriteLine("Reset port privileges for player " + playerIdx);
             }
 
             // Recalculate for all ports and players
@@ -261,15 +260,11 @@ namespace Common.Actions
                 if (top.Building != Intersection.BuildingType.None)
                 {
                     state.Players[top.Owner].PortPrivileges |= port.Type.GetPortPrivilege();
-
-                    Console.WriteLine($"Granted port privilege {port.Type.GetPortPrivilege()} to player {top.Owner} for port at tile ({port.AnchorTileX}, {port.AnchorTileY})");
                 }
 
                 if (bottom.Building != Intersection.BuildingType.None)
                 {
                     state.Players[bottom.Owner].PortPrivileges |= port.Type.GetPortPrivilege();
-
-                    Console.WriteLine($"Granted port privilege {port.Type.GetPortPrivilege()} to player {bottom.Owner} for port at tile ({port.AnchorTileX}, {port.AnchorTileY})");
                 }
             }
         }
