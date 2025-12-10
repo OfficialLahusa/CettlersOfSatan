@@ -1,6 +1,3 @@
-- Funktion für Monte Carlo Simulation von Siegwahrscheinlichkeiten implementieren
-    - Parameter für Anzahl an Iterationen
-    - Parallele Ausführung mit CountdownEvent: https://learn.microsoft.com/en-us/dotnet/api/system.threading.countdownevent?view=net-9.0
 - Widget für Kartenanzahlen der anderen Spieler (Typ unbekannt)
 - Observation Filter (Agents nur die für sie sichtbaren Informationen geben)
 	- Von Robber gestohlene Karten
