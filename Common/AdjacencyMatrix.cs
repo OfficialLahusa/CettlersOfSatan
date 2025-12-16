@@ -174,6 +174,20 @@ namespace Common
             Edges = board.Edges;
         }
 
+        public void PrecomputeAll()
+        {
+            // Fill all caches by precomputing retrieval results
+            for (int edgeIdx = 0; edgeIdx < Edges.Count; edgeIdx++)
+            {
+                _ = GetIntersections(Edges[edgeIdx]);
+            }
+
+            for (int intersectionIdx = 0; intersectionIdx < Intersections.Count; intersectionIdx++)
+            {
+                _ = GetEdges(Intersections[intersectionIdx]);
+            }
+        }
+
         public void Clear()
         {
             _tileToTile = new AdjIdx[Map.Width * Map.Height][];

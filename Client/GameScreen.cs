@@ -888,6 +888,9 @@ namespace Client
 
             Clock playoutClock = new Clock();
 
+            // Precompute Adjacency Cache
+            _state.Board.Adjacency.PrecomputeAll();
+
             ConcurrentQueue<int> runs = new ConcurrentQueue<int>(Enumerable.Range(0, playoutCount));
             CountdownEvent countdown = new CountdownEvent(playoutCount);
 
