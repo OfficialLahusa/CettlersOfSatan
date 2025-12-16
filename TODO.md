@@ -1,4 +1,5 @@
 - Early Return in Action Validation Checks einbauen, um so früh wie möglich zu failen
+- Branching Factor Histogramm aus Playouts generieren
 - Widget für Kartenanzahlen der anderen Spieler (Typ unbekannt)
 - RoadAction.GetActionsForState optimieren (derzeit sehr ineffizient)
 - Observation Filter (Agents nur die für sie sichtbaren Informationen geben)
