@@ -73,7 +73,7 @@ namespace Client
         private readonly string[] _agentTypes = ["RandomAgent", "SimpleAgent"];
         private int[] _selectedAgentTypes;
         private int _randomPlayoutCount = 1000;
-        private int _randomPlayoutThreadCount = Environment.ProcessorCount;
+        private int _randomPlayoutThreadCount = Environment.ProcessorCount / 2; // Usually optimal, since the playouts are not CPU-bound
 
         static GameScreen()
         {
