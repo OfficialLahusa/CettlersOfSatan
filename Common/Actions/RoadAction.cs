@@ -157,6 +157,7 @@ namespace Common.Actions
 
             bool spaceFree = road.Building == Edge.BuildingType.None;
             bool canAfford = state.Players[PlayerIndex].CanAffordRoad();
+            if (!spaceFree || !canAfford) return false;
 
             // Get the two intersections on the ends of the road
             (Intersection top, Intersection bottom) = state.Board.Adjacency.GetIntersections(road);
@@ -166,6 +167,7 @@ namespace Common.Actions
             bool hasBottomBuilding = bottom.Owner == PlayerIndex && bottom.Building != Intersection.BuildingType.None;
 
             bool hasDirectAdjBuilding = hasTopBuilding || hasBottomBuilding;
+            if (hasDirectAdjBuilding) return true;
 
             // Check if any of the intersections connect to roads of the player
             bool topBlocked = top.Owner != PlayerIndex && top.Building != Intersection.BuildingType.None;
@@ -195,8 +197,7 @@ namespace Common.Actions
             }
 
             bool hasDirectAdjRoad = (topHasAdjRoad && !topBlocked) || (bottomHasAdjRoad && !bottomBlocked);
-
-            return spaceFree && canAfford && (hasDirectAdjBuilding || hasDirectAdjRoad);
+            return hasDirectAdjRoad;
         }
 
         public bool HasHistory()

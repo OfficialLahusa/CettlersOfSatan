@@ -168,9 +168,9 @@ namespace Common.Actions
         {
             Intersection intersection = state.Board.Intersections[IntersectionIndex];
 
-            // Can afford
             bool spaceFree = intersection.Building == Intersection.BuildingType.None;
             bool canAfford = state.Players[PlayerIndex].CanAffordSettlement();
+            if (!spaceFree || !canAfford) return false;
 
             // Has adjacent road
             bool hasAdjacentRoad = false;
@@ -190,7 +190,7 @@ namespace Common.Actions
                 }
             }
 
-            return spaceFree && canAfford && hasAdjacentRoad && !hasAdjacentSettlement;
+            return hasAdjacentRoad && !hasAdjacentSettlement;
         }
 
         public bool HasHistory()
