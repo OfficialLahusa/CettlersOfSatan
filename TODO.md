@@ -2,6 +2,7 @@
 - Branching Factor Histogramm aus Playouts generieren
 - Widget für Kartenanzahlen der anderen Spieler (Typ unbekannt)
 - RoadAction.GetActionsForState optimieren (derzeit sehr ineffizient)
+    - Caching von Intersection/Edge Ownership (maybe in PlayerState?)
 - Observation Filter (Agents nur die für sie sichtbaren Informationen geben)
 	- Von Robber gestohlene Karten
 	- Gezogene Development Cards
