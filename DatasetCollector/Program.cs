@@ -1,0 +1,30 @@
+﻿namespace DatasetCollector
+{
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            Console.WriteLine("CettlersOfSatan Dataset Collector");
+            Console.WriteLine("=================================");
+
+            uint threadCount = ReadDefaultedUInt32("Thread count", (uint)(Environment.ProcessorCount / 2));
+            uint matchCount = ReadDefaultedUInt32("Match count", 100u);
+            uint samplesPerMatch = ReadDefaultedUInt32("Samples per match", 5u);
+            uint playoutsPerSample = ReadDefaultedUInt32("Playouts per sample", 1000u);
+
+            DatasetCollector collector = new DatasetCollector(threadCount, matchCount, samplesPerMatch, playoutsPerSample);
+            collector.Collect();
+        }
+
+        private static uint ReadDefaultedUInt32(string prompt, uint defaultValue)
+        {
+            Console.Write($"{prompt} (default {defaultValue}): ");
+            string? input = Console.ReadLine();
+            if (string.IsNullOrEmpty(input))
+            {
+                return defaultValue;
+            }
+            return Convert.ToUInt32(input);
+        }
+    }
+}
