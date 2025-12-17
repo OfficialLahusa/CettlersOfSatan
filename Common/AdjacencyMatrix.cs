@@ -174,9 +174,12 @@ namespace Common
             Edges = board.Edges;
         }
 
+        /// <summary>
+        /// Fill all caches by precomputing retrieval results
+        /// </summary>
         public void PrecomputeAll()
         {
-            // Fill all caches by precomputing retrieval results
+            
             for (int edgeIdx = 0; edgeIdx < Edges.Count; edgeIdx++)
             {
                 _ = GetIntersections(Edges[edgeIdx]);
