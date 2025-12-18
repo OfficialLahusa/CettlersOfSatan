@@ -5,11 +5,11 @@ namespace Common
 {
     public static class Utils
     {
-        public static Random Random;
+        public static ThreadSafeRandom Random;
 
         static Utils()
         {
-            Random = new Random();
+            Random = new ThreadSafeRandom();
         }
 
         // Fisher-Yates Shuffle
