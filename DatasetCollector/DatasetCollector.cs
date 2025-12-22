@@ -13,6 +13,8 @@ namespace DatasetCollector
 {
     public class DatasetCollector
     {
+        private const uint UNWINNABLE_ROUND_THRESHOLD = 50_000;
+
         private readonly uint _threadCount;
         private readonly uint _matchCount;
         private readonly uint _samplesPerMatch;
@@ -83,6 +85,14 @@ namespace DatasetCollector
             GameState playState = new GameState(_baseState);
             while (!playState.HasEnded)
             {
+                // Terminate unwinnable rounds and retry
+                if (playState.Turn.RoundCounter >= UNWINNABLE_ROUND_THRESHOLD)
+                {
+                    Console.WriteLine($"\nTerminating unwinnable match (idx {matchIdx}) after {playState.Turn.RoundCounter} rounds. Retrying.\n");
+                    CollectMatch(matchIdx);
+                    return;
+                }
+
                 // Find first player that is allowed to act on state
                 int? actingPlayerIdx = null;
                 for (int playerIdx = 0; playerIdx < PLAYER_COUNT; playerIdx++)
@@ -119,16 +129,10 @@ namespace DatasetCollector
 
             sampleIndices.UnionWith(possibleSampleIndices.Take(remainingSampleCount));
 
-            /*foreach (int sampleIdx in sampleIndices)
-            {
-                Console.Write(sampleIdx.ToString() + " ");
-            }
-            Console.WriteLine();*/
-
             // States bei den gegebenen Indices kopieren und sammeln
             playState = new GameState(_baseState);
             Stack<Action> replayActions = new(_playedActions);
-            List<GameState> statesToSample = [new GameState(playState)];
+            List<(GameState, Stack<Action>)> statesToSample = [(new GameState(playState), new (_playedActions.Reverse()))];
             int stateIdx = 0;
 
             while (!playState.HasEnded)
@@ -140,21 +144,22 @@ namespace DatasetCollector
 
                 // Apply action to state
                 playedAction.Apply(playState);
+                _playedActions.Push(playedAction);
 
                 stateIdx++;
 
                 if (sampleIndices.Contains(stateIdx))
                 {
-                    statesToSample.Add(new GameState(playState));
+                    statesToSample.Add((new GameState(playState), new(_playedActions.Reverse())));
                 }
             }
 
             // Dann für diese States jeweils die gegebene Anzahl Playouts parallel spielen und Input sowie normalisierten Output als Dateien speichern
             int sampleRunIdx = 0;
-            foreach (GameState sampleState in statesToSample)
+            foreach ((GameState sampleState, Stack<Action> samplePlayedActions) in statesToSample)
             {
                 Console.Write($"\x000DMatch {matchIdx + 1}/{_matchCount}, Sample {sampleRunIdx+1}/{_samplesPerMatch}                                 ");
-                CollectSample(sampleState, new(_playedActions.Reverse()), matchIdx, sampleRunIdx).GetAwaiter().GetResult();
+                CollectSample(sampleState, new(samplePlayedActions.Reverse()), matchIdx, sampleRunIdx).GetAwaiter().GetResult();
                 sampleRunIdx++;
             }
         }
@@ -187,7 +192,8 @@ namespace DatasetCollector
 
                         DateTime playoutStartTime = DateTime.Now;
 
-                        while (!simState.HasEnded)
+                        // Play until game has ended or unwinnable round threshold is reached
+                        while (!simState.HasEnded && simState.Turn.RoundCounter < UNWINNABLE_ROUND_THRESHOLD)
                         {
                             // Find first player that is allowed to act on state
                             sbyte? actingPlayerIdx = null;
@@ -212,17 +218,19 @@ namespace DatasetCollector
                             if (DateTime.Now - playoutStartTime > TimeSpan.FromSeconds(5))
                             {
                                 Console.WriteLine($"\nPlayout {runIdx} on thread {Thread.CurrentThread.ManagedThreadId} took too long. Saving state and aborting.");
-                                string dumpName = $"error_r{roundIdx}_s{sampleIdx}_p{runIdx}_thread{Thread.CurrentThread.ManagedThreadId}";
+                                string dumpName = $"error_r{roundIdx}_s{sampleIdx}_p{runIdx}_thread{Thread.CurrentThread.ManagedThreadId}.yaml";
                                 SaveFile dumpFile = new SaveFile(simState, playoutActions.Reverse().ToList(), []);
                                 string dumpData = SaveFileSerializer.Serialize(dumpFile);
-                                File.WriteAllText(Path.Combine(_stateDirectory, dumpName + "_dump.yaml"), dumpData);
+                                File.WriteAllText(dumpName, dumpData);
 
-                                Console.WriteLine($"Dumped state to {dumpName}_dump.yaml");
-                                Console.WriteLine("\n");
+                                Console.WriteLine($"Dumped state to {dumpName}\n\n");
 
                                 break;
                             }
                         }
+
+                        // If the playout was aborted due to timeout, don't collect a result
+                        if (simState.HasEnded) break;
 
                         // Since players can only win on their own turn, the winner is the current turn player
                         int winnerIdx = simState.Turn.PlayerIndex;
@@ -268,14 +276,6 @@ namespace DatasetCollector
                 }
             }
 
-            //double totalSeconds = (DateTime.Now - startTime).TotalSeconds;
-            /*Console.WriteLine($"All playouts completed in {totalSeconds} seconds ({_playoutsPerSample / totalSeconds:n1}/s, {_playoutsPerSample / totalSeconds / _threadCount:n1}/s per thread).");
-
-            for (int i = 0; i < PLAYER_COUNT; i++)
-            {
-                Console.WriteLine($"Player {i} won {timesWon[i]:n0} times ({(float)timesWon[i] / _playoutsPerSample:P2})");
-            }*/
-
             // Write GameState to file
             string sampleName = $"r{roundIdx}_s{sampleIdx}";
             SaveFile saveFile = new SaveFile(sampleState, previousActions.Reverse().ToList(), []);
@@ -284,9 +284,10 @@ namespace DatasetCollector
 
             // Write evaluation to file
             double[] normalizedEvaluation = new double[PLAYER_COUNT];
+            int evalSum = timesWon.Sum();
             for (int i = 0; i < normalizedEvaluation.Length; i++)
             {
-                normalizedEvaluation[i] = (double)timesWon[i]/_playoutsPerSample;
+                normalizedEvaluation[i] = (double)timesWon[i] / evalSum;
             }
 
             StringBuilder evalStringBuilder = new StringBuilder();

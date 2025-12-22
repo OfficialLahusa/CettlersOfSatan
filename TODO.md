@@ -1,5 +1,3 @@
-- Edge Cases für nicht gewinnbare States behandeln
-- Richtige PlayedActions bei der Dataset Collection übergeben (anstatt immer geteilte)
 - Early Return in Action Validation Checks einbauen, um so früh wie möglich zu failen
 - Branching Factor Histogramm aus Playouts generieren
 - Widget für Kartenanzahlen der anderen Spieler (Typ unbekannt)
