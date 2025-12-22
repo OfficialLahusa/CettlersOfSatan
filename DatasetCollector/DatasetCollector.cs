@@ -174,44 +174,73 @@ namespace DatasetCollector
             for (int i = 0; i < PLAYER_COUNT; i++)
                 timesWon.Add(0);
 
+            ConcurrentBag<Exception> workerExceptions = new ConcurrentBag<Exception>();
+
             System.Action doPlayout = () =>
             {
                 while (runs.TryDequeue(out int runIdx))
                 {
-                    GameState simState = new GameState(sampleState);
-
-                    while (!simState.HasEnded)
+                    try
                     {
-                        // Find first player that is allowed to act on state
-                        sbyte? actingPlayerIdx = null;
-                        for (sbyte playerIdx = 0; playerIdx < PLAYER_COUNT; playerIdx++)
+                        GameState simState = new GameState(sampleState);
+                        Stack<Action> playoutActions = new Stack<Action>();
+
+                        DateTime playoutStartTime = DateTime.Now;
+
+                        while (!simState.HasEnded)
                         {
-                            if (simState.CanPlayerAct(playerIdx))
+                            // Find first player that is allowed to act on state
+                            sbyte? actingPlayerIdx = null;
+                            for (sbyte playerIdx = 0; playerIdx < PLAYER_COUNT; playerIdx++)
                             {
-                                actingPlayerIdx = playerIdx;
+                                if (simState.CanPlayerAct(playerIdx))
+                                {
+                                    actingPlayerIdx = playerIdx;
+                                    break;
+                                }
+                            }
+
+                            if (!actingPlayerIdx.HasValue) throw new InvalidOperationException();
+
+                            // Pick action
+                            Action playedAction = _agents[actingPlayerIdx.Value].Act(simState);
+
+                            // Apply action to state
+                            playedAction.Apply(simState);
+                            playoutActions.Push(playedAction);
+
+                            if (DateTime.Now - playoutStartTime > TimeSpan.FromSeconds(5))
+                            {
+                                Console.WriteLine($"\nPlayout {runIdx} on thread {Thread.CurrentThread.ManagedThreadId} took too long. Saving state and aborting.");
+                                string dumpName = $"error_r{roundIdx}_s{sampleIdx}_p{runIdx}_thread{Thread.CurrentThread.ManagedThreadId}";
+                                SaveFile dumpFile = new SaveFile(simState, playoutActions.Reverse().ToList(), []);
+                                string dumpData = SaveFileSerializer.Serialize(dumpFile);
+                                File.WriteAllText(Path.Combine(_stateDirectory, dumpName + "_dump.yaml"), dumpData);
+
+                                Console.WriteLine($"Dumped state to {dumpName}_dump.yaml");
+                                Console.WriteLine("\n");
+
                                 break;
                             }
                         }
 
-                        if (!actingPlayerIdx.HasValue) throw new InvalidOperationException();
+                        // Since players can only win on their own turn, the winner is the current turn player
+                        int winnerIdx = simState.Turn.PlayerIndex;
 
-                        // Pick action
-                        Action playedAction = _agents[actingPlayerIdx.Value].Act(simState);
-
-                        // Apply action to state
-                        playedAction.Apply(simState);
+                        // Collect match result thread-safely
+                        lock (lockObj)
+                        {
+                            timesWon[winnerIdx]++;
+                        }
                     }
-
-                    // Since players can only win on their own turn, the winner is the current turn player
-                    int winnerIdx = simState.Turn.PlayerIndex;
-
-                    // Collect match result thread-safely
-                    lock (lockObj)
+                    catch (Exception e)
                     {
-                        timesWon[winnerIdx]++;
+                        workerExceptions.Add(e);
                     }
-
-                    countdown.Signal();
+                    finally
+                    {
+                        countdown.Signal();
+                    }
                 }
             };
 
@@ -226,6 +255,18 @@ namespace DatasetCollector
 
             // Not strictly necessary, but ensures all tasks are complete
             await Task.WhenAll(tasks);
+
+            countdown.Dispose();
+
+            if (!workerExceptions.IsEmpty)
+            {
+                Console.WriteLine($"\n\nWarning: {workerExceptions.Count} playout(s) threw exceptions:");
+                foreach (var e in workerExceptions)
+                {
+                    Console.WriteLine(e.ToString());
+                    break;
+                }
+            }
 
             //double totalSeconds = (DateTime.Now - startTime).TotalSeconds;
             /*Console.WriteLine($"All playouts completed in {totalSeconds} seconds ({_playoutsPerSample / totalSeconds:n1}/s, {_playoutsPerSample / totalSeconds / _threadCount:n1}/s per thread).");
