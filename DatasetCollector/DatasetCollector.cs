@@ -159,7 +159,7 @@ namespace DatasetCollector
             foreach ((GameState sampleState, Stack<Action> samplePlayedActions) in statesToSample)
             {
                 Console.Write($"\x000DMatch {matchIdx + 1}/{_matchCount}, Sample {sampleRunIdx+1}/{_samplesPerMatch}                                 ");
-                CollectSample(sampleState, new(samplePlayedActions.Reverse()), matchIdx, sampleRunIdx).GetAwaiter().GetResult();
+                CollectSample(sampleState, samplePlayedActions, matchIdx, sampleRunIdx).GetAwaiter().GetResult();
                 sampleRunIdx++;
             }
         }
