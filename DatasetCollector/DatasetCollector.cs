@@ -188,9 +188,6 @@ namespace DatasetCollector
                     try
                     {
                         GameState simState = new GameState(sampleState);
-                        Stack<Action> playoutActions = new Stack<Action>();
-
-                        DateTime playoutStartTime = DateTime.Now;
 
                         // Play until game has ended or unwinnable round threshold is reached
                         while (!simState.HasEnded && simState.Turn.RoundCounter < UNWINNABLE_ROUND_THRESHOLD)
@@ -213,24 +210,10 @@ namespace DatasetCollector
 
                             // Apply action to state
                             playedAction.Apply(simState);
-                            playoutActions.Push(playedAction);
-
-                            if (DateTime.Now - playoutStartTime > TimeSpan.FromSeconds(5))
-                            {
-                                Console.WriteLine($"\nPlayout {runIdx} on thread {Thread.CurrentThread.ManagedThreadId} took too long. Saving state and aborting.");
-                                string dumpName = $"error_r{roundIdx}_s{sampleIdx}_p{runIdx}_thread{Thread.CurrentThread.ManagedThreadId}.yaml";
-                                SaveFile dumpFile = new SaveFile(simState, playoutActions.Reverse().ToList(), []);
-                                string dumpData = SaveFileSerializer.Serialize(dumpFile);
-                                File.WriteAllText(dumpName, dumpData);
-
-                                Console.WriteLine($"Dumped state to {dumpName}\n\n");
-
-                                break;
-                            }
                         }
 
                         // If the playout was aborted due to timeout, don't collect a result
-                        if (simState.HasEnded) break;
+                        if (!simState.HasEnded) break;
 
                         // Since players can only win on their own turn, the winner is the current turn player
                         int winnerIdx = simState.Turn.PlayerIndex;
