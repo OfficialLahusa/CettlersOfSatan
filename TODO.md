@@ -42,6 +42,7 @@
 	- Variable Baumtiefe?
 - AlphaBetaAgent
 - MCTSAgent
+	- Netzwerkarchitektur für State Value: Papadam, Chalkiadakis: "Adversarial Search and Deep Learning for Strategic Settlement Placement in the “Settlers of Catan”"
 	- NN für Bewertung von Intersections und Discards als Zusatz
     - nn.Embedding für kategorische Inputs (jeweils eins pro Art)
     - Data Loading Implementation: https://docs.pytorch.org/tutorials/beginner/data_loading_tutorial.html
