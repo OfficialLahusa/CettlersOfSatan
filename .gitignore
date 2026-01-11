@@ -398,3 +398,4 @@ FodyWeavers.xsd
 *.sln.iml
 /Client/res/CasinoSFX
 /Client/res/Swoshes
+/DatasetProcessing/env
