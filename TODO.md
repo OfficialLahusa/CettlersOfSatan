@@ -56,6 +56,7 @@
     - https://github.com/moserware/Skills/blob/master/Skills/Team.cs
 	- https://trueskill.org/
 - Tabletalking über LLMs
+	- Source: Martinenghi et al.: "LLMs of Catan: Exploring Pragmatic Capabilities of Generative Chatbots Through Prediction and Classification of Dialogue Acts in Boardgames’ Multi-party Dialogues"
 	- Zusätzlich zu Value Functions von einem Basisbot
 	- Self-Hosted oder API?
 	- Playouts gegeneinander ohne Supervision
