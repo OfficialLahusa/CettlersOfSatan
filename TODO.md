@@ -52,6 +52,7 @@
 	- Besseres Interface für Bank/Port Trades implementieren (Dropdown für Zielressource)
 - Serialization
 	- Packets über Netzwerk
+- Static Analysis und Visualization Inspo: https://www.reddit.com/r/Catan/s/0WyS2UbGAX
 - Ranking System
     - https://github.com/EbTech/Elo-MMR
     - https://github.com/moserware/Skills/blob/master/Skills/Team.cs
