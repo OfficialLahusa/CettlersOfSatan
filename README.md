@@ -1,4 +1,4 @@
-# CettlersOfSatan
+# CatanSim
 Online multiplayer colonization game and AI playground.
 
 # Credits
